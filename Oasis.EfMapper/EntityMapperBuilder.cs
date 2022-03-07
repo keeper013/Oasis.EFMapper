@@ -1,0 +1,133 @@
+﻿namespace Oasis.EfMapper;
+
+using System.Reflection;
+using System.Reflection.Emit;
+
+internal sealed class EntityMapperBuilder : IEntityMapperBuilder
+{
+    private const char MapScalarPropertiesMethod = 's';
+    private const char MapListPropertiesMethod = 'l';
+    private const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
+    private const BindingFlags PublicStatic = BindingFlags.Public | BindingFlags.Static;
+    private static readonly MethodInfo StringEquals = typeof(string).GetMethod("Equals", PublicStatic, new[] { typeof(string), typeof(string) })!;
+
+    private readonly TypeBuilder _typeBuilder;
+    private readonly IDictionary<Type, IDictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, IDictionary<Type, MapperMetaDataSet>>();
+
+    public EntityMapperBuilder(string assemblyName)
+    {
+        var name = new AssemblyName($"{assemblyName}.Oasis.EfMapper.Generated");
+        var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
+        var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
+        _typeBuilder = module.DefineType("Mapper", TypeAttributes.Public);
+    }
+
+    public IEntityMapper Build()
+    {
+        var type = _typeBuilder.CreateType();
+        var mapper = new Dictionary<Type, IReadOnlyDictionary<Type, MapperSet>>();
+        foreach (var pair in _mapper)
+        {
+            var innerMapper = new Dictionary<Type, MapperSet>();
+            foreach (var innerPair in pair.Value)
+            {
+                var mapperMetaDataSet = innerPair.Value;
+                var mapperSet = new MapperSet(
+                    Delegate.CreateDelegate(mapperMetaDataSet.ScalarPropertiesMapper.Type, type!.GetMethod(mapperMetaDataSet.ScalarPropertiesMapper.Name)!),
+                    Delegate.CreateDelegate(mapperMetaDataSet.ListPropertiesMapper.Type, type!.GetMethod(mapperMetaDataSet.ListPropertiesMapper.Name)!));
+                innerMapper.Add(innerPair.Key, mapperSet);
+            }
+
+            mapper.Add(pair.Key, innerMapper);
+        }
+
+        return new EntityMapper(mapper);
+    }
+
+    void IEntityMapperBuilder.Register<TSource, TTarget>()
+    {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        if (!_mapper.TryGetValue(sourceType, out var innerDictionary))
+        {
+            innerDictionary = new Dictionary<Type, MapperMetaDataSet>();
+            _mapper[sourceType] = innerDictionary;
+        }
+
+        if (!innerDictionary.ContainsKey(targetType))
+        {
+            innerDictionary[targetType] = new MapperMetaDataSet(
+                BuildUpScalarPropertiesMapperMethod<TSource, TTarget>(),
+                BuildUpListPropertiesMapperMethod<TSource, TTarget>());
+        }
+    }
+
+    private static string BuildMethodName(char type, Type sourceType, Type targetType)
+    {
+        return $"_{type}_{sourceType.FullName!.Replace(".", "_")}__To__{targetType.FullName!.Replace(".", "_")}";
+    }
+
+    private MapperMetaData BuildUpScalarPropertiesMapperMethod<TSource, TTarget>()
+        where TSource : class, IEntityBase
+        where TTarget : class, IEntityBase
+    {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+
+        var method = InitializeDynamicMethod(sourceType, targetType, MapScalarPropertiesMethod, new[] { sourceType, targetType });
+        FillScalarPropertiesMapper(method.GetILGenerator(), sourceType, targetType);
+        
+        return new MapperMetaData(typeof(Utilities.MapScalarProperties<TSource, TTarget>), method.Name);
+    }
+
+    private MapperMetaData BuildUpListPropertiesMapperMethod<TSource, TTarget>()
+        where TSource : class, IEntityBase
+        where TTarget : class, IEntityBase
+    {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+
+        var method = InitializeDynamicMethod(sourceType, targetType, MapListPropertiesMethod, new[] { sourceType, targetType, typeof(MappingContext) });
+        FillListPropertiesMapper(method.GetILGenerator(), sourceType, targetType);
+
+        return new MapperMetaData(typeof(Utilities.MapListProperties<TSource, TTarget>), method.Name);
+    }
+
+    private MethodBuilder InitializeDynamicMethod(Type sourceType, Type targetType, char type, Type[] parameterTypes)
+    {
+        var methodName = BuildMethodName(type, sourceType, targetType);
+        var methodBuilder = _typeBuilder.DefineMethod(methodName, MethodAttributes.Public | MethodAttributes.Static);
+        methodBuilder.SetParameters(parameterTypes);
+        methodBuilder.SetReturnType(typeof(void));
+
+        return methodBuilder;
+    }
+
+    private static void FillScalarPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
+    {
+        var sourceProperties = sourceType.GetProperties(PublicInstance).Where(f => f.PropertyType.IsValueType || f.PropertyType == typeof(string));
+        var targetProperties = targetType.GetProperties(PublicInstance).Where(f => f.PropertyType.IsValueType || f.PropertyType == typeof(string)).ToDictionary(p => p.Name, p => p);
+
+        foreach (var sourceProperty in sourceProperties)
+        {
+            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty) && targetProperty.PropertyType == sourceProperty.PropertyType)
+            {
+                generator.Emit(OpCodes.Ldarg_1);
+                generator.Emit(OpCodes.Ldarg_0);
+                generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+                generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
+            }
+        }
+
+        generator.Emit(OpCodes.Ret);
+    }
+
+    private static void FillListPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
+    {
+        generator.Emit(OpCodes.Ret);
+    }
+
+    private record struct MapperMetaData(Type Type, string Name);
+
+    private record struct MapperMetaDataSet(MapperMetaData ScalarPropertiesMapper, MapperMetaData ListPropertiesMapper);
+}

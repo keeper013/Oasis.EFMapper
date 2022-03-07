@@ -1,0 +1,10 @@
+*.suo
+bin
+obj
+packages
+*.log
+*.user
+*.ide
+applicationhost.config
+.vs
+.vscode
