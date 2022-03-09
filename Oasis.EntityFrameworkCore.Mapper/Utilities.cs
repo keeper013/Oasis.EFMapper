@@ -1,7 +1,7 @@
-﻿using Oasis.EfMapper.Exceptions;
+﻿using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Reflection;
 
-namespace Oasis.EfMapper;
+namespace Oasis.EntityFrameworkCore.Mapper;
 
 public static class Utilities
 {

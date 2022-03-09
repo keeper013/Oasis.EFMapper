@@ -1,4 +1,4 @@
-﻿namespace Oasis.EfMapper.Test;
+﻿namespace Oasis.EntityFrameworkCore.Mapper.Test;
 
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,5 +12,11 @@ internal class DatabaseContext : DbContext
 
     protected DatabaseContext()
     {
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // TODO: refine this part
+        modelBuilder.Entity<ScalarClass1>().ToTable("ScalarClass1");
     }
 }

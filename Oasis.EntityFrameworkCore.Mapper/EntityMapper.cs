@@ -1,7 +1,7 @@
-﻿namespace Oasis.EfMapper;
+﻿namespace Oasis.EntityFrameworkCore.Mapper;
 
 using Microsoft.EntityFrameworkCore;
-using Oasis.EfMapper.Exceptions;
+using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Linq;
 
 internal sealed class EntityMapper : IEntityMapper

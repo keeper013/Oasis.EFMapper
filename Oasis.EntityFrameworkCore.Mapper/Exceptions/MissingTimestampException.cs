@@ -1,4 +1,4 @@
-﻿namespace Oasis.EfMapper.Exceptions;
+﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
 public sealed class MissingTimestampException : Exception
 {

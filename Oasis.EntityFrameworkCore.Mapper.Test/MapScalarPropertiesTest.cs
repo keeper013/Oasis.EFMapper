@@ -1,4 +1,4 @@
-namespace Oasis.EfMapper.Test;
+namespace Oasis.EntityFrameworkCore.Mapper.Test;
 
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ public class MapScalarPropertiesTest
     public void MapScalarProperties_ValidProperties_ShouldBeMapped()
     {
         // arrange
-        var factory = new EfMapperFactory();
+        var factory = new MapperFactory();
         var mapperBuilder = factory.Make(this.GetType().Name);
         mapperBuilder.Register<ScalarClass1, ScalarClass2>();
         var mapper = mapperBuilder.Build();
@@ -43,7 +43,7 @@ public class MapScalarPropertiesTest
     public void MapScalarProperties_InvalidProperties_ShouldNotBeMapped()
     {
         // arrange
-        var factory = new EfMapperFactory();
+        var factory = new MapperFactory();
         var mapperBuilder = factory.Make(this.GetType().Name);
         mapperBuilder.Register<ScalarClass3, ScalarClass2>();
         var mapper = mapperBuilder.Build();
@@ -61,11 +61,15 @@ public class MapScalarPropertiesTest
     }
 
     [Fact]
-    public void MapScalarProperties_ICollectionProperties_NewElementShouldBeAdded()
+    public void MapListProperties_ICollection_NewElementShouldBeAdded()
     {
-        var factory = new EfMapperFactory();
+        var factory = new MapperFactory();
         var mapperBuilder = factory.Make(this.GetType().Name);
         mapperBuilder.Register<CollectionClass1, CollectionClass2>();
+
+        // TODO: shouldn't need to call this when cascade register is implemented
+        // TODO: should work for ScalarClass1 to map ScalarClass2
+        mapperBuilder.Register<ScalarClass1, ScalarClass1>();
         var mapper = mapperBuilder.Build();
 
         var cc1 = new CollectionClass1(1, 1,
@@ -77,6 +81,7 @@ public class MapScalarPropertiesTest
         var cc2 = new CollectionClass2(1);
 
         mapper.Map(cc1, cc2, _dbContext);
+
         Assert.Equal(1, cc2.IntProp);
         Assert.NotNull(cc2.Scs1);
         Assert.Equal(2, cc2.Scs1!.Count);
@@ -86,9 +91,9 @@ public class MapScalarPropertiesTest
         Assert.Equal("3", item0.StringProp);
         Assert.Equal(cc1.Scs1!.ElementAt(0).ByteArrayProp, cc2.Scs1.ElementAt(0).ByteArrayProp);
         var item1 = cc2.Scs1.ElementAt(1);
-        Assert.Equal(2, item0.IntProp);
-        Assert.Null(item0.LongNullableProp);
-        Assert.Equal("4", item0.StringProp);
+        Assert.Equal(2, item1.IntProp);
+        Assert.Null(item1.LongNullableProp);
+        Assert.Equal("4", item1.StringProp);
         Assert.Equal(cc1.Scs1!.ElementAt(1).ByteArrayProp, cc2.Scs1.ElementAt(1).ByteArrayProp);
     }
 }
@@ -223,7 +228,7 @@ public sealed class CollectionClass2 : EntityBase
         Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
     }
 
-    public CollectionClass2(long? id, int intProp, ICollection<ScalarClass2> scs1)
+    public CollectionClass2(long? id, int intProp, ICollection<ScalarClass1> scs1)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
@@ -233,5 +238,5 @@ public sealed class CollectionClass2 : EntityBase
 
     public int IntProp { get; set; }
 
-    public ICollection<ScalarClass2>? Scs1 { get; set; }
+    public ICollection<ScalarClass1>? Scs1 { get; set; }
 }

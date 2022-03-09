@@ -1,4 +1,4 @@
-﻿namespace Oasis.EfMapper;
+﻿namespace Oasis.EntityFrameworkCore.Mapper;
 
 using System.Reflection;
 using System.Reflection.Emit;
@@ -17,7 +17,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
 
     public EntityMapperBuilder(string assemblyName)
     {
-        var name = new AssemblyName($"{assemblyName}.Oasis.EfMapper.Generated");
+        var name = new AssemblyName($"{assemblyName}.Oasis.EntityFrameworkCore.Mapper.Generated");
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
         _typeBuilder = module.DefineType("Mapper", TypeAttributes.Public);

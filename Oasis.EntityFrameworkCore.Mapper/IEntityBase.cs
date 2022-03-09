@@ -1,4 +1,4 @@
-﻿namespace Oasis.EfMapper;
+﻿namespace Oasis.EntityFrameworkCore.Mapper;
 
 public interface IEntityBase
 {

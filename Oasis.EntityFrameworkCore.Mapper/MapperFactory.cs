@@ -1,6 +1,6 @@
-﻿namespace Oasis.EfMapper;
+﻿namespace Oasis.EntityFrameworkCore.Mapper;
 
-public class EfMapperFactory : IEfMapperFactory
+public class MapperFactory : IMapperFactory
 {
     public IEntityMapperBuilder Make(string assemblyName)
     {

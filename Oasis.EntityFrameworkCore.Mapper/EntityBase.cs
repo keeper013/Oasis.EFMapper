@@ -1,4 +1,4 @@
-﻿namespace Oasis.EfMapper;
+﻿namespace Oasis.EntityFrameworkCore.Mapper;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
