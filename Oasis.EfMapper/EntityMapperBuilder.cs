@@ -9,10 +9,11 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
     private const char MapListPropertiesMethod = 'l';
     private const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
     private const BindingFlags PublicStatic = BindingFlags.Public | BindingFlags.Static;
-    private static readonly MethodInfo StringEquals = typeof(string).GetMethod("Equals", PublicStatic, new[] { typeof(string), typeof(string) })!;
+    private static readonly MethodInfo MapListProperty = typeof(Utilities).GetMethod("MapListProperty", PublicStatic)!;
 
     private readonly TypeBuilder _typeBuilder;
     private readonly IDictionary<Type, IDictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, IDictionary<Type, MapperMetaDataSet>>();
+    private readonly IDictionary<Type, IDictionary<Type, MethodInfo>> _listPropertyMapper = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
 
     public EntityMapperBuilder(string assemblyName)
     {
@@ -103,10 +104,10 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         return methodBuilder;
     }
 
-    private static void FillScalarPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
+    private void FillScalarPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
     {
-        var sourceProperties = sourceType.GetProperties(PublicInstance).Where(f => f.PropertyType.IsValueType || f.PropertyType == typeof(string));
-        var targetProperties = targetType.GetProperties(PublicInstance).Where(f => f.PropertyType.IsValueType || f.PropertyType == typeof(string)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = sourceType.GetProperties(PublicInstance).Where(p => p.IsScalarType(true, false));
+        var targetProperties = targetType.GetProperties(PublicInstance).Where(p => p.IsScalarType(true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
@@ -122,9 +123,53 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         generator.Emit(OpCodes.Ret);
     }
 
-    private static void FillListPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
+    private void FillListPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
     {
+        var sourceProperties = sourceType.GetProperties(PublicInstance).Where(p => p.IsListNavigationType(true, false));
+        var targetProperties = targetType.GetProperties(PublicInstance).Where(p => p.IsListNavigationType(true, true)).ToDictionary(p => p.Name, p => p);
+
+        foreach (var sourceProperty in sourceProperties)
+        {
+            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty) && targetProperty.PropertyType == sourceProperty.PropertyType)
+            {
+                generator.Emit(OpCodes.Ldarg_1); // IL_0000: ldarg.1
+                generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!); // IL_0001: callvirt instance class [System.Runtime] System.Collections.Generic.ICollection`1<class ValueAssignSample.Class22> ValueAssignSample.Class2::get_Cols1()
+                var jumpLabel = generator.DefineLabel();
+                generator.Emit(OpCodes.Brtrue_S, jumpLabel); // IL_0006:  brtrue.s   IL_0013
+                generator.Emit(OpCodes.Ldarg_1); // IL_0008:  ldarg.1
+                generator.Emit(OpCodes.Newobj, typeof(List<>).MakeGenericType(targetProperty.PropertyType.GetGenericArguments()).GetConstructor(Array.Empty<Type>())!); // IL_0009:  newobj     instance void class [System.Collections]System.Collections.Generic.List`1<class ValueAssignSample.Class22>::.ctor()
+                generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!); // IL_000e:  callvirt   instance void ValueAssignSample.Class2::set_Cols1(class [System.Runtime]System.Collections.Generic.ICollection`1<class ValueAssignSample.Class22>)
+                generator.MarkLabel(jumpLabel);
+                generator.Emit(OpCodes.Ldarg_0); // IL_0013:  ldarg.0
+                generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!); // IL_0014:  callvirt   instance class [System.Runtime]System.Collections.Generic.ICollection`1<class ValueAssignSample.Class11> ValueAssignSample.Class1::get_Cols1()
+                generator.Emit(OpCodes.Ldarg_1); // IL_0019:  ldarg.1
+                generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!); // IL_001a: callvirt instance class [System.Runtime] System.Collections.Generic.ICollection`1<class ValueAssignSample.Class22>
+                generator.Emit(OpCodes.Ldarg_2); // IL_001f:  ldarg.2
+                generator.Emit(OpCodes.Call, GetMapListPropertyMethod(sourceProperty.PropertyType, targetProperty.PropertyType));
+            }
+        }
+
         generator.Emit(OpCodes.Ret);
+    }
+
+    private MethodInfo GetMapListPropertyMethod(Type sourceType, Type targetType)
+    {
+        var sourceItemType = sourceType.GenericTypeArguments[0];
+        var targetItemType = targetType.GenericTypeArguments[0];
+
+        if (!_listPropertyMapper.TryGetValue(sourceItemType, out var innerDictionary))
+        {
+            innerDictionary = new Dictionary<Type, MethodInfo>();
+            _listPropertyMapper[sourceItemType] = innerDictionary;
+        }
+
+        if (!innerDictionary.TryGetValue(targetItemType, out var method))
+        {
+            method = MapListProperty.MakeGenericMethod(sourceItemType, targetItemType);
+            innerDictionary[targetItemType] = method;
+        }
+
+        return method;
     }
 
     private record struct MapperMetaData(Type Type, string Name);

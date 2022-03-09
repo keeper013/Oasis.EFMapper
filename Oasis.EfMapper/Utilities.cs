@@ -1,18 +1,21 @@
 ﻿using Oasis.EfMapper.Exceptions;
+using System.Reflection;
 
 namespace Oasis.EfMapper;
 
-internal static class Utilities
+public static class Utilities
 {
-    public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target)
+    private static readonly Type EntityBaseType = typeof(EntityBase);
+
+    internal delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase;
 
-    public delegate void MapListProperties<TSource, TTarget>(TSource source, TTarget target, MappingContext context)
+    internal delegate void MapListProperties<TSource, TTarget>(TSource source, TTarget target, MappingContext context)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase;
 
-    public static void RecursivelyMap<TSource, TTarget>(TSource source, TTarget target, MappingContext context)
+    internal static void RecursivelyMap<TSource, TTarget>(TSource source, TTarget target, MappingContext context)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase
     {
@@ -103,5 +106,27 @@ internal static class Utilities
             target.Remove(t);
             context.DbContext.Remove(t);
         }
+    }
+
+    internal static bool IsScalarType(this PropertyInfo prop, bool mustHaveGetter, bool mustHaveSetter)
+    {
+        const string NullableTypeName = "System.Nullable`1[[";
+        var type = prop.PropertyType;
+        var name = prop.Name;
+        return ((type.IsValueType && (type.IsPrimitive || (type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1) && type.GenericTypeArguments[0].IsPrimitive)) || type == typeof(string) || type == typeof(byte[]))
+            && (!mustHaveGetter || prop.GetMethod != null) && (!mustHaveSetter || prop.SetMethod != null)
+            && !string.Equals(name, nameof(EntityBase.Id)) && !string.Equals(name, nameof(EntityBase.Timestamp));
+    }
+
+    internal static bool IsListNavigationType(this PropertyInfo prop, bool mustHaveGetter, bool mustHaveSetter)
+    {
+        const string ICollectionTypeName = "System.Collections.Generic.ICollection`1[[";
+        const string IListTypeName = "System.Collections.Generic.IList`1[[";
+        const string ListTypeName = "System.Collections.Generic.List`1[[";
+        var type = prop.PropertyType;
+        var typeFullName = type.FullName;
+        return (typeFullName!.StartsWith(ICollectionTypeName) || typeFullName.StartsWith(IListTypeName) || typeFullName.StartsWith(ListTypeName))
+            && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments[0].IsSubclassOf(EntityBaseType)
+            && (!mustHaveGetter || prop.GetMethod != null) && (!mustHaveSetter || prop.SetMethod != null);
     }
 }

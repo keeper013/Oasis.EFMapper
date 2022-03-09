@@ -2,7 +2,7 @@
 
 using Microsoft.EntityFrameworkCore;
 
-internal class MappingContext
+public class MappingContext
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
 

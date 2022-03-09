@@ -1,6 +1,8 @@
 namespace Oasis.EfMapper.Test;
 
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 public class MapScalarPropertiesTest
@@ -17,122 +19,219 @@ public class MapScalarPropertiesTest
     }
 
     [Fact]
-    public void MapScalarProperties_ShouldWork()
+    public void MapScalarProperties_ValidProperties_ShouldBeMapped()
     {
         // arrange
         var factory = new EfMapperFactory();
         var mapperBuilder = factory.Make(this.GetType().Name);
-        mapperBuilder.Register<Class1, Class2>();
-        mapperBuilder.Register<Class2, Class3>();
-        mapperBuilder.Register<Class3, Class1>();
+        mapperBuilder.Register<ScalarClass1, ScalarClass2>();
         var mapper = mapperBuilder.Build();
 
-        var instance1_1 = InitializeClass1Instance();
-        var instance2_1 = InitializeClass2Instance();
-        mapper.Map(instance1_1, instance2_1, _dbContext);
+        var instance1 = new ScalarClass1(1, 1, 2, "3", new byte[] { 1, 2, 3 });
+        var instance2 = new ScalarClass2(1);
+
+        mapper.Map(instance1, instance2, _dbContext);
 
         // assert
-        Assert.Equal(instance1_1.X1, instance2_1.X1);
-        Assert.Equal(0, instance2_1.X2);
-        Assert.NotEqual(instance1_1.X3, instance2_1.X3);
-        Assert.Equal(instance1_1.Y1, instance2_1.Y1);
-        Assert.Equal("0", instance2_1.Y3);
-        Assert.Null(instance2_1.Z);
+        Assert.Equal(1, instance2.IntProp);
+        Assert.Equal(2, instance2.LongNullableProp);
+        Assert.Equal("3", instance2.StringProp);
+        Assert.Equal(instance1.ByteArrayProp, instance2.ByteArrayProp);
+    }
 
-        // act
-        var instance2_2 = InitializeClass2Instance();
-        var instance3_2 = InitializeClass3Instance();
-        mapper.Map<Class2, Class3>(instance2_2, instance3_2, _dbContext);
+    [Fact]
+    public void MapScalarProperties_InvalidProperties_ShouldNotBeMapped()
+    {
+        // arrange
+        var factory = new EfMapperFactory();
+        var mapperBuilder = factory.Make(this.GetType().Name);
+        mapperBuilder.Register<ScalarClass3, ScalarClass2>();
+        var mapper = mapperBuilder.Build();
+
+        var instance3 = new ScalarClass3(1, 1, 2, "3", new char[] { 'a', 'b', 'c' });
+        var instance2 = new ScalarClass2(1);
+
+        mapper.Map(instance3, instance2, _dbContext);
 
         // assert
-        Assert.Equal(instance2_2.Y3, instance3_2.Y3);
-        Assert.NotEqual(instance2_2.X3, instance3_2.X3);
-        Assert.Equal("21", instance3_2.Y2);
-
-        // act
-        var instance3_3 = InitializeClass3Instance();
-        var instance1_3 = InitializeClass1Instance();
-        mapper.Map<Class3, Class1>(instance3_3, instance1_3, _dbContext);
-
-        // assert
-        Assert.Equal(instance3_3.X3, instance1_3.X3);
-        Assert.Equal(instance3_3.Y2, instance1_3.Y2);
-        Assert.Equal(1, instance1_3.X1);
-        Assert.Equal("1", instance1_3.Y1);
-        Assert.Single(instance1_3.Z!);
+        Assert.Equal(0, instance2.IntProp);
+        Assert.Null(instance2.LongNullableProp);
+        Assert.Null(instance2.StringProp);
+        Assert.Null(instance2.ByteArrayProp);
     }
 
-    private Class1 InitializeClass1Instance()
+    [Fact]
+    public void MapScalarProperties_ICollectionProperties_NewElementShouldBeAdded()
     {
-        return new Class1
-        {
-            Id = 1,
-            X1 = 1,
-            X3 = 3,
-            Y1 = "1",
-            Y2 = "2",
-            Z = new byte[1],
-        };
-    }
+        var factory = new EfMapperFactory();
+        var mapperBuilder = factory.Make(this.GetType().Name);
+        mapperBuilder.Register<CollectionClass1, CollectionClass2>();
+        var mapper = mapperBuilder.Build();
 
-    private Class2 InitializeClass2Instance()
-    {
-        return new Class2
-        {
-            Id = 2,
-            X1 = 0,
-            X2 = 0,
-            X3 = 0,
-            Y1 = "0",
-            Y3 = "0",
-            Z = null,
-        };
-    }
+        var cc1 = new CollectionClass1(1, 1,
+            new List<ScalarClass1>
+            {
+                new ScalarClass1(null, 1, 2, "3", new byte[] { 1 }),
+                new ScalarClass1(null, 2, null, "4", new byte[] { 2, 3, 4 })
+            });
+        var cc2 = new CollectionClass2(1);
 
-    private Class3 InitializeClass3Instance()
-    {
-        return new Class3
-        {
-            X3 = 31,
-            Y2 = "21",
-            Y3 = "31",
-        };
+        mapper.Map(cc1, cc2, _dbContext);
+        Assert.Equal(1, cc2.IntProp);
+        Assert.NotNull(cc2.Scs1);
+        Assert.Equal(2, cc2.Scs1!.Count);
+        var item0 = cc2.Scs1.ElementAt(0);
+        Assert.Equal(1, item0.IntProp);
+        Assert.Equal(2, item0.LongNullableProp);
+        Assert.Equal("3", item0.StringProp);
+        Assert.Equal(cc1.Scs1!.ElementAt(0).ByteArrayProp, cc2.Scs1.ElementAt(0).ByteArrayProp);
+        var item1 = cc2.Scs1.ElementAt(1);
+        Assert.Equal(2, item0.IntProp);
+        Assert.Null(item0.LongNullableProp);
+        Assert.Equal("4", item0.StringProp);
+        Assert.Equal(cc1.Scs1!.ElementAt(1).ByteArrayProp, cc2.Scs1.ElementAt(1).ByteArrayProp);
     }
 }
 
-public sealed class Class1 : EntityBase
+public sealed class ScalarClass1 : EntityBase
 {
-    public int X1 { get; set; }
+    public ScalarClass1()
+    {
+    }
 
-    public int X3 { get; set; }
+    public ScalarClass1(long? id)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+    }
 
-    public string? Y1 { get; set; }
+    public ScalarClass1(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        IntProp = intProp;
+        LongNullableProp = longNullableProp;
+        StringProp = stringProp;
+        ByteArrayProp = byteArrayProp;
+    }
 
-    public string? Y2 { get; set; }
+    public int IntProp { get; set; }
 
-    public byte[]? Z { get; set; }
+    public long? LongNullableProp { get; set; }
+
+    public string? StringProp { get; set; }
+
+    public byte[]? ByteArrayProp { get; set; }
 }
 
-public sealed class Class2 : EntityBase
+public sealed class ScalarClass2 : EntityBase
 {
-    public int X1 { get; set; }
+    public ScalarClass2()
+    {
+    }
 
-    public int X2 { get; set; }
+    public ScalarClass2(long? id)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+    }
 
-    public long X3 { get; set; }
+    public ScalarClass2(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        IntProp = intProp;
+        LongNullableProp = longNullableProp;
+        StringProp = stringProp;
+        ByteArrayProp = byteArrayProp;
+    }
 
-    public string? Y1 { get; set; }
+    public int IntProp { get; set; }
 
-    public string? Y3 { get; set; }
+    public long? LongNullableProp { get; set; }
 
-    public byte[]? Z { get; set; }
+    public string? StringProp { get; set; }
+
+    public byte[]? ByteArrayProp { get; set; }
 }
 
-public class Class3 : EntityBase
+public sealed class ScalarClass3 : EntityBase
 {
-    public int X3 { get; set; }
+    public ScalarClass3()
+    {
+    }
 
-    public string? Y2 { get; set; }
+    public ScalarClass3(long? id)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+    }
 
-    public string? Y3 { get; set; }
+    public ScalarClass3(long? id, int? intProp, long longNullableProp, string stringProp, char[] byteArrayProp)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        IntProp = intProp;
+        LongNullableProp = longNullableProp;
+        StringProp1 = stringProp;
+        ByteArrayProp = byteArrayProp;
+    }
+
+    public int? IntProp { get; set; }
+
+    public long LongNullableProp { get; set; }
+
+    public string? StringProp1 { get; set; }
+
+    public char[]? ByteArrayProp { get; set; }
+}
+
+public sealed class CollectionClass1 : EntityBase
+{
+    public CollectionClass1()
+    {
+    }
+
+    public CollectionClass1(long? id)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+    }
+
+    public CollectionClass1(long? id, int intProp, ICollection<ScalarClass1> scs1)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        IntProp = intProp;
+        Scs1 = scs1;
+    }
+
+    public int IntProp { get; set; }
+
+    public ICollection<ScalarClass1>? Scs1 { get; set; }
+}
+
+public sealed class CollectionClass2 : EntityBase
+{
+    public CollectionClass2()
+    {
+    }
+
+    public CollectionClass2(long? id)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+    }
+
+    public CollectionClass2(long? id, int intProp, ICollection<ScalarClass2> scs1)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        IntProp = intProp;
+        Scs1 = scs1;
+    }
+
+    public int IntProp { get; set; }
+
+    public ICollection<ScalarClass2>? Scs1 { get; set; }
 }
