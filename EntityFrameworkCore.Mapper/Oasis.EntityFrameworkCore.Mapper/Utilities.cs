@@ -20,7 +20,7 @@ internal static class Utilities
         const string NullableTypeName = "System.Nullable`1[[";
         var type = prop.PropertyType;
         var name = prop.Name;
-        return ((type.IsValueType && (type.IsPrimitive || (type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1) && type.GenericTypeArguments[0].IsPrimitive)) || type == typeof(string) || type == typeof(byte[]))
+        return ((type.IsValueType && (type.IsPrimitive || ((type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1) && type.GenericTypeArguments[0].IsPrimitive))) || type == typeof(string) || type == typeof(byte[]))
             && (!mustHaveGetter || prop.GetMethod != null) && (!mustHaveSetter || prop.SetMethod != null)
             && !string.Equals(name, nameof(EntityBase.Id)) && !string.Equals(name, nameof(EntityBase.Timestamp));
     }
@@ -38,4 +38,4 @@ internal static class Utilities
     }
 }
 
-internal record struct MapperSet(Delegate ScalarPropertiesMapper, Delegate ListPropertiesMapper);
+internal record struct MapperSet(Delegate scalarPropertiesMapper, Delegate listPropertiesMapper);

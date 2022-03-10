@@ -10,60 +10,11 @@ internal class RecursiveMapper : IListPropertyMapper
     private readonly DbContext _dbContext;
 
     internal RecursiveMapper(
-        DbContext dbContext,
+        DbContext databaseContext,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
-        _dbContext = dbContext;
+        _dbContext = databaseContext;
         _mappers = mappers;
-    }
-
-    internal void Map<TSource, TTarget>(TSource source, TTarget target)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase
-    {
-        var targetType = typeof(TTarget);
-        var targetTypeHasMaps = _trackerDictionary.TryGetValue(targetType, out var tracker);
-        var targetAlreadyExists = target.Id.HasValue;
-        var targetIsMapped = targetTypeHasMaps && ((targetAlreadyExists && tracker!.IdSet.Contains(target.Id!.Value)) || (!targetAlreadyExists && tracker!.HashCodeSet.Contains(target.GetHashCode())));
-
-        // only do scalar property mapping if the target hasn't been mapped
-        if (targetIsMapped)
-        {
-            return;
-        }
-
-        MapperSet mapperSet = default;
-        var mapperSetFound = _mappers.TryGetValue(typeof(TSource), out var innerDictionary)
-            && innerDictionary.TryGetValue(typeof(TTarget), out mapperSet);
-        if (!mapperSetFound)
-        {
-            throw new ArgumentException($"Entity mapper from type {typeof(TSource)} to {targetType} hasn't been registered yet.");
-        }
-
-        ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.ScalarPropertiesMapper)(source, target);
-
-        // after scalar property mapping, add target as mapped, to break out from recursive situation
-        if (!targetTypeHasMaps)
-        {
-            tracker = new TargetTracker();
-        }
-
-        if (target.Id.HasValue)
-        {
-            tracker!.IdSet.Add(target.Id.Value);
-        }
-        else
-        {
-            tracker!.HashCodeSet.Add(target.GetHashCode());
-        }
-
-        if (!targetTypeHasMaps)
-        {
-            _trackerDictionary.Add(targetType, tracker);
-        }
-
-        // after target type is marked as mapped, go on to map collections
-        ((Utilities.MapListProperties<TSource, TTarget>)mapperSet.ListPropertiesMapper)(source, target, this);
     }
 
     void IListPropertyMapper.MapListProperty<TSource, TTarget>(ICollection<TSource> source, ICollection<TTarget> target)
@@ -107,6 +58,55 @@ internal class RecursiveMapper : IListPropertyMapper
             target.Remove(t);
             _dbContext.Set<TTarget>().Remove(t);
         }
+    }
+
+    internal void Map<TSource, TTarget>(TSource source, TTarget target)
+        where TSource : class, IEntityBase
+        where TTarget : class, IEntityBase
+    {
+        var targetType = typeof(TTarget);
+        var targetTypeHasMaps = _trackerDictionary.TryGetValue(targetType, out var tracker);
+        var targetAlreadyExists = target.Id.HasValue;
+        var targetIsMapped = targetTypeHasMaps && ((targetAlreadyExists && tracker!.IdSet.Contains(target.Id!.Value)) || (!targetAlreadyExists && tracker!.HashCodeSet.Contains(target.GetHashCode())));
+
+        // only do scalar property mapping if the target hasn't been mapped
+        if (targetIsMapped)
+        {
+            return;
+        }
+
+        MapperSet mapperSet = default;
+        var mapperSetFound = _mappers.TryGetValue(typeof(TSource), out var innerDictionary)
+            && innerDictionary.TryGetValue(typeof(TTarget), out mapperSet);
+        if (!mapperSetFound)
+        {
+            throw new ArgumentException($"Entity mapper from type {typeof(TSource)} to {targetType} hasn't been registered yet.");
+        }
+
+        ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.scalarPropertiesMapper)(source, target);
+
+        // after scalar property mapping, add target as mapped, to break out from recursive situation
+        if (!targetTypeHasMaps)
+        {
+            tracker = new TargetTracker();
+        }
+
+        if (target.Id.HasValue)
+        {
+            tracker!.IdSet.Add(target.Id.Value);
+        }
+        else
+        {
+            tracker!.HashCodeSet.Add(target.GetHashCode());
+        }
+
+        if (!targetTypeHasMaps)
+        {
+            _trackerDictionary.Add(targetType, tracker);
+        }
+
+        // after target type is marked as mapped, go on to map collections
+        ((Utilities.MapListProperties<TSource, TTarget>)mapperSet.listPropertiesMapper)(source, target, this);
     }
 
     private class TargetTracker

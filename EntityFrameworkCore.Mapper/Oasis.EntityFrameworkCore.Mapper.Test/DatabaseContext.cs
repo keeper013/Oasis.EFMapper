@@ -9,7 +9,8 @@ internal class DatabaseContext : DbContext
 
     public static readonly byte[] ChangedTimeStamp1 = new byte[] { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-    public DatabaseContext(DbContextOptions options) : base(options)
+    public DatabaseContext(DbContextOptions options)
+        : base(options)
     {
     }
 

@@ -33,8 +33,8 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
             {
                 var mapperMetaDataSet = innerPair.Value;
                 var mapperSet = new MapperSet(
-                    Delegate.CreateDelegate(mapperMetaDataSet.ScalarPropertiesMapper.Type, type!.GetMethod(mapperMetaDataSet.ScalarPropertiesMapper.Name)!),
-                    Delegate.CreateDelegate(mapperMetaDataSet.ListPropertiesMapper.Type, type!.GetMethod(mapperMetaDataSet.ListPropertiesMapper.Name)!));
+                    Delegate.CreateDelegate(mapperMetaDataSet.scalarPropertiesMapper.type, type!.GetMethod(mapperMetaDataSet.scalarPropertiesMapper.name)!),
+                    Delegate.CreateDelegate(mapperMetaDataSet.listPropertiesMapper.type, type!.GetMethod(mapperMetaDataSet.listPropertiesMapper.name)!));
                 innerMapper.Add(innerPair.Key, mapperSet);
             }
 
@@ -76,7 +76,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
 
         var method = InitializeDynamicMethod(sourceType, targetType, MapScalarPropertiesMethod, new[] { sourceType, targetType });
         FillScalarPropertiesMapper(method.GetILGenerator(), sourceType, targetType);
-        
+
         return new MapperMetaData(typeof(Utilities.MapScalarProperties<TSource, TTarget>), method.Name);
     }
 
@@ -176,7 +176,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         return _mapper.TryGetValue(sourceListType.GenericTypeArguments[0], out var innerDictionary) && innerDictionary.ContainsKey(targetListType.GenericTypeArguments[0]);
     }
 
-    private record struct MapperMetaData(Type Type, string Name);
+    private record struct MapperMetaData(Type type, string name);
 
-    private record struct MapperMetaDataSet(MapperMetaData ScalarPropertiesMapper, MapperMetaData ListPropertiesMapper);
+    private record struct MapperMetaDataSet(MapperMetaData scalarPropertiesMapper, MapperMetaData listPropertiesMapper);
 }
