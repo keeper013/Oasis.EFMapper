@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-public class MapScalarPropertiesTest
+public class MapPropertiesTest
 {
     private readonly DbContext _dbContext;
 
-    public MapScalarPropertiesTest()
+    public MapPropertiesTest()
     {
         var options = new DbContextOptionsBuilder<DatabaseContext>()
             .UseInMemoryDatabase(this.GetType().Name)
@@ -107,13 +107,13 @@ public sealed class ScalarClass1 : EntityBase
     public ScalarClass1(long? id)
     {
         Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
     public ScalarClass1(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
     {
         Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         LongNullableProp = longNullableProp;
         StringProp = stringProp;
@@ -138,13 +138,13 @@ public sealed class ScalarClass2 : EntityBase
     public ScalarClass2(long? id)
     {
         Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
     public ScalarClass2(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
     {
         Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         LongNullableProp = longNullableProp;
         StringProp = stringProp;
@@ -169,13 +169,13 @@ public sealed class ScalarClass3 : EntityBase
     public ScalarClass3(long? id)
     {
         Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
     public ScalarClass3(long? id, int? intProp, long longNullableProp, string stringProp, char[] byteArrayProp)
     {
         Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         LongNullableProp = longNullableProp;
         StringProp1 = stringProp;
@@ -200,13 +200,13 @@ public sealed class CollectionClass1 : EntityBase
     public CollectionClass1(long? id)
     {
         Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
     public CollectionClass1(long? id, int intProp, ICollection<ScalarClass1> scs1)
     {
         Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         Scs1 = scs1;
     }
@@ -225,13 +225,13 @@ public sealed class CollectionClass2 : EntityBase
     public CollectionClass2(long? id)
     {
         Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
     public CollectionClass2(long? id, int intProp, ICollection<ScalarClass1> scs1)
     {
         Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.EmptyTimeStamp : null;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         Scs1 = scs1;
     }
