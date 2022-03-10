@@ -5,7 +5,9 @@ using System.Reflection;
 
 internal static class Utilities
 {
+    internal const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
     private static readonly Type EntityBaseType = typeof(EntityBase);
+    private static readonly Type ObjectType = typeof(object);
 
     public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target)
         where TSource : class, IEntityBase
@@ -25,7 +27,7 @@ internal static class Utilities
             && !string.Equals(name, nameof(EntityBase.Id)) && !string.Equals(name, nameof(EntityBase.Timestamp));
     }
 
-    public static bool IsListNavigationType(this PropertyInfo prop, bool mustHaveGetter, bool mustHaveSetter)
+    public static bool IsListOfNavigationType(this PropertyInfo prop, bool mustHaveGetter, bool mustHaveSetter)
     {
         const string ICollectionTypeName = "System.Collections.Generic.ICollection`1[[";
         const string IListTypeName = "System.Collections.Generic.IList`1[[";

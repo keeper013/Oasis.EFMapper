@@ -7,8 +7,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
 {
     private const char MapScalarPropertiesMethod = 's';
     private const char MapListPropertiesMethod = 'l';
-    private const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
-    private static readonly MethodInfo MapListProperty = typeof(IListPropertyMapper).GetMethod("MapListProperty", PublicInstance)!;
+    private static readonly MethodInfo MapListProperty = typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!;
 
     private readonly TypeBuilder _typeBuilder;
     private readonly IDictionary<Type, IDictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, IDictionary<Type, MapperMetaDataSet>>();
@@ -105,8 +104,8 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
 
     private void FillScalarPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
     {
-        var sourceProperties = sourceType.GetProperties(PublicInstance).Where(p => p.IsScalarType(true, false));
-        var targetProperties = targetType.GetProperties(PublicInstance).Where(p => p.IsScalarType(true, true)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).Where(p => p.IsScalarType(true, false));
+        var targetProperties = targetType.GetProperties(Utilities.PublicInstance).Where(p => p.IsScalarType(true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
@@ -124,8 +123,8 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
 
     private void FillListPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
     {
-        var sourceProperties = sourceType.GetProperties(PublicInstance).Where(p => p.IsListNavigationType(true, false));
-        var targetProperties = targetType.GetProperties(PublicInstance).Where(p => p.IsListNavigationType(true, true)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).Where(p => p.IsListOfNavigationType(true, false));
+        var targetProperties = targetType.GetProperties(Utilities.PublicInstance).Where(p => p.IsListOfNavigationType(true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
