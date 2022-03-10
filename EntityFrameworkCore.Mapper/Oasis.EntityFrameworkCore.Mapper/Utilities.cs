@@ -37,3 +37,5 @@ internal static class Utilities
             && (!mustHaveGetter || prop.GetMethod != null) && (!mustHaveSetter || prop.SetMethod != null);
     }
 }
+
+internal record struct MapperSet(Delegate ScalarPropertiesMapper, Delegate ListPropertiesMapper);

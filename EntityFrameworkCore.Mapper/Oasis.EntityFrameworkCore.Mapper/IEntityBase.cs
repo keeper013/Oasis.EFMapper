@@ -5,5 +5,6 @@ public interface IEntityBase
 {
     public long? Id { get; }
 
+    // TODO: mapping between different types
     public byte[]? Timestamp { get; }
 }

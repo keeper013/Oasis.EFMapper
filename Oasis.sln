@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oasis.EntityFrameworkCore.Mapper", "Oasis.EntityFrameworkCore.Mapper\Oasis.EntityFrameworkCore.Mapper.csproj", "{68BD1A57-C1D2-4263-8DBA-651E9ACBD53D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oasis.EntityFrameworkCore.Mapper", "EntityFrameworkCore.Mapper\Oasis.EntityFrameworkCore.Mapper\Oasis.EntityFrameworkCore.Mapper.csproj", "{6FC794F9-2501-450A-BD9B-7B738C2FDB88}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oasis.EntityFrameworkCore.Mapper.Test", "Oasis.EntityFrameworkCore.Mapper.Test\Oasis.EntityFrameworkCore.Mapper.Test.csproj", "{185DDD45-0FF4-4DCD-ABEF-B0821D366CF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oasis.EntityFrameworkCore.Mapper.Test", "EntityFrameworkCore.Mapper\Oasis.EntityFrameworkCore.Mapper.Test\Oasis.EntityFrameworkCore.Mapper.Test.csproj", "{8441524F-A493-45B4-B873-95DD2402460D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{68BD1A57-C1D2-4263-8DBA-651E9ACBD53D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{68BD1A57-C1D2-4263-8DBA-651E9ACBD53D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{68BD1A57-C1D2-4263-8DBA-651E9ACBD53D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{68BD1A57-C1D2-4263-8DBA-651E9ACBD53D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{185DDD45-0FF4-4DCD-ABEF-B0821D366CF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{185DDD45-0FF4-4DCD-ABEF-B0821D366CF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{185DDD45-0FF4-4DCD-ABEF-B0821D366CF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{185DDD45-0FF4-4DCD-ABEF-B0821D366CF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FC794F9-2501-450A-BD9B-7B738C2FDB88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FC794F9-2501-450A-BD9B-7B738C2FDB88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FC794F9-2501-450A-BD9B-7B738C2FDB88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FC794F9-2501-450A-BD9B-7B738C2FDB88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8441524F-A493-45B4-B873-95DD2402460D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8441524F-A493-45B4-B873-95DD2402460D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8441524F-A493-45B4-B873-95DD2402460D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8441524F-A493-45B4-B873-95DD2402460D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

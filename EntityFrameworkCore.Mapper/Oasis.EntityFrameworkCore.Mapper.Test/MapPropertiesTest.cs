@@ -65,36 +65,72 @@ public class MapPropertiesTest
     {
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(this.GetType().Name);
-        mapperBuilder.Register<CollectionClass1, CollectionClass2>();
 
         // TODO: shouldn't need to call this when cascade register is implemented
-        // TODO: should work for ScalarClass1 to map ScalarClass2
-        mapperBuilder.Register<ScalarClass1, ScalarClass1>();
+        mapperBuilder.Register<ScalarClass2, ScalarClass1>();
+        mapperBuilder.Register<CollectionClass2, CollectionClass1>();
+        
+        var mapper = mapperBuilder.Build();
+
+        var cc1 = new CollectionClass1(1);
+        var cc2 = new CollectionClass2(1, 1,
+            new List<ScalarClass2>
+            {
+                new ScalarClass2(null, 1, 2, "3", new byte[] { 1 }),
+                new ScalarClass2(null, 2, null, "4", new byte[] { 2, 3, 4 })
+            });
+        
+
+        mapper.Map(cc2, cc1, _dbContext);
+
+        Assert.Equal(1, cc1.IntProp);
+        Assert.NotNull(cc1.Scs);
+        Assert.Equal(2, cc1.Scs!.Count);
+        var item0 = cc1.Scs.ElementAt(0);
+        Assert.Equal(1, item0.IntProp);
+        Assert.Equal(2, item0.LongNullableProp);
+        Assert.Equal("3", item0.StringProp);
+        Assert.Equal(cc2.Scs!.ElementAt(0).ByteArrayProp, cc1.Scs.ElementAt(0).ByteArrayProp);
+        var item1 = cc1.Scs.ElementAt(1);
+        Assert.Equal(2, item1.IntProp);
+        Assert.Null(item1.LongNullableProp);
+        Assert.Equal("4", item1.StringProp);
+        Assert.Equal(cc2.Scs!.ElementAt(1).ByteArrayProp, cc1.Scs.ElementAt(1).ByteArrayProp);
+    }
+
+    [Fact]
+    public void MapListProperties_IList_ExistingElementShouldBeUpdated()
+    {
+        var factory = new MapperFactory();
+        var mapperBuilder = factory.Make(this.GetType().Name);
+
+        // TODO: shouldn't need to call this when cascade register is implemented
+        mapperBuilder.Register<ScalarClass2, ScalarClass1>();
+        mapperBuilder.Register<ListIClass1, CollectionClass1>();
+
         var mapper = mapperBuilder.Build();
 
         var cc1 = new CollectionClass1(1, 1,
             new List<ScalarClass1>
             {
-                new ScalarClass1(null, 1, 2, "3", new byte[] { 1 }),
-                new ScalarClass1(null, 2, null, "4", new byte[] { 2, 3, 4 })
+                new ScalarClass1(1, 1, 2, "3", new byte[] { 1 }),
             });
-        var cc2 = new CollectionClass2(1);
+        var lic1 = new ListIClass1(1, 2,
+            new List<ScalarClass2>
+            {
+                new ScalarClass2(1, 2, 3, "4", new byte[] { 2 }),
+            });
 
-        mapper.Map(cc1, cc2, _dbContext);
+        mapper.Map(lic1, cc1, _dbContext);
 
-        Assert.Equal(1, cc2.IntProp);
-        Assert.NotNull(cc2.Scs1);
-        Assert.Equal(2, cc2.Scs1!.Count);
-        var item0 = cc2.Scs1.ElementAt(0);
-        Assert.Equal(1, item0.IntProp);
-        Assert.Equal(2, item0.LongNullableProp);
-        Assert.Equal("3", item0.StringProp);
-        Assert.Equal(cc1.Scs1!.ElementAt(0).ByteArrayProp, cc2.Scs1.ElementAt(0).ByteArrayProp);
-        var item1 = cc2.Scs1.ElementAt(1);
-        Assert.Equal(2, item1.IntProp);
-        Assert.Null(item1.LongNullableProp);
-        Assert.Equal("4", item1.StringProp);
-        Assert.Equal(cc1.Scs1!.ElementAt(1).ByteArrayProp, cc2.Scs1.ElementAt(1).ByteArrayProp);
+        Assert.Equal(2, cc1.IntProp);
+        Assert.NotNull(cc1.Scs);
+        Assert.Equal(1, cc1.Scs!.Count);
+        var item0 = cc1.Scs.ElementAt(0);
+        Assert.Equal(2, item0.IntProp);
+        Assert.Equal(3, item0.LongNullableProp);
+        Assert.Equal("4", item0.StringProp);
+        Assert.Equal(lic1.Scs!.ElementAt(0).ByteArrayProp, cc1.Scs.ElementAt(0).ByteArrayProp);
     }
 }
 
@@ -203,17 +239,17 @@ public sealed class CollectionClass1 : EntityBase
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
-    public CollectionClass1(long? id, int intProp, ICollection<ScalarClass1> scs1)
+    public CollectionClass1(long? id, int intProp, ICollection<ScalarClass1> scs)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
-        Scs1 = scs1;
+        Scs = scs;
     }
 
     public int IntProp { get; set; }
 
-    public ICollection<ScalarClass1>? Scs1 { get; set; }
+    public ICollection<ScalarClass1>? Scs { get; set; }
 }
 
 public sealed class CollectionClass2 : EntityBase
@@ -228,15 +264,40 @@ public sealed class CollectionClass2 : EntityBase
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
-    public CollectionClass2(long? id, int intProp, ICollection<ScalarClass1> scs1)
+    public CollectionClass2(long? id, int intProp, ICollection<ScalarClass2> scs)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
-        Scs1 = scs1;
+        Scs = scs;
     }
 
     public int IntProp { get; set; }
 
-    public ICollection<ScalarClass1>? Scs1 { get; set; }
+    public ICollection<ScalarClass2>? Scs { get; set; }
+}
+
+public sealed class ListIClass1 : EntityBase
+{
+    public ListIClass1()
+    {
+    }
+
+    public ListIClass1(long? id)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
+    }
+
+    public ListIClass1(long? id, int intProp, IList<ScalarClass2> scs)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
+        IntProp = intProp;
+        Scs = scs;
+    }
+
+    public int IntProp { get; set; }
+
+    public IList<ScalarClass2>? Scs { get; set; }
 }

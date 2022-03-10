@@ -32,7 +32,7 @@ internal class RecursiveMapper : IListPropertyMapper
             return;
         }
 
-        MapperSet mapperSet = new MapperSet();
+        MapperSet mapperSet = default;
         var mapperSetFound = _mappers.TryGetValue(typeof(TSource), out var innerDictionary)
             && innerDictionary.TryGetValue(typeof(TTarget), out mapperSet);
         if (!mapperSetFound)
@@ -116,5 +116,3 @@ internal class RecursiveMapper : IListPropertyMapper
         public ISet<int> HashCodeSet { get; } = new HashSet<int>();
     }
 }
-
-internal record struct MapperSet(Delegate ScalarPropertiesMapper, Delegate ListPropertiesMapper);

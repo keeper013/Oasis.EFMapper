@@ -129,7 +129,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
 
         foreach (var sourceProperty in sourceProperties)
         {
-            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty) && targetProperty.PropertyType == sourceProperty.PropertyType)
+            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty) && ListTypeMatch(sourceProperty.PropertyType, targetProperty.PropertyType))
             {
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
@@ -169,6 +169,11 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         }
 
         return method;
+    }
+
+    private bool ListTypeMatch(Type sourceListType, Type targetListType)
+    {
+        return _mapper.TryGetValue(sourceListType.GenericTypeArguments[0], out var innerDictionary) && innerDictionary.ContainsKey(targetListType.GenericTypeArguments[0]);
     }
 
     private record struct MapperMetaData(Type Type, string Name);
