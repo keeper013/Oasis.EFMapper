@@ -21,9 +21,10 @@ internal sealed class EntityMapper : IEntityMapper
 
     async Task IEntityMapper.Map<TSource, TTarget>(TSource source, Func<IQueryable<TTarget>, IQueryable<TTarget>> includer, DbContext dbContext)
     {
+        TTarget? target;
         if (source.Id.HasValue)
         {
-            var target = await includer.Invoke(dbContext.Set<TTarget>()).SingleOrDefaultAsync(t => t.Id == source.Id);
+            target = await includer.Invoke(dbContext.Set<TTarget>()).SingleOrDefaultAsync(t => t.Id == source.Id);
             if (target == null)
             {
                 throw new EntityNotFoundException(typeof(TTarget), source.Id.Value);
@@ -38,21 +39,20 @@ internal sealed class EntityMapper : IEntityMapper
             {
                 throw new StaleEntityException(typeof(TTarget), source.Id.Value);
             }
-
-            MapInternal(source, target, dbContext);
         }
         else
         {
-            var target = new TTarget();
+            target = new TTarget();
             dbContext.Set<TTarget>().Add(target);
-            MapInternal(source, target, dbContext);
         }
+
+        MapInternal(source, target, dbContext);
     }
 
     private void MapInternal<TSource, TTarget>(TSource source, TTarget target, DbContext dbContext)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase
     {
-        Utilities.RecursivelyMap(source, target, new MappingContext(dbContext, _mappers));
+        new RecursiveMapper(dbContext, _mappers).Map(source, target);
     }
 }

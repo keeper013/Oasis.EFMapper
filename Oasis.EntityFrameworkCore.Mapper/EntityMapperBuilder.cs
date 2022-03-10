@@ -8,8 +8,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
     private const char MapScalarPropertiesMethod = 's';
     private const char MapListPropertiesMethod = 'l';
     private const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
-    private const BindingFlags PublicStatic = BindingFlags.Public | BindingFlags.Static;
-    private static readonly MethodInfo MapListProperty = typeof(Utilities).GetMethod("MapListProperty", PublicStatic)!;
+    private static readonly MethodInfo MapListProperty = typeof(IListPropertyMapper).GetMethod("MapListProperty", PublicInstance)!;
 
     private readonly TypeBuilder _typeBuilder;
     private readonly IDictionary<Type, IDictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, IDictionary<Type, MapperMetaDataSet>>();
@@ -88,7 +87,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
 
-        var method = InitializeDynamicMethod(sourceType, targetType, MapListPropertiesMethod, new[] { sourceType, targetType, typeof(MappingContext) });
+        var method = InitializeDynamicMethod(sourceType, targetType, MapListPropertiesMethod, new[] { sourceType, targetType, typeof(IListPropertyMapper) });
         FillListPropertiesMapper(method.GetILGenerator(), sourceType, targetType);
 
         return new MapperMetaData(typeof(Utilities.MapListProperties<TSource, TTarget>), method.Name);
@@ -132,20 +131,20 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         {
             if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty) && targetProperty.PropertyType == sourceProperty.PropertyType)
             {
-                generator.Emit(OpCodes.Ldarg_1); // IL_0000: ldarg.1
-                generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!); // IL_0001: callvirt instance class [System.Runtime] System.Collections.Generic.ICollection`1<class ValueAssignSample.Class22> ValueAssignSample.Class2::get_Cols1()
+                generator.Emit(OpCodes.Ldarg_1);
+                generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
                 var jumpLabel = generator.DefineLabel();
-                generator.Emit(OpCodes.Brtrue_S, jumpLabel); // IL_0006:  brtrue.s   IL_0013
-                generator.Emit(OpCodes.Ldarg_1); // IL_0008:  ldarg.1
-                generator.Emit(OpCodes.Newobj, typeof(List<>).MakeGenericType(targetProperty.PropertyType.GetGenericArguments()).GetConstructor(Array.Empty<Type>())!); // IL_0009:  newobj     instance void class [System.Collections]System.Collections.Generic.List`1<class ValueAssignSample.Class22>::.ctor()
-                generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!); // IL_000e:  callvirt   instance void ValueAssignSample.Class2::set_Cols1(class [System.Runtime]System.Collections.Generic.ICollection`1<class ValueAssignSample.Class22>)
+                generator.Emit(OpCodes.Brtrue_S, jumpLabel);
+                generator.Emit(OpCodes.Ldarg_1);
+                generator.Emit(OpCodes.Newobj, typeof(List<>).MakeGenericType(targetProperty.PropertyType.GetGenericArguments()).GetConstructor(Array.Empty<Type>())!);
+                generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
                 generator.MarkLabel(jumpLabel);
-                generator.Emit(OpCodes.Ldarg_0); // IL_0013:  ldarg.0
-                generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!); // IL_0014:  callvirt   instance class [System.Runtime]System.Collections.Generic.ICollection`1<class ValueAssignSample.Class11> ValueAssignSample.Class1::get_Cols1()
-                generator.Emit(OpCodes.Ldarg_1); // IL_0019:  ldarg.1
-                generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!); // IL_001a: callvirt instance class [System.Runtime] System.Collections.Generic.ICollection`1<class ValueAssignSample.Class22>
-                generator.Emit(OpCodes.Ldarg_2); // IL_001f:  ldarg.2
-                generator.Emit(OpCodes.Call, GetMapListPropertyMethod(sourceProperty.PropertyType, targetProperty.PropertyType));
+                generator.Emit(OpCodes.Ldarg_2);
+                generator.Emit(OpCodes.Ldarg_0);
+                generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+                generator.Emit(OpCodes.Ldarg_1);
+                generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+                generator.Emit(OpCodes.Callvirt, GetMapListPropertyMethod(sourceProperty.PropertyType, targetProperty.PropertyType));
             }
         }
 
