@@ -50,17 +50,20 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
-        if (!_mapper.TryGetValue(sourceType, out var innerDictionary))
+        lock (_mapper)
         {
-            innerDictionary = new Dictionary<Type, MapperMetaDataSet>();
-            _mapper[sourceType] = innerDictionary;
-        }
+            if (!_mapper.TryGetValue(sourceType, out var innerDictionary))
+            {
+                innerDictionary = new Dictionary<Type, MapperMetaDataSet>();
+                _mapper[sourceType] = innerDictionary;
+            }
 
-        if (!innerDictionary.ContainsKey(targetType))
-        {
-            innerDictionary[targetType] = new MapperMetaDataSet(
-                BuildUpScalarPropertiesMapperMethod<TSource, TTarget>(),
-                BuildUpListPropertiesMapperMethod<TSource, TTarget>());
+            if (!innerDictionary.ContainsKey(targetType))
+            {
+                innerDictionary[targetType] = new MapperMetaDataSet(
+                    BuildUpScalarPropertiesMapperMethod<TSource, TTarget>(),
+                    BuildUpListPropertiesMapperMethod<TSource, TTarget>());
+            }
         }
 
         return this;
@@ -83,27 +86,30 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
             throw new ScalarTypeMissingException(sourceType, targetType);
         }
 
-        if (!_scalarMapper.TryGetValue(sourceType, out var innerDictionary))
+        lock (_scalarMapper)
         {
-            innerDictionary = new Dictionary<Type, MethodInfo>();
-            _scalarMapper[sourceType] = innerDictionary;
-        }
+            if (!_scalarMapper.TryGetValue(sourceType, out var innerDictionary))
+            {
+                innerDictionary = new Dictionary<Type, MethodInfo>();
+                _scalarMapper[sourceType] = innerDictionary;
+            }
 
-        if (!innerDictionary.ContainsKey(targetType))
-        {
-            innerDictionary.Add(targetType, func.Method);
-            if (sourceIsNotScalarType)
+            if (!innerDictionary.ContainsKey(targetType))
             {
-                _convertableToScalarTypes.Add(sourceType);
+                innerDictionary.Add(targetType, func.Method);
+                if (sourceIsNotScalarType)
+                {
+                    _convertableToScalarTypes.Add(sourceType);
+                }
+                else if (targetIsNotScalarType)
+                {
+                    _convertableToScalarTypes.Add(targetType);
+                }
             }
-            else if (targetIsNotScalarType)
+            else
             {
-                _convertableToScalarTypes.Add(targetType);
+                throw new ScalarMapperExistsException(sourceType, targetType);
             }
-        }
-        else
-        {
-            throw new ScalarMapperExistsException(sourceType, targetType);
         }
 
         return this;

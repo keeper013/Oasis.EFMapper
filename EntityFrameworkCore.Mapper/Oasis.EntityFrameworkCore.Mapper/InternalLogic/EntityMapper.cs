@@ -123,10 +123,13 @@ internal sealed class MappingContext : INewSourceEntityTracker, IDisposable
     public bool TryGetTargetIfNotTracked<TTarget>(int hashCode, out TTarget? target)
         where TTarget : class, new()
     {
-        if (_newEntitiesHashCodes.Add(hashCode))
+        lock (_newEntitiesHashCodes)
         {
-            target = new TTarget();
-            return true;
+            if (_newEntitiesHashCodes.Add(hashCode))
+            {
+                target = new TTarget();
+                return true;
+            }
         }
 
         target = default;
