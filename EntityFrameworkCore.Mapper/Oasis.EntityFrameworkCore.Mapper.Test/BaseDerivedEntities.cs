@@ -69,3 +69,33 @@ public class DerivedEntity2 : BaseEntity2
 
     public string? StringProp { get; set; }
 }
+
+public class DerivedEntity1_1 : BaseEntity1
+{
+    public DerivedEntity1_1()
+    {
+    }
+
+    public DerivedEntity1_1(long? id, int newIntProp, int intProp, List<ScalarClass1> scs)
+        : base(id, intProp, scs)
+    {
+        IntProp = newIntProp;
+    }
+
+    public new int IntProp { get; set; }
+}
+
+public class DerivedEntity2_2 : BaseEntity2
+{
+    public DerivedEntity2_2()
+    {
+    }
+
+    public DerivedEntity2_2(long? id, int newIntProp, int intProp, ICollection<ScalarClass2> scs)
+        : base(id, intProp, scs)
+    {
+        IntProp = newIntProp;
+    }
+
+    public new int IntProp { get; set; }
+}

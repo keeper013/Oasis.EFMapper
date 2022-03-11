@@ -2,7 +2,9 @@
 
 public interface IEntityMapperBuilder
 {
-    void Register<TSource, TTarget>()
+    IEntityMapperBuilder WithScalarMapper<TSource, TTarget>(Func<TSource, TTarget> func);
+
+    IEntityMapperBuilder Register<TSource, TTarget>()
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase;
 

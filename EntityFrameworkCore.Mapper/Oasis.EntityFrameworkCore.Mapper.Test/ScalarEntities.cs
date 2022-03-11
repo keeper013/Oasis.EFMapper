@@ -92,3 +92,44 @@ public sealed class ScalarClass3 : EntityBase
 
     public char[]? ByteArrayProp { get; set; }
 }
+
+public class ScalarClass4 : EntityBase
+{
+    public ScalarClass4()
+    {
+    }
+
+    public ScalarClass4(byte[] content)
+    {
+        ByteArrayProp = new ByteArrayWrapper(content);
+    }
+
+    public ByteArrayWrapper? ByteArrayProp { get; set; }
+}
+
+public sealed class ByteArrayWrapper
+{
+    private readonly byte[] _bytes;
+
+    public ByteArrayWrapper(byte[] content)
+    {
+        _bytes = content;
+    }
+
+    public byte[] Bytes => _bytes;
+
+    public static byte[] ConvertStatic(ByteArrayWrapper wrapper)
+    {
+        return wrapper.Bytes;
+    }
+
+    public static ByteArrayWrapper ConvertStatic(byte[] array)
+    {
+        return new ByteArrayWrapper(array);
+    }
+
+    public byte[] ConvertInstance(ByteArrayWrapper wrapper)
+    {
+        return wrapper.Bytes;
+    }
+}

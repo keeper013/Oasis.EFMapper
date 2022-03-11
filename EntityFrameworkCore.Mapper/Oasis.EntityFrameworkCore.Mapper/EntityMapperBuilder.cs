@@ -1,5 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper;
 
+using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -11,6 +12,8 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
 
     private readonly TypeBuilder _typeBuilder;
     private readonly IDictionary<Type, IDictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, IDictionary<Type, MapperMetaDataSet>>();
+    private readonly IDictionary<Type, IDictionary<Type, MethodInfo>> _scalarMapper = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
+    private readonly ISet<Type> _convertableToScalarTypes = new HashSet<Type>();
     private readonly IDictionary<Type, IDictionary<Type, MethodInfo>> _listPropertyMapper = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
 
     public EntityMapperBuilder(string assemblyName)
@@ -43,7 +46,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         return new EntityMapper(mapper);
     }
 
-    void IEntityMapperBuilder.Register<TSource, TTarget>()
+    IEntityMapperBuilder IEntityMapperBuilder.Register<TSource, TTarget>()
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
@@ -59,6 +62,51 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
                 BuildUpScalarPropertiesMapperMethod<TSource, TTarget>(),
                 BuildUpListPropertiesMapperMethod<TSource, TTarget>());
         }
+
+        return this;
+    }
+
+    public IEntityMapperBuilder WithScalarMapper<TSource, TTarget>(Func<TSource, TTarget> func)
+    {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+
+        if (!func.Method.IsStatic)
+        {
+            throw new NonStaticScalarMapperException(sourceType, targetType);
+        }
+
+        var sourceIsNotScalarType = !Utilities.IsScalarType(sourceType);
+        var targetIsNotScalarType = !Utilities.IsScalarType(targetType);
+        if (sourceIsNotScalarType && targetIsNotScalarType)
+        {
+            throw new ScalarTypeMissingException(sourceType, targetType);
+        }
+
+        if (!_scalarMapper.TryGetValue(sourceType, out var innerDictionary))
+        {
+            innerDictionary = new Dictionary<Type, MethodInfo>();
+            _scalarMapper[sourceType] = innerDictionary;
+        }
+
+        if (!innerDictionary.ContainsKey(targetType))
+        {
+            innerDictionary.Add(targetType, func.Method);
+            if (sourceIsNotScalarType)
+            {
+                _convertableToScalarTypes.Add(sourceType);
+            }
+            else if (targetIsNotScalarType)
+            {
+                _convertableToScalarTypes.Add(targetType);
+            }
+        }
+        else
+        {
+            throw new ScalarMapperExistsException(sourceType, targetType);
+        }
+
+        return this;
     }
 
     private static string BuildMethodName(char type, Type sourceType, Type targetType)
@@ -104,16 +152,24 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
 
     private void FillScalarPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
     {
-        var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).Where(p => p.IsScalarType(true, false));
-        var targetProperties = targetType.GetProperties(Utilities.PublicInstance).Where(p => p.IsScalarType(true, true)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).Where(p => p.IsScalarProperty(_convertableToScalarTypes, true, false));
+        var targetProperties = targetType.GetProperties(Utilities.PublicInstance).Where(p => p.IsScalarProperty(_convertableToScalarTypes, true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
-            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty) && targetProperty.PropertyType == sourceProperty.PropertyType)
+            var sourcePropertyType = sourceProperty.PropertyType;
+            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty) && ScalarTypeMatch(sourcePropertyType, targetProperty.PropertyType))
             {
+                var targetPropertyType = targetProperty.PropertyType;
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+                if (sourcePropertyType != targetPropertyType)
+                {
+                    var converter = _scalarMapper[sourcePropertyType][targetPropertyType];
+                    generator.Emit(OpCodes.Call, converter);
+                }
+
                 generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
             }
         }
@@ -123,8 +179,8 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
 
     private void FillListPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
     {
-        var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).Where(p => p.IsListOfNavigationType(true, false));
-        var targetProperties = targetType.GetProperties(Utilities.PublicInstance).Where(p => p.IsListOfNavigationType(true, true)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).Where(p => p.IsListOfNavigationProperty(true, false));
+        var targetProperties = targetType.GetProperties(Utilities.PublicInstance).Where(p => p.IsListOfNavigationProperty(true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
@@ -173,6 +229,11 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
     private bool ListTypeMatch(Type sourceListType, Type targetListType)
     {
         return _mapper.TryGetValue(sourceListType.GenericTypeArguments[0], out var innerDictionary) && innerDictionary.ContainsKey(targetListType.GenericTypeArguments[0]);
+    }
+
+    private bool ScalarTypeMatch(Type sourceType, Type targetType)
+    {
+        return sourceType == targetType || (_scalarMapper.TryGetValue(sourceType, out var innerDictionary) && innerDictionary.ContainsKey(targetType));
     }
 
     private record struct MapperMetaData(Type type, string name);

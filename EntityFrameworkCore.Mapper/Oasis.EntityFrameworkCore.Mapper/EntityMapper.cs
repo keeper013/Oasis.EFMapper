@@ -42,6 +42,7 @@ internal sealed class EntityMapper : IEntityMapper
         }
         else
         {
+            // TODO: avoid redundant entity addition
             target = new TTarget();
             databaseContext.Set<TTarget>().Add(target);
         }
