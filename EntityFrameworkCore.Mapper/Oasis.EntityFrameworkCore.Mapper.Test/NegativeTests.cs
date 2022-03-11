@@ -34,7 +34,13 @@ public sealed class NegativeTests : IDisposable
         var cc1 = new CollectionClass1(1, 1, new List<ScalarClass1> { new ScalarClass1(1, 1, 2, "3", new byte[] { 1 }) });
         var lic1 = new ListIClass1(1, 2, new List<ScalarClass2> { new ScalarClass2(2, 2, 3, "4", new byte[] { 2 }) });
 
-        Assert.Throws<EntityNotFoundException>(() => mapper.Map(lic1, cc1, _dbContext));
+        Assert.Throws<EntityNotFoundException>(() =>
+        {
+            using (var context = mapper.StartMappingContext(_dbContext))
+            {
+                mapper.Map(lic1, cc1);
+            }
+        });
     }
 
     [Fact]

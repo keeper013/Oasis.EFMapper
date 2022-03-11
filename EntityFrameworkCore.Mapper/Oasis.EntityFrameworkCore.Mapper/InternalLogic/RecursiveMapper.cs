@@ -1,4 +1,4 @@
-﻿namespace Oasis.EntityFrameworkCore.Mapper;
+﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
@@ -7,12 +7,15 @@ internal class RecursiveMapper : IListPropertyMapper
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
     private readonly IDictionary<Type, TargetTracker> _trackerDictionary = new Dictionary<Type, TargetTracker>();
+    private readonly INewSourceEntityTracker _newSourceEntityTracker;
     private readonly DbContext _dbContext;
 
     internal RecursiveMapper(
         DbContext databaseContext,
+        INewSourceEntityTracker newSourceEntityTracker,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
+        _newSourceEntityTracker = newSourceEntityTracker;
         _dbContext = databaseContext;
         _mappers = mappers;
     }
@@ -26,10 +29,12 @@ internal class RecursiveMapper : IListPropertyMapper
             {
                 if (s.Id == null)
                 {
-                    var n = new TTarget();
-                    Map(s, n);
-                    target.Add(n);
-                    _dbContext.Set<TTarget>().Add(n);
+                    if (_newSourceEntityTracker.TryGetTargetIfNotTracked<TTarget>(s.GetHashCode(), out var n))
+                    {
+                        Map(s, n!);
+                        target.Add(n!);
+                        _dbContext.Set<TTarget>().Add(n!);
+                    }
                 }
                 else
                 {
@@ -115,4 +120,10 @@ internal class RecursiveMapper : IListPropertyMapper
 
         public ISet<int> HashCodeSet { get; } = new HashSet<int>();
     }
+}
+
+internal interface INewSourceEntityTracker
+{
+    bool TryGetTargetIfNotTracked<TTarget>(int hashCode, out TTarget? target)
+        where TTarget : class, new();
 }

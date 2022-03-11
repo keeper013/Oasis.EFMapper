@@ -99,8 +99,16 @@ public class ScalarClass4 : EntityBase
     {
     }
 
-    public ScalarClass4(byte[] content)
+    public ScalarClass4(long? id)
     {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
+    }
+
+    public ScalarClass4(long? id, byte[] content)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         ByteArrayProp = new ByteArrayWrapper(content);
     }
 

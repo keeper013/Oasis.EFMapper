@@ -4,11 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 public interface IEntityMapper
 {
-    void Map<TSource, TTarget>(TSource source, TTarget target, DbContext databaseContext)
+    IDisposable StartMappingContext(DbContext databaseContext);
+
+    void Map<TSource, TTarget>(TSource source, TTarget target)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase;
 
-    Task Map<TSource, TTarget>(TSource source, Func<IQueryable<TTarget>, IQueryable<TTarget>> includer, DbContext databaseContext)
+    Task Map<TSource, TTarget>(TSource source, Func<IQueryable<TTarget>, IQueryable<TTarget>> includer)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase, new();
 }

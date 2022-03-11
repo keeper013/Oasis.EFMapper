@@ -32,7 +32,10 @@ public sealed class PositiveTests : IDisposable
         var instance2 = new ScalarClass2(1, 1, 2, "3", new byte[] { 1, 2, 3 });
 
         // act
-        mapper.Map(instance2, instance1, _dbContext);
+        using (var context = mapper.StartMappingContext(_dbContext))
+        {
+            mapper.Map(instance2, instance1);
+        }
 
         // assert
         Assert.Equal(1, instance1.IntProp);
@@ -54,7 +57,10 @@ public sealed class PositiveTests : IDisposable
         var instance2 = new ScalarClass2(1);
 
         // act
-        mapper.Map(instance3, instance2, _dbContext);
+        using (var context = mapper.StartMappingContext(_dbContext))
+        {
+            mapper.Map(instance3, instance2);
+        }
 
         // assert
         Assert.Equal(0, instance2.IntProp);
@@ -83,8 +89,12 @@ public sealed class PositiveTests : IDisposable
         var cc2 = new CollectionClass2(1, 1, new List<ScalarClass2> { sc2_1, sc2_2 });
 
         // act
-        mapper.Map(cc2, cc1, _dbContext);
+        using (var context = mapper.StartMappingContext(_dbContext))
+        {
+            mapper.Map(cc2, cc1);
+        }
 
+        // assert
         Assert.Equal(1, cc1.IntProp);
         Assert.NotNull(cc1.Scs);
         Assert.Equal(2, cc1.Scs!.Count);
@@ -103,6 +113,7 @@ public sealed class PositiveTests : IDisposable
     [Fact]
     public void MapListProperties_IList_ExistingElementShouldBeUpdated()
     {
+        // arrange
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
 
@@ -116,8 +127,13 @@ public sealed class PositiveTests : IDisposable
         var cc1 = new CollectionClass1(1, 1, new List<ScalarClass1> { new ScalarClass1(1, 1, 2, "3", new byte[] { 1 }) });
         var lic1 = new ListIClass1(1, 2, new List<ScalarClass2> { new ScalarClass2(1, 2, 3, "4", new byte[] { 2 }) });
 
-        mapper.Map(lic1, cc1, _dbContext);
+        // act
+        using (var context = mapper.StartMappingContext(_dbContext))
+        {
+            mapper.Map(lic1, cc1);
+        }
 
+        // assert
         Assert.Equal(2, cc1.IntProp);
         Assert.NotNull(cc1.Scs);
         Assert.Equal(1, cc1.Scs!.Count);
@@ -149,7 +165,10 @@ public sealed class PositiveTests : IDisposable
         var lc1 = new ListClass1(1, 2, new List<ScalarClass2> { sc2 });
 
         // act
-        mapper.Map(lc1, cc1, _dbContext);
+        using (var context = mapper.StartMappingContext(_dbContext))
+        {
+            mapper.Map(lc1, cc1);
+        }
 
         Assert.Equal(2, cc1.IntProp);
         Assert.NotNull(cc1.Scs);
@@ -180,7 +199,10 @@ public sealed class PositiveTests : IDisposable
         var de2 = new DerivedEntity2(null, "str2", 2, new List<ScalarClass2> { new ScalarClass2(null, 1, 2, "3", new byte[] { 1 }) });
 
         // act
-        mapper.Map(de2, de1, _dbContext);
+        using (var context = mapper.StartMappingContext(_dbContext))
+        {
+            mapper.Map(de2, de1);
+        }
 
         // assert
         Assert.Equal("str2", de1.StringProp);
@@ -212,7 +234,10 @@ public sealed class PositiveTests : IDisposable
         var de2 = new DerivedEntity2_2(null, 2, 2, new List<ScalarClass2> { new ScalarClass2(null, 1, 2, "3", new byte[] { 1 }) });
 
         // act
-        mapper.Map(de2, de1, _dbContext);
+        using (var context = mapper.StartMappingContext(_dbContext))
+        {
+            mapper.Map(de2, de1);
+        }
 
         // assert
         Assert.Equal(2, de1.IntProp);
@@ -241,12 +266,15 @@ public sealed class PositiveTests : IDisposable
         var mapper = mapperBuilder.Build();
 
         var instance1 = new ScalarClass1(1);
-        var instance2 = new ScalarClass4(new byte[] { 1, 2, 3 });
-        var instance3 = new ScalarClass4();
+        var instance2 = new ScalarClass4(1, new byte[] { 1, 2, 3 });
+        var instance3 = new ScalarClass4(1);
 
         // act
-        mapper.Map(instance2, instance1, _dbContext);
-        mapper.Map(instance1, instance3, _dbContext);
+        using (var context = mapper.StartMappingContext(_dbContext))
+        {
+            mapper.Map(instance2, instance1);
+            mapper.Map(instance1, instance3);
+        }
 
         // assert
         Assert.True(Enumerable.SequenceEqual(instance1.ByteArrayProp!, instance2.ByteArrayProp!.Bytes));

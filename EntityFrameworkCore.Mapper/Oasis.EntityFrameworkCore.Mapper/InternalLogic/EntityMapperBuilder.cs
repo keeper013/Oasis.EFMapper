@@ -1,4 +1,4 @@
-﻿namespace Oasis.EntityFrameworkCore.Mapper;
+﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Reflection;
