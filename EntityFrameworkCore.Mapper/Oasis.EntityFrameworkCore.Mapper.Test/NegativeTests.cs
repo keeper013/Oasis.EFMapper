@@ -25,14 +25,12 @@ public sealed class NegativeTests : IDisposable
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
 
-        // TODO: shouldn't need to call this when cascade register is implemented
-        mapperBuilder.Register<ScalarClass2, ScalarClass1>();
-        mapperBuilder.Register<ListIClass1, CollectionClass1>();
+        mapperBuilder.Register<ListIEntity1, CollectionEntity1>();
 
         var mapper = mapperBuilder.Build();
 
-        var cc1 = new CollectionClass1(1, 1, new List<ScalarClass1> { new ScalarClass1(1, 1, 2, "3", new byte[] { 1 }) });
-        var lic1 = new ListIClass1(1, 2, new List<ScalarClass2> { new ScalarClass2(2, 2, 3, "4", new byte[] { 2 }) });
+        var cc1 = new CollectionEntity1(1, 1, new List<ScalarEntity1> { new ScalarEntity1(1, 1, 2, "3", new byte[] { 1 }) });
+        var lic1 = new ListIEntity1(1, 2, new List<ScalarEntity2> { new ScalarEntity2(2, 2, 3, "4", new byte[] { 2 }) });
 
         Assert.Throws<MappingContextNotStartedException>(() => mapper.Map(lic1, cc1));
     }
@@ -43,14 +41,12 @@ public sealed class NegativeTests : IDisposable
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
 
-        // TODO: shouldn't need to call this when cascade register is implemented
-        mapperBuilder.Register<ScalarClass2, ScalarClass1>();
-        mapperBuilder.Register<ListIClass1, CollectionClass1>();
+        mapperBuilder.Register<ListIEntity1, CollectionEntity1>();
 
         var mapper = mapperBuilder.Build();
 
-        var cc1 = new CollectionClass1(1, 1, new List<ScalarClass1> { new ScalarClass1(1, 1, 2, "3", new byte[] { 1 }) });
-        var lic1 = new ListIClass1(1, 2, new List<ScalarClass2> { new ScalarClass2(2, 2, 3, "4", new byte[] { 2 }) });
+        var cc1 = new CollectionEntity1(1, 1, new List<ScalarEntity1> { new ScalarEntity1(1, 1, 2, "3", new byte[] { 1 }) });
+        var lic1 = new ListIEntity1(1, 2, new List<ScalarEntity2> { new ScalarEntity2(2, 2, 3, "4", new byte[] { 2 }) });
 
         Assert.Throws<MappingContextStartedException>(() =>
         {
@@ -66,14 +62,12 @@ public sealed class NegativeTests : IDisposable
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
 
-        // TODO: shouldn't need to call this when cascade register is implemented
-        mapperBuilder.Register<ScalarClass2, ScalarClass1>();
-        mapperBuilder.Register<ListIClass1, CollectionClass1>();
+        mapperBuilder.Register<ListIEntity1, CollectionEntity1>();
 
         var mapper = mapperBuilder.Build();
 
-        var cc1 = new CollectionClass1(1, 1, new List<ScalarClass1> { new ScalarClass1(1, 1, 2, "3", new byte[] { 1 }) });
-        var lic1 = new ListIClass1(1, 2, new List<ScalarClass2> { new ScalarClass2(2, 2, 3, "4", new byte[] { 2 }) });
+        var cc1 = new CollectionEntity1(1, 1, new List<ScalarEntity1> { new ScalarEntity1(1, 1, 2, "3", new byte[] { 1 }) });
+        var lic1 = new ListIEntity1(1, 2, new List<ScalarEntity2> { new ScalarEntity2(2, 2, 3, "4", new byte[] { 2 }) });
 
         Assert.Throws<EntityNotFoundException>(() =>
         {

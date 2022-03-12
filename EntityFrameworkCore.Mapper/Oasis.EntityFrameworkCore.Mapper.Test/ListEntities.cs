@@ -2,19 +2,19 @@
 
 using System.Collections.Generic;
 
-public sealed class CollectionClass1 : EntityBase
+public sealed class CollectionEntity1 : EntityBase
 {
-    public CollectionClass1()
+    public CollectionEntity1()
     {
     }
 
-    public CollectionClass1(long? id)
+    public CollectionEntity1(long? id)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
-    public CollectionClass1(long? id, int intProp, ICollection<ScalarClass1> scs)
+    public CollectionEntity1(long? id, int intProp, ICollection<ScalarEntity1> scs)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
@@ -24,22 +24,22 @@ public sealed class CollectionClass1 : EntityBase
 
     public int IntProp { get; set; }
 
-    public ICollection<ScalarClass1>? Scs { get; set; }
+    public ICollection<ScalarEntity1>? Scs { get; set; }
 }
 
-public sealed class CollectionClass2 : EntityBase
+public sealed class CollectionEntity2 : EntityBase
 {
-    public CollectionClass2()
+    public CollectionEntity2()
     {
     }
 
-    public CollectionClass2(long? id)
+    public CollectionEntity2(long? id)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
-    public CollectionClass2(long? id, int intProp, ICollection<ScalarClass2> scs)
+    public CollectionEntity2(long? id, int intProp, ICollection<ScalarEntity2> scs)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
@@ -49,22 +49,22 @@ public sealed class CollectionClass2 : EntityBase
 
     public int IntProp { get; set; }
 
-    public ICollection<ScalarClass2>? Scs { get; set; }
+    public ICollection<ScalarEntity2>? Scs { get; set; }
 }
 
-public sealed class ListIClass1 : EntityBase
+public sealed class ListIEntity1 : EntityBase
 {
-    public ListIClass1()
+    public ListIEntity1()
     {
     }
 
-    public ListIClass1(long? id)
+    public ListIEntity1(long? id)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
-    public ListIClass1(long? id, int intProp, IList<ScalarClass2> scs)
+    public ListIEntity1(long? id, int intProp, IList<ScalarEntity2> scs)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
@@ -74,22 +74,22 @@ public sealed class ListIClass1 : EntityBase
 
     public int IntProp { get; set; }
 
-    public IList<ScalarClass2>? Scs { get; set; }
+    public IList<ScalarEntity2>? Scs { get; set; }
 }
 
-public sealed class ListClass1 : EntityBase
+public sealed class ListEntity1 : EntityBase
 {
-    public ListClass1()
+    public ListEntity1()
     {
     }
 
-    public ListClass1(long? id)
+    public ListEntity1(long? id)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
-    public ListClass1(long? id, int intProp, List<ScalarClass2> scs)
+    public ListEntity1(long? id, int intProp, List<ScalarEntity2> scs)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
@@ -99,5 +99,53 @@ public sealed class ListClass1 : EntityBase
 
     public int IntProp { get; set; }
 
-    public List<ScalarClass2>? Scs { get; set; }
+    public List<ScalarEntity2>? Scs { get; set; }
+}
+
+public sealed class RecursiveEntity1 : EntityBase
+{
+    public RecursiveEntity1()
+    {
+    }
+
+    public RecursiveEntity1(long? id)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
+    }
+
+    public RecursiveEntity1(long? id, int intProp)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
+        IntProp = intProp;
+    }
+
+    public int IntProp { get; set; }
+
+    public IList<RecursiveEntity1>? SubItems { get; set; }
+}
+
+public sealed class RecursiveEntity2 : EntityBase
+{
+    public RecursiveEntity2()
+    {
+    }
+
+    public RecursiveEntity2(long? id)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
+    }
+
+    public RecursiveEntity2(long? id, int intProp)
+    {
+        Id = id;
+        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
+        IntProp = intProp;
+    }
+
+    public int IntProp { get; set; }
+
+    public IList<RecursiveEntity2>? SubItems { get; set; }
 }

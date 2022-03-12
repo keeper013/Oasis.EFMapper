@@ -6,13 +6,13 @@ using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 internal class RecursiveMapper : IListPropertyMapper
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
-    private readonly IDictionary<Type, TargetTracker> _trackerDictionary = new Dictionary<Type, TargetTracker>();
-    private readonly INewSourceEntityTracker _newSourceEntityTracker;
+    private readonly IDictionary<Type, ExistingTargetTracker> _trackerDictionary = new Dictionary<Type, ExistingTargetTracker>();
+    private readonly INewEntityTracker _newSourceEntityTracker;
     private readonly DbContext _dbContext;
 
     internal RecursiveMapper(
         DbContext databaseContext,
-        INewSourceEntityTracker newSourceEntityTracker,
+        INewEntityTracker newSourceEntityTracker,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
         _newSourceEntityTracker = newSourceEntityTracker;
@@ -29,12 +29,13 @@ internal class RecursiveMapper : IListPropertyMapper
             {
                 if (s.Id == null)
                 {
-                    if (_newSourceEntityTracker.TryGetTargetIfNotTracked<TTarget>(s.GetHashCode(), out var n))
+                    if (!_newSourceEntityTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
                     {
                         Map(s, n!);
-                        target.Add(n!);
                         _dbContext.Set<TTarget>().Add(n!);
                     }
+
+                    target.Add(n!);
                 }
                 else
                 {
@@ -70,14 +71,21 @@ internal class RecursiveMapper : IListPropertyMapper
         where TTarget : class, IEntityBase
     {
         var targetType = typeof(TTarget);
-        var targetTypeHasMaps = _trackerDictionary.TryGetValue(targetType, out var tracker);
-        var targetAlreadyExists = target.Id.HasValue;
-        var targetIsMapped = targetTypeHasMaps && ((targetAlreadyExists && tracker!.IdSet.Contains(target.Id!.Value)) || (!targetAlreadyExists && tracker!.HashCodeSet.Contains(target.GetHashCode())));
+        var targetTypeIsTracked = _trackerDictionary.TryGetValue(targetType, out var existingTargetTracker);
 
-        // only do scalar property mapping if the target hasn't been mapped
-        if (targetIsMapped)
+        if (target.Id.HasValue)
         {
-            return;
+            if (!targetTypeIsTracked)
+            {
+                existingTargetTracker = new ExistingTargetTracker();
+                _trackerDictionary.Add(targetType, existingTargetTracker);
+            }
+
+            if (!existingTargetTracker!.StartTracking(target.Id.Value))
+            {
+                // only do property mapping if the target hasn't been mapped
+                return;
+            }
         }
 
         MapperSet mapperSet = default;
@@ -89,41 +97,19 @@ internal class RecursiveMapper : IListPropertyMapper
         }
 
         ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.scalarPropertiesMapper)(source, target);
-
-        // after scalar property mapping, add target as mapped, to break out from recursive situation
-        if (!targetTypeHasMaps)
-        {
-            tracker = new TargetTracker();
-        }
-
-        if (target.Id.HasValue)
-        {
-            tracker!.IdSet.Add(target.Id.Value);
-        }
-        else
-        {
-            tracker!.HashCodeSet.Add(target.GetHashCode());
-        }
-
-        if (!targetTypeHasMaps)
-        {
-            _trackerDictionary.Add(targetType, tracker);
-        }
-
-        // after target type is marked as mapped, go on to map collections
         ((Utilities.MapListProperties<TSource, TTarget>)mapperSet.listPropertiesMapper)(source, target, this);
     }
 
-    private class TargetTracker
+    private class ExistingTargetTracker
     {
-        public ISet<long> IdSet { get; } = new HashSet<long>();
+        private ISet<long> _existingTargetIdSet = new HashSet<long>();
 
-        public ISet<int> HashCodeSet { get; } = new HashSet<int>();
+        public bool StartTracking(long id) => _existingTargetIdSet.Add(id);
     }
 }
 
-internal interface INewSourceEntityTracker
+internal interface INewEntityTracker
 {
-    bool TryGetTargetIfNotTracked<TTarget>(int hashCode, out TTarget? target)
+    bool NewTargetIfNotExist<TTarget>(int hashCode, out TTarget? target)
         where TTarget : class, new();
 }

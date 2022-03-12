@@ -25,11 +25,11 @@ public sealed class PositiveTests : IDisposable
         // arrange
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
-        mapperBuilder.Register<ScalarClass2, ScalarClass1>();
+        mapperBuilder.Register<ScalarEntity2, ScalarEntity1>();
         var mapper = mapperBuilder.Build();
 
-        var instance1 = new ScalarClass1(1);
-        var instance2 = new ScalarClass2(1, 1, 2, "3", new byte[] { 1, 2, 3 });
+        var instance1 = new ScalarEntity1(1);
+        var instance2 = new ScalarEntity2(1, 1, 2, "3", new byte[] { 1, 2, 3 });
 
         // act
         using (var context = mapper.StartMappingContext(_dbContext))
@@ -50,11 +50,11 @@ public sealed class PositiveTests : IDisposable
         // arrange
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
-        mapperBuilder.Register<ScalarClass3, ScalarClass2>();
+        mapperBuilder.Register<ScalarEntity3, ScalarEntity2>();
         var mapper = mapperBuilder.Build();
 
-        var instance3 = new ScalarClass3(1, 1, 2, "3", new char[] { 'a', 'b', 'c' });
-        var instance2 = new ScalarClass2(1);
+        var instance3 = new ScalarEntity3(1, 1, 2, "3", new char[] { 'a', 'b', 'c' });
+        var instance2 = new ScalarEntity2(1);
 
         // act
         using (var context = mapper.StartMappingContext(_dbContext))
@@ -76,17 +76,14 @@ public sealed class PositiveTests : IDisposable
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
 
-        // TODO: shouldn't need to call this when cascade register is implemented
-        mapperBuilder
-            .Register<ScalarClass2, ScalarClass1>()
-            .Register<CollectionClass2, CollectionClass1>();
+        mapperBuilder.Register<CollectionEntity2, CollectionEntity1>();
 
         var mapper = mapperBuilder.Build();
 
-        var cc1 = new CollectionClass1(1);
-        var sc2_1 = new ScalarClass2(null, 1, 2, "3", new byte[] { 1 });
-        var sc2_2 = new ScalarClass2(null, 2, null, "4", new byte[] { 2, 3, 4 });
-        var cc2 = new CollectionClass2(1, 1, new List<ScalarClass2> { sc2_1, sc2_2 });
+        var cc1 = new CollectionEntity1(1);
+        var sc2_1 = new ScalarEntity2(null, 1, 2, "3", new byte[] { 1 });
+        var sc2_2 = new ScalarEntity2(null, 2, null, "4", new byte[] { 2, 3, 4 });
+        var cc2 = new CollectionEntity2(1, 1, new List<ScalarEntity2> { sc2_1, sc2_2 });
 
         // act
         using (var context = mapper.StartMappingContext(_dbContext))
@@ -117,15 +114,12 @@ public sealed class PositiveTests : IDisposable
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
 
-        // TODO: shouldn't need to call this when cascade register is implemented
-        mapperBuilder
-            .Register<ScalarClass2, ScalarClass1>()
-            .Register<ListIClass1, CollectionClass1>();
+        mapperBuilder.Register<ListIEntity1, CollectionEntity1>();
 
         var mapper = mapperBuilder.Build();
 
-        var cc1 = new CollectionClass1(1, 1, new List<ScalarClass1> { new ScalarClass1(1, 1, 2, "3", new byte[] { 1 }) });
-        var lic1 = new ListIClass1(1, 2, new List<ScalarClass2> { new ScalarClass2(1, 2, 3, "4", new byte[] { 2 }) });
+        var cc1 = new CollectionEntity1(1, 1, new List<ScalarEntity1> { new ScalarEntity1(1, 1, 2, "3", new byte[] { 1 }) });
+        var lic1 = new ListIEntity1(1, 2, new List<ScalarEntity2> { new ScalarEntity2(1, 2, 3, "4", new byte[] { 2 }) });
 
         // act
         using (var context = mapper.StartMappingContext(_dbContext))
@@ -151,18 +145,15 @@ public sealed class PositiveTests : IDisposable
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
 
-        // TODO: shouldn't need to call this when cascade register is implemented
-        mapperBuilder
-            .Register<ScalarClass2, ScalarClass1>()
-            .Register<ListClass1, CollectionClass1>();
+        mapperBuilder.Register<ListEntity1, CollectionEntity1>();
 
         var mapper = mapperBuilder.Build();
 
-        var sc1_1 = new ScalarClass1(1, 1, 2, "3", new byte[] { 1 });
-        var sc1_2 = new ScalarClass1(2, 1, 2, "3", new byte[] { 1 });
-        var cc1 = new CollectionClass1(1, 1, new List<ScalarClass1> { sc1_1, sc1_2 });
-        var sc2 = new ScalarClass2(2, 2, 3, "4", new byte[] { 2 });
-        var lc1 = new ListClass1(1, 2, new List<ScalarClass2> { sc2 });
+        var sc1_1 = new ScalarEntity1(1, 1, 2, "3", new byte[] { 1 });
+        var sc1_2 = new ScalarEntity1(2, 1, 2, "3", new byte[] { 1 });
+        var cc1 = new CollectionEntity1(1, 1, new List<ScalarEntity1> { sc1_1, sc1_2 });
+        var sc2 = new ScalarEntity2(2, 2, 3, "4", new byte[] { 2 });
+        var lc1 = new ListEntity1(1, 2, new List<ScalarEntity2> { sc2 });
 
         // act
         using (var context = mapper.StartMappingContext(_dbContext))
@@ -188,15 +179,12 @@ public sealed class PositiveTests : IDisposable
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
 
-        // TODO: shouldn't need to call this when cascade register is implemented
-        mapperBuilder
-            .Register<ScalarClass2, ScalarClass1>()
-            .Register<DerivedEntity2, DerivedEntity1>();
+        mapperBuilder.Register<DerivedEntity2, DerivedEntity1>();
 
         var mapper = mapperBuilder.Build();
 
         var de1 = new DerivedEntity1();
-        var de2 = new DerivedEntity2(null, "str2", 2, new List<ScalarClass2> { new ScalarClass2(null, 1, 2, "3", new byte[] { 1 }) });
+        var de2 = new DerivedEntity2(null, "str2", 2, new List<ScalarEntity2> { new ScalarEntity2(null, 1, 2, "3", new byte[] { 1 }) });
 
         // act
         using (var context = mapper.StartMappingContext(_dbContext))
@@ -223,15 +211,12 @@ public sealed class PositiveTests : IDisposable
         var factory = new MapperFactory();
         var mapperBuilder = factory.Make(GetType().Name);
 
-        // TODO: shouldn't need to call this when cascade register is implemented
-        mapperBuilder
-            .Register<ScalarClass2, ScalarClass1>()
-            .Register<DerivedEntity2_2, DerivedEntity1_1>();
+        mapperBuilder.Register<DerivedEntity2_2, DerivedEntity1_1>();
 
         var mapper = mapperBuilder.Build();
 
         var de1 = new DerivedEntity1_1();
-        var de2 = new DerivedEntity2_2(null, 2, 2, new List<ScalarClass2> { new ScalarClass2(null, 1, 2, "3", new byte[] { 1 }) });
+        var de2 = new DerivedEntity2_2(null, 2, 2, new List<ScalarEntity2> { new ScalarEntity2(null, 1, 2, "3", new byte[] { 1 }) });
 
         // act
         using (var context = mapper.StartMappingContext(_dbContext))
@@ -260,14 +245,14 @@ public sealed class PositiveTests : IDisposable
         mapperBuilder
             .WithScalarMapper<ByteArrayWrapper, byte[]>(ByteArrayWrapper.ConvertStatic)
             .WithScalarMapper<byte[], ByteArrayWrapper>(ByteArrayWrapper.ConvertStatic)
-            .Register<ScalarClass4, ScalarClass1>()
-            .Register<ScalarClass1, ScalarClass4>();
+            .Register<ScalarEntity4, ScalarEntity1>()
+            .Register<ScalarEntity1, ScalarEntity4>();
 
         var mapper = mapperBuilder.Build();
 
-        var instance1 = new ScalarClass1(1);
-        var instance2 = new ScalarClass4(1, new byte[] { 1, 2, 3 });
-        var instance3 = new ScalarClass4(1);
+        var instance1 = new ScalarEntity1(1);
+        var instance2 = new ScalarEntity4(1, new byte[] { 1, 2, 3 });
+        var instance3 = new ScalarEntity4(1);
 
         // act
         using (var context = mapper.StartMappingContext(_dbContext))
@@ -279,6 +264,33 @@ public sealed class PositiveTests : IDisposable
         // assert
         Assert.True(Enumerable.SequenceEqual(instance1.ByteArrayProp!, instance2.ByteArrayProp!.Bytes));
         Assert.True(Enumerable.SequenceEqual(instance3.ByteArrayProp!.Bytes, instance1.ByteArrayProp!));
+    }
+
+    [Fact]
+    public void MapRecursiveEntity_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperFactory();
+        var mapperBuilder = factory.Make(GetType().Name);
+        mapperBuilder.Register<RecursiveEntity2, RecursiveEntity1>();
+        var mapper = mapperBuilder.Build();
+
+        var instance1 = new RecursiveEntity1(null, 1);
+        var instance2_1 = new RecursiveEntity2(null, 1);
+        var instance2_2 = new RecursiveEntity2(null, 2);
+        instance2_1.SubItems = new List<RecursiveEntity2> { instance2_1, instance2_2 };
+
+        // act
+        using (var context = mapper.StartMappingContext(_dbContext))
+        {
+            mapper.Map(instance2_1, instance1);
+        }
+
+        // assert
+        Assert.Equal(1, instance1.IntProp);
+        Assert.Equal(2, instance1.SubItems!.Count);
+        Assert.Equal(1, instance1.SubItems[0].IntProp);
+        Assert.Equal(2, instance1.SubItems[1].IntProp);
     }
 
     public void Dispose() => _dbContext.Dispose();

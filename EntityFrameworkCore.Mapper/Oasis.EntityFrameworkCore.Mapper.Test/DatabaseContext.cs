@@ -19,6 +19,7 @@ internal class DatabaseContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ScalarClass1>().ToTable("ScalarClass1");
+        modelBuilder.Entity<ScalarEntity1>().ToTable("ScalarEntity1");
+        modelBuilder.Entity<RecursiveEntity1>().ToTable("RecursiveEntity1");
     }
 }

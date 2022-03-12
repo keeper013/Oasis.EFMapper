@@ -9,6 +9,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
     private const char MapScalarPropertiesMethod = 's';
     private const char MapListPropertiesMethod = 'l';
     private static readonly MethodInfo MapListProperty = typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!;
+    private static readonly MethodInfo RecursivelyRegisterMethod = typeof(EntityMapperBuilder).GetMethod("RecursivelyRegister", Utilities.NonPublicInstance)!;
 
     private readonly TypeBuilder _typeBuilder;
     private readonly IDictionary<Type, IDictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, IDictionary<Type, MapperMetaDataSet>>();
@@ -48,25 +49,8 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
 
     IEntityMapperBuilder IEntityMapperBuilder.Register<TSource, TTarget>()
     {
-        var sourceType = typeof(TSource);
-        var targetType = typeof(TTarget);
-        lock (_mapper)
-        {
-            if (!_mapper.TryGetValue(sourceType, out var innerDictionary))
-            {
-                innerDictionary = new Dictionary<Type, MapperMetaDataSet>();
-                _mapper[sourceType] = innerDictionary;
-            }
-
-            if (!innerDictionary.ContainsKey(targetType))
-            {
-                innerDictionary[targetType] = new MapperMetaDataSet(
-                    BuildUpScalarPropertiesMapperMethod<TSource, TTarget>(),
-                    BuildUpListPropertiesMapperMethod<TSource, TTarget>());
-            }
-        }
-
-        return this;
+        var stack = new Stack<(Type, Type)>();
+        return RecursivelyRegister<TSource, TTarget>(stack);
     }
 
     public IEntityMapperBuilder WithScalarMapper<TSource, TTarget>(Func<TSource, TTarget> func)
@@ -120,6 +104,37 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         return $"_{type}_{sourceType.FullName!.Replace(".", "_")}__To__{targetType.FullName!.Replace(".", "_")}";
     }
 
+    private IEntityMapperBuilder RecursivelyRegister<TSource, TTarget>(Stack<(Type, Type)> stack)
+        where TSource : class, IEntityBase
+        where TTarget : class, IEntityBase
+    {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        if (!stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
+        {
+            stack.Push(new (sourceType, targetType));
+            lock (_mapper)
+            {
+                if (!_mapper.TryGetValue(sourceType, out var innerDictionary))
+                {
+                    innerDictionary = new Dictionary<Type, MapperMetaDataSet>();
+                    _mapper[sourceType] = innerDictionary;
+                }
+
+                if (!innerDictionary.ContainsKey(targetType))
+                {
+                    innerDictionary[targetType] = new MapperMetaDataSet(
+                        BuildUpScalarPropertiesMapperMethod<TSource, TTarget>(),
+                        BuildUpListPropertiesMapperMethod<TSource, TTarget>(stack));
+                }
+            }
+
+            stack.Pop();
+        }
+
+        return this;
+    }
+
     private MapperMetaData BuildUpScalarPropertiesMapperMethod<TSource, TTarget>()
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase
@@ -133,7 +148,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         return new MapperMetaData(typeof(Utilities.MapScalarProperties<TSource, TTarget>), method.Name);
     }
 
-    private MapperMetaData BuildUpListPropertiesMapperMethod<TSource, TTarget>()
+    private MapperMetaData BuildUpListPropertiesMapperMethod<TSource, TTarget>(Stack<(Type, Type)> stack)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase
     {
@@ -141,7 +156,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         var targetType = typeof(TTarget);
 
         var method = InitializeDynamicMethod(sourceType, targetType, MapListPropertiesMethod, new[] { sourceType, targetType, typeof(IListPropertyMapper) });
-        FillListPropertiesMapper(method.GetILGenerator(), sourceType, targetType);
+        FillListPropertiesMapper(method.GetILGenerator(), sourceType, targetType, stack);
 
         return new MapperMetaData(typeof(Utilities.MapListProperties<TSource, TTarget>), method.Name);
     }
@@ -183,15 +198,26 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         generator.Emit(OpCodes.Ret);
     }
 
-    private void FillListPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
+    private void FillListPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType, Stack<(Type, Type)> stack)
     {
         var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).Where(p => p.IsListOfNavigationProperty(true, false));
         var targetProperties = targetType.GetProperties(Utilities.PublicInstance).Where(p => p.IsListOfNavigationProperty(true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
-            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty) && ListTypeMatch(sourceProperty.PropertyType, targetProperty.PropertyType))
+            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty))
             {
+                var sourceItemType = sourceProperty.PropertyType.GenericTypeArguments[0];
+                var targetItemType = targetProperty.PropertyType.GenericTypeArguments[0];
+
+                // cascading mapper creation: if list item mapper doesn't exist, create it
+                if (!stack.Any(i => i.Item1 == sourceItemType && i.Item2 == targetItemType) && !TypeMapperExists(sourceItemType, targetItemType))
+                {
+                    var recursivelyRegisterMethod = RecursivelyRegisterMethod.MakeGenericMethod(sourceItemType, targetItemType);
+                    recursivelyRegisterMethod.Invoke(this, new object[] { stack });
+                }
+
+                // now it's made sure that mapper between list items exists, emit the list property mapping code
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
                 var jumpLabel = generator.DefineLabel();
@@ -205,18 +231,15 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
                 generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
-                generator.Emit(OpCodes.Callvirt, GetMapListPropertyMethod(sourceProperty.PropertyType, targetProperty.PropertyType));
+                generator.Emit(OpCodes.Callvirt, GetMapListPropertyMethod(sourceItemType, targetItemType));
             }
         }
 
         generator.Emit(OpCodes.Ret);
     }
 
-    private MethodInfo GetMapListPropertyMethod(Type sourceType, Type targetType)
+    private MethodInfo GetMapListPropertyMethod(Type sourceItemType, Type targetItemType)
     {
-        var sourceItemType = sourceType.GenericTypeArguments[0];
-        var targetItemType = targetType.GenericTypeArguments[0];
-
         if (!_listPropertyMapper.TryGetValue(sourceItemType, out var innerDictionary))
         {
             innerDictionary = new Dictionary<Type, MethodInfo>();
@@ -232,9 +255,9 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         return method;
     }
 
-    private bool ListTypeMatch(Type sourceListType, Type targetListType)
+    private bool TypeMapperExists(Type sourceType, Type targetType)
     {
-        return _mapper.TryGetValue(sourceListType.GenericTypeArguments[0], out var innerDictionary) && innerDictionary.ContainsKey(targetListType.GenericTypeArguments[0]);
+        return _mapper.TryGetValue(sourceType, out var innerDictionary) && innerDictionary.ContainsKey(targetType);
     }
 
     private bool ScalarTypeMatch(Type sourceType, Type targetType)

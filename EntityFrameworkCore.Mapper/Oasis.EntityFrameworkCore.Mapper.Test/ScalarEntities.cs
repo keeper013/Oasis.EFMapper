@@ -1,18 +1,18 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Test;
 
-public sealed class ScalarClass1 : EntityBase
+public sealed class ScalarEntity1 : EntityBase
 {
-    public ScalarClass1()
+    public ScalarEntity1()
     {
     }
 
-    public ScalarClass1(long? id)
+    public ScalarEntity1(long? id)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
-    public ScalarClass1(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
+    public ScalarEntity1(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
@@ -31,19 +31,19 @@ public sealed class ScalarClass1 : EntityBase
     public byte[]? ByteArrayProp { get; set; }
 }
 
-public sealed class ScalarClass2 : EntityBase
+public sealed class ScalarEntity2 : EntityBase
 {
-    public ScalarClass2()
+    public ScalarEntity2()
     {
     }
 
-    public ScalarClass2(long? id)
+    public ScalarEntity2(long? id)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
-    public ScalarClass2(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
+    public ScalarEntity2(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
@@ -62,19 +62,19 @@ public sealed class ScalarClass2 : EntityBase
     public byte[]? ByteArrayProp { get; set; }
 }
 
-public sealed class ScalarClass3 : EntityBase
+public sealed class ScalarEntity3 : EntityBase
 {
-    public ScalarClass3()
+    public ScalarEntity3()
     {
     }
 
-    public ScalarClass3(long? id)
+    public ScalarEntity3(long? id)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
-    public ScalarClass3(long? id, int? intProp, long longNullableProp, string stringProp, char[] byteArrayProp)
+    public ScalarEntity3(long? id, int? intProp, long longNullableProp, string stringProp, char[] byteArrayProp)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
@@ -93,19 +93,19 @@ public sealed class ScalarClass3 : EntityBase
     public char[]? ByteArrayProp { get; set; }
 }
 
-public class ScalarClass4 : EntityBase
+public class ScalarEntity4 : EntityBase
 {
-    public ScalarClass4()
+    public ScalarEntity4()
     {
     }
 
-    public ScalarClass4(long? id)
+    public ScalarEntity4(long? id)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
     }
 
-    public ScalarClass4(long? id, byte[] content)
+    public ScalarEntity4(long? id, byte[] content)
     {
         Id = id;
         Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;

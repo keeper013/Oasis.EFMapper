@@ -5,6 +5,7 @@ using System.Reflection;
 internal static class Utilities
 {
     internal const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
+    internal const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
     private static readonly Type EntityBaseType = typeof(EntityBase);
 
     public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target)

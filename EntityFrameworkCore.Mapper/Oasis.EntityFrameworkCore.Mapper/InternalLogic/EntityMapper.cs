@@ -91,10 +91,10 @@ internal sealed class EntityMapper : IEntityMapper
         }
         else
         {
-            if (!_context.TryGetTargetIfNotTracked<TTarget>(source.GetHashCode(), out target))
+            if (!_context.NewTargetIfNotExist<TTarget>(source.GetHashCode(), out target))
             {
-                _context.DatabaseContext.Set<TTarget>().Add(target!);
                 MapInternal(source, target!);
+                _context.DatabaseContext.Set<TTarget>().Add(target!);
             }
         }
     }
@@ -107,9 +107,9 @@ internal sealed class EntityMapper : IEntityMapper
     }
 }
 
-internal sealed class MappingContext : INewSourceEntityTracker, IDisposable
+internal sealed class MappingContext : INewEntityTracker, IDisposable
 {
-    private readonly ISet<int> _newEntitiesHashCodes = new HashSet<int>();
+    private readonly IDictionary<int, object> _newEntityDictionary = new Dictionary<int, object>();
     private DbContext? _dbContext;
 
     public bool IsStarted => _dbContext != null;
@@ -120,25 +120,40 @@ internal sealed class MappingContext : INewSourceEntityTracker, IDisposable
         set { _dbContext = value; }
     }
 
-    public bool TryGetTargetIfNotTracked<TTarget>(int hashCode, out TTarget? target)
+    public bool NewTargetIfNotExist<TTarget>(int hashCode, out TTarget? target)
         where TTarget : class, new()
     {
-        lock (_newEntitiesHashCodes)
+        bool result = false;
+        object? obj;
+        target = default;
+        lock (_newEntityDictionary)
         {
-            if (_newEntitiesHashCodes.Add(hashCode))
+            result = _newEntityDictionary.TryGetValue(hashCode, out obj);
+            if (!result)
             {
                 target = new TTarget();
-                return true;
+                _newEntityDictionary.Add(hashCode, target);
             }
         }
 
-        target = default;
-        return false;
+        if (result)
+        {
+            if (obj is TTarget)
+            {
+                target = obj as TTarget;
+            }
+            else
+            {
+                throw new MultipleMappingException(obj!.GetType(), typeof(TTarget));
+            }
+        }
+
+        return result;
     }
 
     public void Dispose()
     {
-        _newEntitiesHashCodes.Clear();
+        _newEntityDictionary.Clear();
         _dbContext = null;
     }
 }
