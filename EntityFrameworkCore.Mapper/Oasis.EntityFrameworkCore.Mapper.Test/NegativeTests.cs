@@ -30,8 +30,11 @@ public sealed class NegativeTests : IDisposable
 
         var mapper = mapperBuilder.Build();
 
-        var instance = new ListIEntity1(1, 2, new List<ScalarEntity2> { new ScalarEntity2(2, 2, 3, "4", new byte[] { 2 }) });
-        _dbContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, 1, new List<ScalarEntity1> { new ScalarEntity1(1, 1, 2, "3", new byte[] { 1 }) }));
+        var instance = new ListIEntity1(1, 2, new List<SubScalarEntity1> { new SubScalarEntity1(2, 2, 3, "4", new byte[] { 2 }) });
+        var sub = new SubScalarEntity1(1, 1, 2, "3", new byte[] { 1 });
+        sub.ListIEntityId = 1;
+        _dbContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, 1, new List<SubScalarEntity1>()));
+        _dbContext.Set<SubScalarEntity1>().Add(sub);
         await _dbContext.SaveChangesAsync();
 
         await Assert.ThrowsAsync<EntityNotFoundException>(async () =>

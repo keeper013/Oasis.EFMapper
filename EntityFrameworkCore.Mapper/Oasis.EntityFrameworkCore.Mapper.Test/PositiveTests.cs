@@ -116,8 +116,11 @@ public sealed class PositiveTests : IDisposable
 
         var mapper = mapperBuilder.Build();
 
-        var instance = new ListIEntity1(1, 2, new List<ScalarEntity2> { new ScalarEntity2(1, 2, 3, "4", new byte[] { 2 }) });
-        _dbContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, 1, new List<ScalarEntity1> { new ScalarEntity1(1, 1, 2, "3", new byte[] { 1 }) }));
+        var instance = new ListIEntity1(1, 2, new List<SubScalarEntity1> { new SubScalarEntity1(1, 2, 3, "4", new byte[] { 2 }) });
+        _dbContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, 1, new List<SubScalarEntity1>()));
+        var subInstance = new SubScalarEntity1(1, 1, 2, "3", new byte[] { 1 });
+        subInstance.CollectionEntityId = 1;
+        _dbContext.Set<SubScalarEntity1>().Add(subInstance);
         await _dbContext.SaveChangesAsync();
 
         // act
@@ -146,11 +149,15 @@ public sealed class PositiveTests : IDisposable
 
         var mapper = mapperBuilder.Build();
 
-        var sc1_1 = new ScalarEntity1(1, 1, 2, "3", new byte[] { 1 });
-        var sc1_2 = new ScalarEntity1(2, 1, 2, "3", new byte[] { 1 });
-        var sc2 = new ScalarEntity2(2, 2, 3, "4", new byte[] { 2 });
-        var instance = new ListEntity1(1, 2, new List<ScalarEntity2> { sc2 });
-        _dbContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, 1, new List<ScalarEntity1> { sc1_1, sc1_2 }));
+        var sc2 = new SubScalarEntity1(2, 2, 3, "4", new byte[] { 2 });
+        var instance = new ListEntity1(1, 2, new List<SubScalarEntity1> { sc2 });
+        var sc1_1 = new SubScalarEntity1(1, 1, 2, "3", new byte[] { 1 });
+        sc1_1.CollectionEntityId = 1;
+        var sc1_2 = new SubScalarEntity1(2, 1, 2, "3", new byte[] { 1 });
+        sc1_2.CollectionEntityId = 1;
+        _dbContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, 1, new List<SubScalarEntity1>()));
+        _dbContext.Set<SubScalarEntity1>().Add(sc1_1);
+        _dbContext.Set<SubScalarEntity1>().Add(sc1_2);
         await _dbContext.SaveChangesAsync();
 
         // act

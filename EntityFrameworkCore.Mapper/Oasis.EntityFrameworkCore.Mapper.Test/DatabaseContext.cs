@@ -19,10 +19,14 @@ internal class DatabaseContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ScalarEntity1>().ToTable("ScalarEntity1");
-        modelBuilder.Entity<RecursiveEntity1>().ToTable("RecursiveEntity1");
-        modelBuilder.Entity<CollectionEntity1>().ToTable("CollectionEntity1");
-        modelBuilder.Entity<DerivedEntity1>().ToTable("DerivedEntity1");
-        modelBuilder.Entity<DerivedEntity1_1>().ToTable("DerivedEntity1_1");
+        modelBuilder.Entity<ScalarEntity1>().ToTable(nameof(ScalarEntity1));
+        modelBuilder.Entity<RecursiveEntity1>().ToTable(nameof(RecursiveEntity1));
+        modelBuilder.Entity<CollectionEntity1>().ToTable(nameof(CollectionEntity1));
+        modelBuilder.Entity<DerivedEntity1>().ToTable(nameof(DerivedEntity1));
+        modelBuilder.Entity<DerivedEntity1_1>().ToTable(nameof(DerivedEntity1_1));
+        modelBuilder.Entity<SubScalarEntity1>().ToTable(nameof(SubScalarEntity1));
+        modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListIEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListIEntityId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListEntityId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.CollectionEntity).WithMany(c => c.Scs).HasForeignKey(s => s.CollectionEntityId).OnDelete(DeleteBehavior.SetNull);
     }
 }

@@ -119,9 +119,9 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper
         {
             var t = target.Single(t => t.Id == id);
             target.Remove(t);
-            var t1 = _databaseContext.Set<TTarget>().Single(t => t.Id == id);
-            _databaseContext.Set<TTarget>().Remove(t1);
         }
+
+        _databaseContext.Set<TTarget>().RemoveRange(_databaseContext.Set<TTarget>().Where(t => ids.Contains(t.Id!.Value)));
     }
 }
 
