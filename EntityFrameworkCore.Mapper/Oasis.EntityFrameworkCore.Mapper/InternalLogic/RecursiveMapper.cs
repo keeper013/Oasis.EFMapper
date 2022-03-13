@@ -3,68 +3,24 @@
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-internal class RecursiveMapper : IListPropertyMapper
+internal abstract class RecursiveMapper : IListPropertyMapper
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
     private readonly IDictionary<Type, ExistingTargetTracker> _trackerDictionary = new Dictionary<Type, ExistingTargetTracker>();
-    private readonly INewEntityTracker _newSourceEntityTracker;
-    private readonly DbContext _dbContext;
 
     internal RecursiveMapper(
-        DbContext databaseContext,
-        INewEntityTracker newSourceEntityTracker,
+        NewEntityTracker newSourceEntityTracker,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
-        _newSourceEntityTracker = newSourceEntityTracker;
-        _dbContext = databaseContext;
+        NewSourceEntityTracker = newSourceEntityTracker;
         _mappers = mappers;
     }
 
-    void IListPropertyMapper.MapListProperty<TSource, TTarget>(ICollection<TSource> source, ICollection<TTarget> target)
-    {
-        var ids = new HashSet<long>(target.Select(i => i.Id!.Value));
-        if (source != null)
-        {
-            foreach (var s in source)
-            {
-                if (s.Id == null)
-                {
-                    if (!_newSourceEntityTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
-                    {
-                        Map(s, n!);
-                        _dbContext.Set<TTarget>().Add(n!);
-                    }
+    protected NewEntityTracker NewSourceEntityTracker { get; init; }
 
-                    target.Add(n!);
-                }
-                else
-                {
-                    var t = target.SingleOrDefault(i => i.Id == s.Id);
-                    if (t != null)
-                    {
-                        if (s.Timestamp == null || !Enumerable.SequenceEqual(s.Timestamp, t.Timestamp!))
-                        {
-                            throw new StaleEntityException(typeof(TTarget), s.Id.Value);
-                        }
-
-                        Map(s, t);
-                        ids.Remove(s.Id.Value);
-                    }
-                    else
-                    {
-                        throw new EntityNotFoundException(typeof(TTarget), s.Id.Value);
-                    }
-                }
-            }
-        }
-
-        foreach (var id in ids)
-        {
-            var t = target.Single(t => t.Id == id);
-            target.Remove(t);
-            _dbContext.Set<TTarget>().Remove(t);
-        }
-    }
+    public abstract void MapListProperty<TSource, TTarget>(ICollection<TSource> source, ICollection<TTarget> target)
+        where TSource : class, IEntityBase
+        where TTarget : class, IEntityBase, new();
 
     internal void Map<TSource, TTarget>(TSource source, TTarget target)
         where TSource : class, IEntityBase
@@ -108,8 +64,89 @@ internal class RecursiveMapper : IListPropertyMapper
     }
 }
 
-internal interface INewEntityTracker
+internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper
 {
-    bool NewTargetIfNotExist<TTarget>(int hashCode, out TTarget? target)
-        where TTarget : class, new();
+    private readonly DbContext _databaseContext;
+
+    public ToEntitiesRecursiveMapper(
+        NewEntityTracker newSourceEntityTracker,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        DbContext databaseContext)
+        : base(newSourceEntityTracker, mappers)
+    {
+        _databaseContext = databaseContext;
+    }
+
+    public override void MapListProperty<TSource, TTarget>(ICollection<TSource> source, ICollection<TTarget> target)
+    {
+        var ids = new HashSet<long>(target.Select(i => i.Id!.Value));
+        if (source != null)
+        {
+            foreach (var s in source)
+            {
+                if (s.Id == null)
+                {
+                    if (!NewSourceEntityTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
+                    {
+                        Map(s, n!);
+                        _databaseContext.Set<TTarget>().Add(n!);
+                    }
+
+                    target.Add(n!);
+                }
+                else
+                {
+                    var t = target.SingleOrDefault(i => i.Id == s.Id);
+                    if (t != null)
+                    {
+                        if (s.Timestamp == null || !Enumerable.SequenceEqual(s.Timestamp, t.Timestamp!))
+                        {
+                            throw new StaleEntityException(typeof(TTarget), s.Id.Value);
+                        }
+
+                        Map(s, t);
+                        ids.Remove(s.Id.Value);
+                    }
+                    else
+                    {
+                        throw new EntityNotFoundException(typeof(TTarget), s.Id.Value);
+                    }
+                }
+            }
+        }
+
+        foreach (var id in ids)
+        {
+            var t = target.Single(t => t.Id == id);
+            target.Remove(t);
+            var t1 = _databaseContext.Set<TTarget>().Single(t => t.Id == id);
+            _databaseContext.Set<TTarget>().Remove(t1);
+        }
+    }
+}
+
+internal sealed class FromEntitiesRecursiveMapper : RecursiveMapper
+{
+    public FromEntitiesRecursiveMapper(
+        NewEntityTracker newSourceEntityTracker,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
+        : base(newSourceEntityTracker, mappers)
+    {
+    }
+
+    public override void MapListProperty<TSource, TTarget>(ICollection<TSource> source, ICollection<TTarget> target)
+    {
+        if (source != null)
+        {
+            foreach (var s in source)
+            {
+                if (!NewSourceEntityTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
+                {
+                    Map(s, n!);
+                }
+
+                target.Add(n!);
+            }
+        }
+    }
 }

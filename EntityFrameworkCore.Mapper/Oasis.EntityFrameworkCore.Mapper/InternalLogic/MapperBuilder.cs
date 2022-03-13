@@ -4,12 +4,12 @@ using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Reflection;
 using System.Reflection.Emit;
 
-internal sealed class EntityMapperBuilder : IEntityMapperBuilder
+internal sealed class MapperBuilder : IMapperBuilder
 {
     private const char MapScalarPropertiesMethod = 's';
     private const char MapListPropertiesMethod = 'l';
     private static readonly MethodInfo MapListProperty = typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!;
-    private static readonly MethodInfo RecursivelyRegisterMethod = typeof(EntityMapperBuilder).GetMethod("RecursivelyRegister", Utilities.NonPublicInstance)!;
+    private static readonly MethodInfo RecursivelyRegisterMethod = typeof(MapperBuilder).GetMethod("RecursivelyRegister", Utilities.NonPublicInstance)!;
 
     private readonly TypeBuilder _typeBuilder;
     private readonly IDictionary<Type, IDictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, IDictionary<Type, MapperMetaDataSet>>();
@@ -17,7 +17,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
     private readonly ISet<Type> _convertableToScalarTypes = new HashSet<Type>();
     private readonly IDictionary<Type, IDictionary<Type, MethodInfo>> _listPropertyMapper = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
 
-    public EntityMapperBuilder(string assemblyName)
+    public MapperBuilder(string assemblyName)
     {
         var name = new AssemblyName($"{assemblyName}.Oasis.EntityFrameworkCore.Mapper.Generated");
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
@@ -25,7 +25,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         _typeBuilder = module.DefineType("Mapper", TypeAttributes.Public);
     }
 
-    public IEntityMapper Build()
+    public IMapper Build()
     {
         var type = _typeBuilder.CreateType();
         var mapper = new Dictionary<Type, IReadOnlyDictionary<Type, MapperSet>>();
@@ -44,16 +44,16 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
             mapper.Add(pair.Key, innerMapper);
         }
 
-        return new EntityMapper(mapper);
+        return new Mapper(mapper);
     }
 
-    IEntityMapperBuilder IEntityMapperBuilder.Register<TSource, TTarget>()
+    IMapperBuilder IMapperBuilder.Register<TSource, TTarget>()
     {
         var stack = new Stack<(Type, Type)>();
         return RecursivelyRegister<TSource, TTarget>(stack);
     }
 
-    public IEntityMapperBuilder WithScalarMapper<TSource, TTarget>(Func<TSource, TTarget> func)
+    public IMapperBuilder WithScalarMapper<TSource, TTarget>(Func<TSource, TTarget> func)
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
@@ -104,7 +104,7 @@ internal sealed class EntityMapperBuilder : IEntityMapperBuilder
         return $"_{type}_{sourceType.FullName!.Replace(".", "_")}__To__{targetType.FullName!.Replace(".", "_")}";
     }
 
-    private IEntityMapperBuilder RecursivelyRegister<TSource, TTarget>(Stack<(Type, Type)> stack)
+    private IMapperBuilder RecursivelyRegister<TSource, TTarget>(Stack<(Type, Type)> stack)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase
     {

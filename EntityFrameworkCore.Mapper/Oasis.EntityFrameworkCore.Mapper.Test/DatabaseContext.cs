@@ -21,5 +21,8 @@ internal class DatabaseContext : DbContext
     {
         modelBuilder.Entity<ScalarEntity1>().ToTable("ScalarEntity1");
         modelBuilder.Entity<RecursiveEntity1>().ToTable("RecursiveEntity1");
+        modelBuilder.Entity<CollectionEntity1>().ToTable("CollectionEntity1");
+        modelBuilder.Entity<DerivedEntity1>().ToTable("DerivedEntity1");
+        modelBuilder.Entity<DerivedEntity1_1>().ToTable("DerivedEntity1_1");
     }
 }
