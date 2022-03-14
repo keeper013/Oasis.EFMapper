@@ -27,11 +27,11 @@ internal sealed class Mapper : IMapper
 internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
-    private readonly NewEntityTracker _newEntityTracker;
+    private readonly NewTargetTracker<long> _newEntityTracker;
 
     public MappingFromEntitiesSession(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
-        _newEntityTracker = new NewEntityTracker();
+        _newEntityTracker = new NewTargetTracker<long>();
         _mappers = mappers;
     }
 
@@ -56,12 +56,12 @@ internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
     private readonly DbContext _databaseContext;
-    private readonly NewEntityTracker _newEntityTracker;
+    private readonly NewTargetTracker<int> _newEntityTracker;
 
     public MappingToEntitiesSession(DbContext databaseContext, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
         _databaseContext = databaseContext;
-        _newEntityTracker = new NewEntityTracker();
+        _newEntityTracker = new NewTargetTracker<int>();
         _mappers = mappers;
     }
 
@@ -101,23 +101,24 @@ internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
     }
 }
 
-internal sealed class NewEntityTracker
+internal sealed class NewTargetTracker<TKeyType>
+    where TKeyType : struct
 {
-    private readonly IDictionary<int, object> _newEntityDictionary = new Dictionary<int, object>();
+    private readonly IDictionary<TKeyType, object> _newTargetDictionary = new Dictionary<TKeyType, object>();
 
-    public bool NewTargetIfNotExist<TTarget>(int hashCode, out TTarget? target)
+    public bool NewTargetIfNotExist<TTarget>(TKeyType key, out TTarget? target)
         where TTarget : class, new()
     {
         bool result = false;
         object? obj;
         target = default;
-        lock (_newEntityDictionary)
+        lock (_newTargetDictionary)
         {
-            result = _newEntityDictionary.TryGetValue(hashCode, out obj);
+            result = _newTargetDictionary.TryGetValue(key, out obj);
             if (!result)
             {
                 target = new TTarget();
-                _newEntityDictionary.Add(hashCode, target);
+                _newTargetDictionary.Add(key, target);
             }
         }
 

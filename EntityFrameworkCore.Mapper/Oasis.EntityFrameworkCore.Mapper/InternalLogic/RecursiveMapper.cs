@@ -3,20 +3,21 @@
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-internal abstract class RecursiveMapper : IListPropertyMapper
+internal abstract class RecursiveMapper<T> : IListPropertyMapper
+    where T : struct
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
     private readonly IDictionary<Type, ExistingTargetTracker> _trackerDictionary = new Dictionary<Type, ExistingTargetTracker>();
 
     internal RecursiveMapper(
-        NewEntityTracker newSourceEntityTracker,
+        NewTargetTracker<T> newTargetTracker,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
-        NewSourceEntityTracker = newSourceEntityTracker;
+        NewTargetTracker = newTargetTracker;
         _mappers = mappers;
     }
 
-    protected NewEntityTracker NewSourceEntityTracker { get; init; }
+    protected NewTargetTracker<T> NewTargetTracker { get; init; }
 
     public abstract void MapListProperty<TSource, TTarget>(ICollection<TSource> source, ICollection<TTarget> target)
         where TSource : class, IEntityBase
@@ -64,15 +65,15 @@ internal abstract class RecursiveMapper : IListPropertyMapper
     }
 }
 
-internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper
+internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
 {
     private readonly DbContext _databaseContext;
 
     public ToEntitiesRecursiveMapper(
-        NewEntityTracker newSourceEntityTracker,
+        NewTargetTracker<int> newTargetTracker,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
         DbContext databaseContext)
-        : base(newSourceEntityTracker, mappers)
+        : base(newTargetTracker, mappers)
     {
         _databaseContext = databaseContext;
     }
@@ -86,7 +87,7 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper
             {
                 if (s.Id == null)
                 {
-                    if (!NewSourceEntityTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
+                    if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
                     {
                         Map(s, n!);
                         _databaseContext.Set<TTarget>().Add(n!);
@@ -125,12 +126,12 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper
     }
 }
 
-internal sealed class FromEntitiesRecursiveMapper : RecursiveMapper
+internal sealed class FromEntitiesRecursiveMapper : RecursiveMapper<long>
 {
     public FromEntitiesRecursiveMapper(
-        NewEntityTracker newSourceEntityTracker,
+        NewTargetTracker<long> newTargetTracker,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
-        : base(newSourceEntityTracker, mappers)
+        : base(newTargetTracker, mappers)
     {
     }
 
@@ -140,7 +141,7 @@ internal sealed class FromEntitiesRecursiveMapper : RecursiveMapper
         {
             foreach (var s in source)
             {
-                if (!NewSourceEntityTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
+                if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(s.Id!.Value, out var n))
                 {
                     Map(s, n!);
                 }
