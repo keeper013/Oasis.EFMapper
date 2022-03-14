@@ -8,7 +8,7 @@ internal static class Utilities
     internal const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
     private static readonly Type EntityBaseType = typeof(EntityBase);
 
-    public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target)
+    public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase;
 

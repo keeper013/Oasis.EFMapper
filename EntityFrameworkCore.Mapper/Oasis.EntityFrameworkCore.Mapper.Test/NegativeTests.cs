@@ -44,15 +44,6 @@ public sealed class NegativeTests : IDisposable
         });
     }
 
-    [Fact]
-    public void ConvertWithScalarMapper_InstanceMethodNotAllowed()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
-        Assert.Throws<NonStaticScalarMapperException>(() => mapperBuilder.WithScalarMapper<ByteArrayWrapper, byte[]>((ByteArrayWrapper wrapper) => wrapper.Bytes));
-    }
-
     public void Dispose()
     {
         _dbContext.Database.EnsureDeleted();

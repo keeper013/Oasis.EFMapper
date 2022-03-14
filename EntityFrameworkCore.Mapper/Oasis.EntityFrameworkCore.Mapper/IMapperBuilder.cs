@@ -1,8 +1,10 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper;
 
+using System.Linq.Expressions;
+
 public interface IMapperBuilder
 {
-    IMapperBuilder WithScalarMapper<TSource, TTarget>(Func<TSource, TTarget> func);
+    IMapperBuilder WithScalarMapper<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression);
 
     IMapperBuilder Register<TSource, TTarget>()
         where TSource : class, IEntityBase

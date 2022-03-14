@@ -164,6 +164,7 @@ public sealed class PositiveTests : IDisposable
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
         var result = await session.Map<ListEntity1, CollectionEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
 
+        // assert
         Assert.Equal(2, result.IntProp);
         Assert.NotNull(result.Scs);
         Assert.Equal(1, result.Scs!.Count);
@@ -234,14 +235,43 @@ public sealed class PositiveTests : IDisposable
     }
 
     [Fact]
-    public async Task ConvertWithScalarMapper_ShouldSucceed()
+    public async Task ConvertWithLambdaExpressionScalarMapper_ShouldSucceed()
     {
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.Make(GetType().Name);
         mapperBuilder
-            .WithScalarMapper<ByteArrayWrapper, byte[]>(ByteArrayWrapper.ConvertStatic)
-            .WithScalarMapper<byte[], ByteArrayWrapper>(ByteArrayWrapper.ConvertStatic)
+            .WithScalarMapper((ByteArrayWrapper wrapper) => wrapper.Bytes)
+            .WithScalarMapper((byte[] array) => new ByteArrayWrapper(array))
+            .Register<ScalarEntity4, ScalarEntity1>()
+            .Register<ScalarEntity1, ScalarEntity4>();
+
+        var mapper = mapperBuilder.Build();
+
+        var instance = new ScalarEntity4(1, new byte[] { 1, 2, 3 });
+        _dbContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1));
+        await _dbContext.SaveChangesAsync();
+
+        // act
+        var session1 = mapper.CreateMappingToEntitiesSession(_dbContext);
+        var result1 = await session1.Map<ScalarEntity4, ScalarEntity1>(instance, x => x.AsNoTracking());
+        var session2 = mapper.CreateMappingFromEntitiesSession();
+        var result2 = session2.Map<ScalarEntity1, ScalarEntity4>(result1);
+
+        // assert
+        Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!, instance.ByteArrayProp!.Bytes));
+        Assert.True(Enumerable.SequenceEqual(result2.ByteArrayProp!.Bytes, result1.ByteArrayProp!));
+    }
+
+    [Fact]
+    public async Task ConvertWithStaticScalarMapper_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name);
+        mapperBuilder
+            .WithScalarMapper<ByteArrayWrapper, byte[]>((wrapper) => ByteArrayWrapper.ConvertStatic(wrapper))
+            .WithScalarMapper<byte[], ByteArrayWrapper>((array) => ByteArrayWrapper.ConvertStatic(array))
             .Register<ScalarEntity4, ScalarEntity1>()
             .Register<ScalarEntity1, ScalarEntity4>();
 

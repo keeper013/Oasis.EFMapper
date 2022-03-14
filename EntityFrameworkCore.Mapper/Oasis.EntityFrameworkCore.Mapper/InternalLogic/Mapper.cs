@@ -6,32 +6,40 @@ using System.Linq.Expressions;
 
 internal sealed class Mapper : IMapper
 {
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
 
-    public Mapper(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
+    public Mapper(
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
+        _scalarConverters = scalarConverters;
         _mappers = mappers;
     }
 
     public IMappingFromEntitiesSession CreateMappingFromEntitiesSession()
     {
-        return new MappingFromEntitiesSession(_mappers);
+        return new MappingFromEntitiesSession(_scalarConverters, _mappers);
     }
 
     public IMappingToEntitiesSession CreateMappingToEntitiesSession(DbContext databaseContext)
     {
-        return new MappingToEntitiesSession(databaseContext, _mappers);
+        return new MappingToEntitiesSession(databaseContext, _scalarConverters, _mappers);
     }
 }
 
 internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
 {
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
     private readonly NewTargetTracker<long> _newEntityTracker;
 
-    public MappingFromEntitiesSession(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
+    public MappingFromEntitiesSession(
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
         _newEntityTracker = new NewTargetTracker<long>();
+        _scalarConverters = scalarConverters;
         _mappers = mappers;
     }
 
@@ -46,7 +54,7 @@ internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
         }
 
         var target = new TTarget();
-        new FromEntitiesRecursiveMapper(_newEntityTracker, _mappers).Map(source, target);
+        new FromEntitiesRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers).Map(source, target);
 
         return target;
     }
@@ -54,14 +62,19 @@ internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
 
 internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
 {
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
     private readonly DbContext _databaseContext;
     private readonly NewTargetTracker<int> _newEntityTracker;
 
-    public MappingToEntitiesSession(DbContext databaseContext, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
+    public MappingToEntitiesSession(
+        DbContext databaseContext,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
         _databaseContext = databaseContext;
         _newEntityTracker = new NewTargetTracker<int>();
+        _scalarConverters = scalarConverters;
         _mappers = mappers;
     }
 
@@ -86,13 +99,13 @@ internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
                 throw new StaleEntityException(typeof(TTarget), source.Id.Value);
             }
 
-            new ToEntitiesRecursiveMapper(_newEntityTracker, _mappers, _databaseContext).Map(source, target);
+            new ToEntitiesRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _databaseContext).Map(source, target);
         }
         else
         {
             if (!_newEntityTracker.NewTargetIfNotExist<TTarget>(source.GetHashCode(), out target))
             {
-                new ToEntitiesRecursiveMapper(_newEntityTracker, _mappers, _databaseContext).Map(source, target!);
+                new ToEntitiesRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _databaseContext).Map(source, target!);
                 _databaseContext.Set<TTarget>().Add(target!);
             }
         }

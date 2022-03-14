@@ -3,21 +3,36 @@
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-internal abstract class RecursiveMapper<T> : IListPropertyMapper
+internal abstract class RecursiveMapper<T> : IListPropertyMapper, IScalarTypeConverter
     where T : struct
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IDictionary<Type, ExistingTargetTracker> _trackerDictionary = new Dictionary<Type, ExistingTargetTracker>();
 
     internal RecursiveMapper(
         NewTargetTracker<T> newTargetTracker,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
         NewTargetTracker = newTargetTracker;
+        _scalarConverters = scalarConverters;
         _mappers = mappers;
     }
 
     protected NewTargetTracker<T> NewTargetTracker { get; init; }
+
+    public TTarget Convert<TSource, TTarget>(TSource source)
+    {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        if (!_scalarConverters.TryGetValue(sourceType, out var innerDictionary) || !innerDictionary.TryGetValue(targetType, out var converter))
+        {
+            throw new ScalarConverterMissingException(sourceType, targetType);
+        }
+
+        return ((Func<TSource, TTarget>)converter)(source);
+    }
 
     public abstract void MapListProperty<TSource, TTarget>(ICollection<TSource> source, ICollection<TTarget> target)
         where TSource : class, IEntityBase
@@ -53,7 +68,7 @@ internal abstract class RecursiveMapper<T> : IListPropertyMapper
             throw new ArgumentException($"Entity mapper from type {typeof(TSource)} to {targetType} hasn't been registered yet.");
         }
 
-        ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.scalarPropertiesMapper)(source, target);
+        ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.scalarPropertiesMapper)(source, target, this);
         ((Utilities.MapListProperties<TSource, TTarget>)mapperSet.listPropertiesMapper)(source, target, this);
     }
 
@@ -71,9 +86,10 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
 
     public ToEntitiesRecursiveMapper(
         NewTargetTracker<int> newTargetTracker,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
         DbContext databaseContext)
-        : base(newTargetTracker, mappers)
+        : base(newTargetTracker, scalarConverters, mappers)
     {
         _databaseContext = databaseContext;
     }
@@ -130,8 +146,9 @@ internal sealed class FromEntitiesRecursiveMapper : RecursiveMapper<long>
 {
     public FromEntitiesRecursiveMapper(
         NewTargetTracker<long> newTargetTracker,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
-        : base(newTargetTracker, mappers)
+        : base(newTargetTracker, scalarConverters, mappers)
     {
     }
 
