@@ -6,13 +6,21 @@ using System.Linq.Expressions;
 
 internal sealed class Mapper : IMapper
 {
+    private const string DefaultIdPropertyName = "Id";
+    private const string DefaultTimeStampPropertyName = "TimeStamp";
+    private readonly string _defaultIdPropertyName;
+    private readonly string _defaultTimeStampPropertyName;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
 
     public Mapper(
+        string? defaultIdPropertyName,
+        string? defaultTimeStampPropertyName,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
+        _defaultIdPropertyName = defaultIdPropertyName ?? DefaultIdPropertyName;
+        _defaultTimeStampPropertyName = defaultTimeStampPropertyName ?? DefaultTimeStampPropertyName;
         _scalarConverters = scalarConverters;
         _mappers = mappers;
     }

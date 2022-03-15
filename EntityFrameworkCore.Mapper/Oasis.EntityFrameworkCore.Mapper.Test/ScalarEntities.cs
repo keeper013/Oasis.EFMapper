@@ -6,16 +6,8 @@ public sealed class ScalarEntity1 : EntityBase
     {
     }
 
-    public ScalarEntity1(long? id)
+    public ScalarEntity1(int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public ScalarEntity1(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         LongNullableProp = longNullableProp;
         StringProp = stringProp;
@@ -37,16 +29,8 @@ public sealed class ScalarEntity2 : EntityBase
     {
     }
 
-    public ScalarEntity2(long? id)
+    public ScalarEntity2(int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public ScalarEntity2(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         LongNullableProp = longNullableProp;
         StringProp = stringProp;
@@ -68,16 +52,8 @@ public sealed class ScalarEntity3 : EntityBase
     {
     }
 
-    public ScalarEntity3(long? id)
+    public ScalarEntity3(int? intProp, long longNullableProp, string stringProp, char[] byteArrayProp)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public ScalarEntity3(long? id, int? intProp, long longNullableProp, string stringProp, char[] byteArrayProp)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         LongNullableProp = longNullableProp;
         StringProp1 = stringProp;
@@ -99,16 +75,8 @@ public class ScalarEntity4 : EntityBase
     {
     }
 
-    public ScalarEntity4(long? id)
+    public ScalarEntity4(byte[] content)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public ScalarEntity4(long? id, byte[] content)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         ByteArrayProp = new ByteArrayWrapper(content);
     }
 

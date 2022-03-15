@@ -8,16 +8,8 @@ public sealed class CollectionEntity1 : EntityBase
     {
     }
 
-    public CollectionEntity1(long? id)
+    public CollectionEntity1(int intProp, ICollection<SubScalarEntity1> scs)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public CollectionEntity1(long? id, int intProp, ICollection<SubScalarEntity1> scs)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         Scs = scs;
     }
@@ -33,16 +25,8 @@ public sealed class CollectionEntity2 : EntityBase
     {
     }
 
-    public CollectionEntity2(long? id)
+    public CollectionEntity2(int intProp, ICollection<ScalarEntity2> scs)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public CollectionEntity2(long? id, int intProp, ICollection<ScalarEntity2> scs)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         Scs = scs;
     }
@@ -58,16 +42,8 @@ public sealed class ListIEntity1 : EntityBase
     {
     }
 
-    public ListIEntity1(long? id)
+    public ListIEntity1(int intProp, IList<SubScalarEntity1> scs)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public ListIEntity1(long? id, int intProp, IList<SubScalarEntity1> scs)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         Scs = scs;
     }
@@ -83,16 +59,8 @@ public sealed class ListEntity1 : EntityBase
     {
     }
 
-    public ListEntity1(long? id)
+    public ListEntity1(int intProp, List<SubScalarEntity1> scs)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public ListEntity1(long? id, int intProp, List<SubScalarEntity1> scs)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         Scs = scs;
     }
@@ -108,16 +76,8 @@ public sealed class SubScalarEntity1 : EntityBase
     {
     }
 
-    public SubScalarEntity1(long? id)
+    public SubScalarEntity1(int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public SubScalarEntity1(long? id, int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
         LongNullableProp = longNullableProp;
         StringProp = stringProp;
@@ -151,16 +111,8 @@ public sealed class RecursiveEntity1 : EntityBase
     {
     }
 
-    public RecursiveEntity1(long? id)
+    public RecursiveEntity1(int intProp)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public RecursiveEntity1(long? id, int intProp)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
     }
 
@@ -175,16 +127,8 @@ public sealed class RecursiveEntity2 : EntityBase
     {
     }
 
-    public RecursiveEntity2(long? id)
+    public RecursiveEntity2(int intProp)
     {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
-    }
-
-    public RecursiveEntity2(long? id, int intProp)
-    {
-        Id = id;
-        Timestamp = id.HasValue ? DatabaseContext.DefaultTimeStamp : null;
         IntProp = intProp;
     }
 

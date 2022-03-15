@@ -1,6 +1,11 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Test;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
+using System.Linq;
 
 internal class DatabaseContext : DbContext
 {
@@ -25,8 +30,42 @@ internal class DatabaseContext : DbContext
         modelBuilder.Entity<DerivedEntity1>().ToTable(nameof(DerivedEntity1));
         modelBuilder.Entity<DerivedEntity1_1>().ToTable(nameof(DerivedEntity1_1));
         modelBuilder.Entity<SubScalarEntity1>().ToTable(nameof(SubScalarEntity1));
-        modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListIEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListIEntityId).OnDelete(DeleteBehavior.SetNull);
-        modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListEntityId).OnDelete(DeleteBehavior.SetNull);
-        modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.CollectionEntity).WithMany(c => c.Scs).HasForeignKey(s => s.CollectionEntityId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListIEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListIEntityId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListEntityId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.CollectionEntity).WithMany(c => c.Scs).HasForeignKey(s => s.CollectionEntityId).OnDelete(DeleteBehavior.Restrict);
+
+        if (Database.IsSqlite())
+        {
+            var timestampProperties = modelBuilder.Model
+                .GetEntityTypes()
+                .SelectMany(t => t.GetProperties())
+                .Where(p => p.ClrType == typeof(byte[])
+                    && p.ValueGenerated == ValueGenerated.OnAddOrUpdate
+                    && p.IsConcurrencyToken);
+
+            foreach (var property in timestampProperties)
+            {
+                property.SetValueConverter(new SqliteTimestampConverter());
+                property.SetValueComparer(new ValueComparer<byte[]>(
+                    (a1, a2) => (a1 == null || a2 == null) ? false : a1.SequenceEqual(a2),
+                    a => a.Aggregate(0, (v, b) => HashCode.Combine(v, b.GetHashCode())),
+                    a => a));
+                property.SetDefaultValueSql("CURRENT_TIMESTAMP");
+            }
+        }
+    }
+
+    private class SqliteTimestampConverter : ValueConverter<byte[], string>
+    {
+        public SqliteTimestampConverter()
+            : base(
+                v => ToDb(v),
+                v => FromDb(v))
+        {
+        }
+
+        private static byte[] FromDb(string v) => v.Select(c => (byte)c).ToArray();
+
+        private static string ToDb(byte[] v) => new string(v.Select(b => (char)b).ToArray());
     }
 }

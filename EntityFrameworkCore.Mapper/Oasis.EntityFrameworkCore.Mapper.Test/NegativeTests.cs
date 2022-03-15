@@ -1,5 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Test;
 
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System;
@@ -13,8 +14,10 @@ public sealed class NegativeTests : IDisposable
 
     public NegativeTests()
     {
+        var connection = new SqliteConnection("Filename=:memory:");
+        connection.Open();
         var options = new DbContextOptionsBuilder<DatabaseContext>()
-            .UseInMemoryDatabase(GetType().Name)
+            .UseSqlite(connection)
             .Options;
         _dbContext = new DatabaseContext(options);
         _dbContext.Database.EnsureCreated();
@@ -23,24 +26,31 @@ public sealed class NegativeTests : IDisposable
     [Fact]
     public async Task MapListProperties_UpdateNonExistingNavitation_ShouldFail()
     {
+        // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.Make(GetType().Name);
 
-        mapperBuilder.Register<ListIEntity1, CollectionEntity1>();
+        mapperBuilder.RegisterTwoWay<ListIEntity1, CollectionEntity1>();
 
         var mapper = mapperBuilder.Build();
 
-        var instance = new ListIEntity1(1, 2, new List<SubScalarEntity1> { new SubScalarEntity1(2, 2, 3, "4", new byte[] { 2 }) });
-        var sub = new SubScalarEntity1(1, 1, 2, "3", new byte[] { 1 });
-        sub.ListIEntityId = 1;
-        _dbContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, 1, new List<SubScalarEntity1>()));
-        _dbContext.Set<SubScalarEntity1>().Add(sub);
+        var sub = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
+        _dbContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, new List<SubScalarEntity1> { sub }));
         await _dbContext.SaveChangesAsync();
 
+        // act
+        var entity = await _dbContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
+        var session1 = mapper.CreateMappingFromEntitiesSession();
+        var result1 = session1.Map<CollectionEntity1, ListIEntity1>(entity);
+        var item0 = result1.Scs![0];
+        item0.Id = item0.Id + 1;
+        item0.IntProp = 3;
+
+        // assert
         await Assert.ThrowsAsync<EntityNotFoundException>(async () =>
         {
-            var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-            await session.MapAsync<ListIEntity1, CollectionEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
+            var session2 = mapper.CreateMappingToEntitiesSession(_dbContext);
+            await session2.MapAsync<ListIEntity1, CollectionEntity1>(result1, x => x.AsNoTracking().Include(x => x.Scs));
         });
     }
 
@@ -62,19 +72,17 @@ public sealed class NegativeTests : IDisposable
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.Make(GetType().Name);
-        mapperBuilder
-            .Register<ScalarEntity4, ScalarEntity1>()
-            .Register<ScalarEntity1, ScalarEntity4>();
+        mapperBuilder.Register<ScalarEntity1, ScalarEntity4>();
 
         var mapper = mapperBuilder.Build();
 
-        var instance = new ScalarEntity4(1, new byte[] { 1, 2, 3 });
-        _dbContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1));
+        _dbContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, 2, "3", new byte[] { 1, 2, 3 }));
         await _dbContext.SaveChangesAsync();
 
         // act
-        var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result = await session.MapAsync<ScalarEntity4, ScalarEntity1>(instance, x => x.AsNoTracking());
+        var entity = await _dbContext.Set<ScalarEntity1>().FirstAsync();
+        var session = mapper.CreateMappingFromEntitiesSession();
+        var result = session.Map<ScalarEntity1, ScalarEntity4>(entity);
 
         // assert
         Assert.Null(result.ByteArrayProp);

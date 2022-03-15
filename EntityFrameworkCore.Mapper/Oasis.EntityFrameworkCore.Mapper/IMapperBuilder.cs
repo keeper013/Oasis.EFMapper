@@ -10,5 +10,9 @@ public interface IMapperBuilder
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase;
 
-    IMapper Build();
+    IMapperBuilder RegisterTwoWay<TSource, TTarget>()
+        where TSource : class, IEntityBase
+        where TTarget : class, IEntityBase;
+
+    IMapper Build(string? defaultIdPropertyName = null, string? defaultTimeStampPropertyName = null);
 }

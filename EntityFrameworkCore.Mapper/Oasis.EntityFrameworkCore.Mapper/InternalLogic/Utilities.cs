@@ -49,8 +49,7 @@ internal static class Utilities
         var name = prop.Name;
         var type = prop.PropertyType;
         return (IsScalarType(type) || convertables.Contains(type))
-            && (!mustHaveGetter || prop.GetMethod != null) && (!mustHaveSetter || prop.SetMethod != null)
-            && !string.Equals(name, nameof(EntityBase.Id)) && !string.Equals(name, nameof(EntityBase.Timestamp));
+            && (!mustHaveGetter || prop.GetMethod != null) && (!mustHaveSetter || prop.SetMethod != null);
     }
 
     public static bool IsListOfNavigationProperty(this PropertyInfo prop, bool mustHaveGetter, bool mustHaveSetter)

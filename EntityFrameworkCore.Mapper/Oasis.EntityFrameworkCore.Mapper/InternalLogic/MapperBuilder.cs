@@ -29,7 +29,7 @@ internal sealed class MapperBuilder : IMapperBuilder
         _typeBuilder = module.DefineType("Mapper", TypeAttributes.Public);
     }
 
-    public IMapper Build()
+    public IMapper Build(string? defaultIdPropertyName, string? defaultTimeStampPropertyName)
     {
         var type = _typeBuilder.CreateType();
         var mapper = new Dictionary<Type, IReadOnlyDictionary<Type, MapperSet>>();
@@ -60,13 +60,25 @@ internal sealed class MapperBuilder : IMapperBuilder
             scalarConverter.Add(pair.Key, innerMapper);
         }
 
-        return new Mapper(scalarConverter, mapper);
+        return new Mapper(defaultIdPropertyName, defaultTimeStampPropertyName, scalarConverter, mapper);
     }
 
     IMapperBuilder IMapperBuilder.Register<TSource, TTarget>()
     {
         var stack = new Stack<(Type, Type)>();
         return RecursivelyRegister<TSource, TTarget>(stack);
+    }
+
+    IMapperBuilder IMapperBuilder.RegisterTwoWay<TSource, TTarget>()
+    {
+        if (typeof(TSource) == typeof(TTarget))
+        {
+            throw new SameTypeException(typeof(TSource));
+        }
+
+        var stack = new Stack<(Type, Type)>();
+        RecursivelyRegister<TSource, TTarget>(stack);
+        return RecursivelyRegister<TTarget, TSource>(stack);
     }
 
     public IMapperBuilder WithScalarMapper<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression)
