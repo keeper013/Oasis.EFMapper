@@ -78,7 +78,7 @@ internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
         _mappers = mappers;
     }
 
-    async Task<TTarget> IMappingToEntitiesSession.Map<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>> includer)
+    async Task<TTarget> IMappingToEntitiesSession.MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>> includer)
     {
         TTarget? target;
         if (source.Id.HasValue)

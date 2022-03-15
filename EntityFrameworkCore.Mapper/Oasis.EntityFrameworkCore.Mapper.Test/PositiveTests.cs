@@ -35,7 +35,7 @@ public sealed class PositiveTests : IDisposable
 
         // act
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result = await session.Map<ScalarEntity2, ScalarEntity1>(instance, x => x.AsNoTracking());
+        var result = await session.MapAsync<ScalarEntity2, ScalarEntity1>(instance, x => x.AsNoTracking());
 
         // assert
         Assert.Equal(1, result.IntProp);
@@ -59,7 +59,7 @@ public sealed class PositiveTests : IDisposable
 
         // act
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result = await session.Map<ScalarEntity3, ScalarEntity1>(instance, x => x.AsNoTracking());
+        var result = await session.MapAsync<ScalarEntity3, ScalarEntity1>(instance, x => x.AsNoTracking());
 
         // assert
         Assert.Equal(0, result.IntProp);
@@ -87,7 +87,7 @@ public sealed class PositiveTests : IDisposable
 
         // act
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result = await session.Map<CollectionEntity2, CollectionEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
+        var result = await session.MapAsync<CollectionEntity2, CollectionEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
 
         // assert
         Assert.Equal(1, result.IntProp);
@@ -125,7 +125,7 @@ public sealed class PositiveTests : IDisposable
 
         // act
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result = await session.Map<ListIEntity1, CollectionEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
+        var result = await session.MapAsync<ListIEntity1, CollectionEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
 
         // assert
         Assert.Equal(2, result.IntProp);
@@ -162,7 +162,7 @@ public sealed class PositiveTests : IDisposable
 
         // act
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result = await session.Map<ListEntity1, CollectionEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
+        var result = await session.MapAsync<ListEntity1, CollectionEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
 
         // assert
         Assert.Equal(2, result.IntProp);
@@ -191,7 +191,7 @@ public sealed class PositiveTests : IDisposable
 
         // act
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result = await session.Map<DerivedEntity2, DerivedEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
+        var result = await session.MapAsync<DerivedEntity2, DerivedEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
 
         // assert
         Assert.Equal("str2", result.StringProp);
@@ -220,7 +220,7 @@ public sealed class PositiveTests : IDisposable
 
         // act
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result = await session.Map<DerivedEntity2_2, DerivedEntity1_1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
+        var result = await session.MapAsync<DerivedEntity2_2, DerivedEntity1_1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
 
         // assert
         Assert.Equal(2, result.IntProp);
@@ -254,7 +254,7 @@ public sealed class PositiveTests : IDisposable
 
         // act
         var session1 = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result1 = await session1.Map<ScalarEntity4, ScalarEntity1>(instance, x => x.AsNoTracking());
+        var result1 = await session1.MapAsync<ScalarEntity4, ScalarEntity1>(instance, x => x.AsNoTracking());
         var session2 = mapper.CreateMappingFromEntitiesSession();
         var result2 = session2.Map<ScalarEntity1, ScalarEntity4>(result1);
 
@@ -283,7 +283,7 @@ public sealed class PositiveTests : IDisposable
 
         // act
         var session1 = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result1 = await session1.Map<ScalarEntity4, ScalarEntity1>(instance, x => x.AsNoTracking());
+        var result1 = await session1.MapAsync<ScalarEntity4, ScalarEntity1>(instance, x => x.AsNoTracking());
         var session2 = mapper.CreateMappingFromEntitiesSession();
         var result2 = session2.Map<ScalarEntity1, ScalarEntity4>(result1);
 
@@ -307,7 +307,7 @@ public sealed class PositiveTests : IDisposable
 
         // act
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result = await session.Map<RecursiveEntity2, RecursiveEntity1>(instance, x => x.AsNoTracking());
+        var result = await session.MapAsync<RecursiveEntity2, RecursiveEntity1>(instance, x => x.AsNoTracking());
 
         // assert
         Assert.Equal(1, result.IntProp);

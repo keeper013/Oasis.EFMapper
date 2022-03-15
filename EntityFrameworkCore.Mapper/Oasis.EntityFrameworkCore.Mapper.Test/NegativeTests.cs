@@ -40,8 +40,44 @@ public sealed class NegativeTests : IDisposable
         await Assert.ThrowsAsync<EntityNotFoundException>(async () =>
         {
             var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-            await session.Map<ListIEntity1, CollectionEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
+            await session.MapAsync<ListIEntity1, CollectionEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
         });
+    }
+
+    [Fact]
+    public void ConvertWithDuplicatedScalarMapper_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name);
+
+        Assert.Throws<ScalarMapperExistsException>(() => mapperBuilder
+            .WithScalarMapper<ByteArrayWrapper, byte[]>((wrapper) => ByteArrayWrapper.ConvertStatic(wrapper))
+            .WithScalarMapper<ByteArrayWrapper, byte[]>((wrapper) => wrapper.Bytes));
+    }
+
+    [Fact]
+    public async Task ConvertWithoutStaticScalarMapper_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name);
+        mapperBuilder
+            .Register<ScalarEntity4, ScalarEntity1>()
+            .Register<ScalarEntity1, ScalarEntity4>();
+
+        var mapper = mapperBuilder.Build();
+
+        var instance = new ScalarEntity4(1, new byte[] { 1, 2, 3 });
+        _dbContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1));
+        await _dbContext.SaveChangesAsync();
+
+        // act
+        var session = mapper.CreateMappingToEntitiesSession(_dbContext);
+        var result = await session.MapAsync<ScalarEntity4, ScalarEntity1>(instance, x => x.AsNoTracking());
+
+        // assert
+        Assert.Null(result.ByteArrayProp);
     }
 
     public void Dispose()

@@ -110,11 +110,6 @@ internal sealed class MapperBuilder : IMapperBuilder
         return this;
     }
 
-    private static string BuildMethodName(char type, Type sourceType, Type targetType)
-    {
-        return $"_{type}_{sourceType.FullName!.Replace(".", "_")}__To__{targetType.FullName!.Replace(".", "_")}";
-    }
-
     private IMapperBuilder RecursivelyRegister<TSource, TTarget>(Stack<(Type, Type)> stack)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase
@@ -174,7 +169,7 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     private MethodBuilder InitializeDynamicMethod(Type sourceType, Type targetType, char type, Type[] parameterTypes)
     {
-        var methodName = BuildMethodName(type, sourceType, targetType);
+        var methodName = Utilities.BuildMethodName(type, sourceType, targetType);
         var methodBuilder = _typeBuilder.DefineMethod(methodName, MethodAttributes.Public | MethodAttributes.Static);
         methodBuilder.SetParameters(parameterTypes);
         methodBuilder.SetReturnType(typeof(void));
@@ -190,7 +185,8 @@ internal sealed class MapperBuilder : IMapperBuilder
         foreach (var sourceProperty in sourceProperties)
         {
             var sourcePropertyType = sourceProperty.PropertyType;
-            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty) && ScalarTypeMatch(sourcePropertyType, targetProperty.PropertyType))
+            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty)
+                && (sourcePropertyType == targetProperty.PropertyType || _scalarConverter.ItemExists(sourcePropertyType, targetProperty.PropertyType)))
             {
                 var targetPropertyType = targetProperty.PropertyType;
                 generator.Emit(OpCodes.Ldarg_1);
@@ -203,7 +199,7 @@ internal sealed class MapperBuilder : IMapperBuilder
                 generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
                 if (sourcePropertyType != targetPropertyType)
                 {
-                    generator.Emit(OpCodes.Callvirt, GetConvertScalarPropertyMethod(sourcePropertyType, targetPropertyType));
+                    generator.Emit(OpCodes.Callvirt, Utilities.GetGenericMethod(_scalarPropertyConverter, ConvertScalarProperty, sourcePropertyType, targetPropertyType));
                 }
 
                 generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
@@ -226,7 +222,7 @@ internal sealed class MapperBuilder : IMapperBuilder
                 var targetItemType = targetProperty.PropertyType.GenericTypeArguments[0];
 
                 // cascading mapper creation: if list item mapper doesn't exist, create it
-                if (!stack.Any(i => i.Item1 == sourceItemType && i.Item2 == targetItemType) && !TypeMapperExists(sourceItemType, targetItemType))
+                if (!stack.Any(i => i.Item1 == sourceItemType && i.Item2 == targetItemType) && !_mapper.ItemExists(sourceItemType, targetItemType))
                 {
                     var recursivelyRegisterMethod = RecursivelyRegisterMethod.MakeGenericMethod(sourceItemType, targetItemType);
                     recursivelyRegisterMethod.Invoke(this, new object[] { stack });
@@ -246,55 +242,11 @@ internal sealed class MapperBuilder : IMapperBuilder
                 generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
-                generator.Emit(OpCodes.Callvirt, GetMapListPropertyMethod(sourceItemType, targetItemType));
+                generator.Emit(OpCodes.Callvirt, Utilities.GetGenericMethod(_listPropertyMapper, MapListProperty, sourceItemType, targetItemType));
             }
         }
 
         generator.Emit(OpCodes.Ret);
-    }
-
-    private MethodInfo GetMapListPropertyMethod(Type sourceItemType, Type targetItemType)
-    {
-        if (!_listPropertyMapper.TryGetValue(sourceItemType, out var innerDictionary))
-        {
-            innerDictionary = new Dictionary<Type, MethodInfo>();
-            _listPropertyMapper[sourceItemType] = innerDictionary;
-        }
-
-        if (!innerDictionary.TryGetValue(targetItemType, out var method))
-        {
-            method = MapListProperty.MakeGenericMethod(sourceItemType, targetItemType);
-            innerDictionary[targetItemType] = method;
-        }
-
-        return method;
-    }
-
-    private MethodInfo GetConvertScalarPropertyMethod(Type sourceType, Type targetType)
-    {
-        if (!_scalarPropertyConverter.TryGetValue(sourceType, out var innerDictionary))
-        {
-            innerDictionary = new Dictionary<Type, MethodInfo>();
-            _scalarPropertyConverter[sourceType] = innerDictionary;
-        }
-
-        if (!innerDictionary.TryGetValue(targetType, out var method))
-        {
-            method = ConvertScalarProperty.MakeGenericMethod(sourceType, targetType);
-            innerDictionary[targetType] = method;
-        }
-
-        return method;
-    }
-
-    private bool TypeMapperExists(Type sourceType, Type targetType)
-    {
-        return _mapper.TryGetValue(sourceType, out var innerDictionary) && innerDictionary.ContainsKey(targetType);
-    }
-
-    private bool ScalarTypeMatch(Type sourceType, Type targetType)
-    {
-        return sourceType == targetType || (_scalarConverter.TryGetValue(sourceType, out var innerDictionary) && innerDictionary.ContainsKey(targetType));
     }
 
     private record struct MapperMetaData(Type type, string name);

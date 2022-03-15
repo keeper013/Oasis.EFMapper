@@ -16,6 +16,28 @@ internal static class Utilities
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase;
 
+    public static string BuildMethodName(char type, Type sourceType, Type targetType)
+    {
+        return $"_{type}_{sourceType.FullName!.Replace(".", "_")}__To__{targetType.FullName!.Replace(".", "_")}";
+    }
+
+    public static MethodInfo GetGenericMethod(IDictionary<Type, IDictionary<Type, MethodInfo>> dict, MethodInfo template, Type sourceType, Type targetType)
+    {
+        if (!dict.TryGetValue(sourceType, out var innerDictionary))
+        {
+            innerDictionary = new Dictionary<Type, MethodInfo>();
+            dict[sourceType] = innerDictionary;
+        }
+
+        if (!innerDictionary.TryGetValue(targetType, out var method))
+        {
+            method = template.MakeGenericMethod(sourceType, targetType);
+            innerDictionary[targetType] = method;
+        }
+
+        return method;
+    }
+
     public static bool IsScalarType(this Type type)
     {
         const string NullableTypeName = "System.Nullable`1[[";
@@ -41,6 +63,11 @@ internal static class Utilities
         return (typeFullName!.StartsWith(ICollectionTypeName) || typeFullName.StartsWith(IListTypeName) || typeFullName.StartsWith(ListTypeName))
             && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments[0].IsSubclassOf(EntityBaseType)
             && (!mustHaveGetter || prop.GetMethod != null) && (!mustHaveSetter || prop.SetMethod != null);
+    }
+
+    public static bool ItemExists<T>(this IDictionary<Type, IDictionary<Type, T>> dict, Type sourceType, Type targetType)
+    {
+        return dict.TryGetValue(sourceType, out var innerDictionary) && innerDictionary.ContainsKey(targetType);
     }
 }
 
