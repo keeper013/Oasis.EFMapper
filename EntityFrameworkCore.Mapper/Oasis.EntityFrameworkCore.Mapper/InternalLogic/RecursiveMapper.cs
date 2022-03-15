@@ -96,7 +96,7 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
 
     public override void MapListProperty<TSource, TTarget>(ICollection<TSource> source, ICollection<TTarget> target)
     {
-        var ids = new HashSet<long>(target.Select(i => i.Id!.Value));
+        var shadowSet = new HashSet<TTarget>(target);
         if (source != null)
         {
             foreach (var s in source)
@@ -122,7 +122,7 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
                         }
 
                         Map(s, t);
-                        ids.Remove(s.Id.Value);
+                        shadowSet.Remove(t);
                     }
                     else
                     {
@@ -132,13 +132,11 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
             }
         }
 
-        foreach (var id in ids)
+        foreach (var toBeRemoved in shadowSet)
         {
-            var t = target.Single(t => t.Id == id);
-            target.Remove(t);
+            target.Remove(toBeRemoved);
+            _databaseContext.Set<TTarget>().Remove(toBeRemoved);
         }
-
-        _databaseContext.Set<TTarget>().RemoveRange(_databaseContext.Set<TTarget>().Where(t => ids.Contains(t.Id!.Value)));
     }
 }
 

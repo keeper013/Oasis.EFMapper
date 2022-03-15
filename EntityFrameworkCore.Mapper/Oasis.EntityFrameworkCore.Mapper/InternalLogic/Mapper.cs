@@ -6,21 +6,13 @@ using System.Linq.Expressions;
 
 internal sealed class Mapper : IMapper
 {
-    private const string DefaultIdPropertyName = "Id";
-    private const string DefaultTimeStampPropertyName = "TimeStamp";
-    private readonly string _defaultIdPropertyName;
-    private readonly string _defaultTimeStampPropertyName;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
 
     public Mapper(
-        string? defaultIdPropertyName,
-        string? defaultTimeStampPropertyName,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
-        _defaultIdPropertyName = defaultIdPropertyName ?? DefaultIdPropertyName;
-        _defaultTimeStampPropertyName = defaultTimeStampPropertyName ?? DefaultTimeStampPropertyName;
         _scalarConverters = scalarConverters;
         _mappers = mappers;
     }
@@ -70,6 +62,7 @@ internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
 
 internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
 {
+    private const string AsNoTrackingMethodCall = ".AsNoTracking";
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
     private readonly DbContext _databaseContext;
@@ -86,12 +79,26 @@ internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
         _mappers = mappers;
     }
 
-    async Task<TTarget> IMappingToEntitiesSession.MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>> includer)
+    async Task<TTarget> IMappingToEntitiesSession.MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
     {
         TTarget? target;
         if (source.Id.HasValue)
         {
-            target = await includer.Compile()(_databaseContext.Set<TTarget>()).SingleOrDefaultAsync(t => t.Id == source.Id);
+            if (includer != null)
+            {
+                var includerString = includer.ToString();
+                if (includerString.Contains(AsNoTrackingMethodCall))
+                {
+                    throw new AsNoTrackingNotAllowedException(includerString);
+                }
+
+                target = await includer.Compile()(_databaseContext.Set<TTarget>()).SingleOrDefaultAsync(t => t.Id == source.Id);
+            }
+            else
+            {
+                target = await _databaseContext.Set<TTarget>().SingleOrDefaultAsync(t => t.Id == source.Id);
+            }
+
             if (target == null)
             {
                 throw new EntityNotFoundException(typeof(TTarget), source.Id.Value);

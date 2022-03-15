@@ -9,6 +9,7 @@ internal sealed class MapperBuilder : IMapperBuilder
 {
     private const char MapScalarPropertiesMethod = 's';
     private const char MapListPropertiesMethod = 'l';
+    private static readonly EntityPropertyNameSet DefaultEntityPropertyNameSet = new EntityPropertyNameSet("Id", "Timestamp");
     private static readonly MethodInfo MapListProperty = typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!;
     private static readonly MethodInfo ConvertScalarProperty = typeof(IScalarTypeConverter).GetMethod("Convert", Utilities.PublicInstance)!;
     private static readonly MethodInfo RecursivelyRegisterMethod = typeof(MapperBuilder).GetMethod("RecursivelyRegister", Utilities.NonPublicInstance)!;
@@ -60,7 +61,7 @@ internal sealed class MapperBuilder : IMapperBuilder
             scalarConverter.Add(pair.Key, innerMapper);
         }
 
-        return new Mapper(defaultIdPropertyName, defaultTimeStampPropertyName, scalarConverter, mapper);
+        return new Mapper(scalarConverter, mapper);
     }
 
     IMapperBuilder IMapperBuilder.Register<TSource, TTarget>()
@@ -264,4 +265,6 @@ internal sealed class MapperBuilder : IMapperBuilder
     private record struct MapperMetaData(Type type, string name);
 
     private record struct MapperMetaDataSet(MapperMetaData scalarPropertiesMapper, MapperMetaData listPropertiesMapper);
+
+    internal record struct EntityPropertyNameSet(string id, string timestamp);
 }

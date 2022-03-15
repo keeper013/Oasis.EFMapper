@@ -44,7 +44,7 @@ public sealed class PositiveTests : IDisposable
         instance.StringProp = "3";
         instance.ByteArrayProp = new byte[] { 1, 2, 3 };
         var session2 = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result = await session2.MapAsync<ScalarEntity2, ScalarEntity1>(instance, x => x.AsNoTracking());
+        var result = await session2.MapAsync<ScalarEntity2, ScalarEntity1>(instance);
 
         // assert
         Assert.Equal(1, result.IntProp);
@@ -140,7 +140,7 @@ public sealed class PositiveTests : IDisposable
         item0.StringProp = "4";
         item0.ByteArrayProp = new byte[] { 2 };
         var session2 = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result2 = await session2.MapAsync<ListIEntity1, CollectionEntity1>(result1, c => c.AsNoTracking().Include(c => c.Scs));
+        var result2 = await session2.MapAsync<ListIEntity1, CollectionEntity1>(result1, c => c.Include(c => c.Scs));
 
         // assert
         Assert.Equal(2, result2.IntProp);
@@ -181,7 +181,7 @@ public sealed class PositiveTests : IDisposable
         item0.StringProp = "4";
         item0.ByteArrayProp = new byte[] { 2 };
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result2 = await session.MapAsync<ListEntity1, CollectionEntity1>(result1, x => x.AsNoTracking().Include(x => x.Scs));
+        var result2 = await session.MapAsync<ListEntity1, CollectionEntity1>(result1, x => x.Include(x => x.Scs));
 
         // assert
         Assert.Equal(2, result2.IntProp);
@@ -205,7 +205,7 @@ public sealed class PositiveTests : IDisposable
 
         var mapper = mapperBuilder.Build();
 
-        var instance = new DerivedEntity2(null, "str2", 2, new List<ScalarEntity2> { new ScalarEntity2(1, 2, "3", new byte[] { 1 }) });
+        var instance = new DerivedEntity2("str2", 2, new List<ScalarEntity2> { new ScalarEntity2(1, 2, "3", new byte[] { 1 }) });
 
         // act
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
@@ -234,7 +234,7 @@ public sealed class PositiveTests : IDisposable
 
         var mapper = mapperBuilder.Build();
 
-        var instance = new DerivedEntity2_2(null, 2, 2, new List<ScalarEntity2> { new ScalarEntity2(1, 2, "3", new byte[] { 1 }) });
+        var instance = new DerivedEntity2_2(2, 2, new List<ScalarEntity2> { new ScalarEntity2(1, 2, "3", new byte[] { 1 }) });
 
         // act
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
@@ -274,7 +274,7 @@ public sealed class PositiveTests : IDisposable
         var result1 = session1.Map<ScalarEntity1, ScalarEntity4>(entity);
         result1.ByteArrayProp = new ByteArrayWrapper(new byte[] { 2, 3, 4 });
         var session2 = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result2 = await session2.MapAsync<ScalarEntity4, ScalarEntity1>(result1, x => x.AsNoTracking());
+        var result2 = await session2.MapAsync<ScalarEntity4, ScalarEntity1>(result1);
 
         // assert
         Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes, result2.ByteArrayProp!));
@@ -302,7 +302,7 @@ public sealed class PositiveTests : IDisposable
         var result1 = session1.Map<ScalarEntity1, ScalarEntity4>(entity);
         result1.ByteArrayProp = new ByteArrayWrapper(new byte[] { 2, 3, 4 });
         var session2 = mapper.CreateMappingToEntitiesSession(_dbContext);
-        var result2 = await session2.MapAsync<ScalarEntity4, ScalarEntity1>(result1, x => x.AsNoTracking());
+        var result2 = await session2.MapAsync<ScalarEntity4, ScalarEntity1>(result1);
 
         // assert
         Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes, result2.ByteArrayProp!));

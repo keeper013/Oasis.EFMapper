@@ -50,7 +50,7 @@ public sealed class NegativeTests : IDisposable
         await Assert.ThrowsAsync<EntityNotFoundException>(async () =>
         {
             var session2 = mapper.CreateMappingToEntitiesSession(_dbContext);
-            await session2.MapAsync<ListIEntity1, CollectionEntity1>(result1, x => x.AsNoTracking().Include(x => x.Scs));
+            await session2.MapAsync<ListIEntity1, CollectionEntity1>(result1, x => x.Include(x => x.Scs));
         });
     }
 
@@ -86,6 +86,36 @@ public sealed class NegativeTests : IDisposable
 
         // assert
         Assert.Null(result.ByteArrayProp);
+    }
+
+    [Fact]
+    public async Task MapListProperties_HasAsNoTrackingInIncluder_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name);
+
+        mapperBuilder.RegisterTwoWay<ListIEntity1, CollectionEntity1>();
+
+        var mapper = mapperBuilder.Build();
+
+        var subInstance = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
+        _dbContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, new List<SubScalarEntity1> { subInstance }));
+        await _dbContext.SaveChangesAsync();
+
+        // act
+        var entity = await _dbContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
+        var session1 = mapper.CreateMappingFromEntitiesSession();
+        var result1 = session1.Map<CollectionEntity1, ListIEntity1>(entity);
+        result1.IntProp = 2;
+        var item0 = result1.Scs![0];
+        item0.IntProp = 2;
+        item0.LongNullableProp = 3;
+        item0.StringProp = "4";
+        item0.ByteArrayProp = new byte[] { 2 };
+        var session2 = mapper.CreateMappingToEntitiesSession(_dbContext);
+        await Assert.ThrowsAsync<AsNoTrackingNotAllowedException>(
+            async () => await session2.MapAsync<ListIEntity1, CollectionEntity1>(result1, c => c.AsNoTracking().Include(c => c.Scs)));
     }
 
     public void Dispose()
