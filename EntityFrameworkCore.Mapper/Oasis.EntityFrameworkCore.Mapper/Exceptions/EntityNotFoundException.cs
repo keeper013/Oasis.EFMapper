@@ -3,9 +3,9 @@
 public sealed class EntityNotFoundException : Exception
 {
     private readonly Type _type;
-    private readonly long _id;
+    private readonly object _id;
 
-    public EntityNotFoundException(Type type, long id)
+    public EntityNotFoundException(Type type, object id)
     {
         _type = type;
         _id = id;

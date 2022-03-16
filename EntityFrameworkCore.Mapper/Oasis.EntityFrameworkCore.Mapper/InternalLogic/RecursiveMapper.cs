@@ -53,7 +53,7 @@ internal abstract class RecursiveMapper<T> : IListPropertyMapper, IScalarTypeCon
                 _trackerDictionary.Add(targetType, existingTargetTracker);
             }
 
-            if (!existingTargetTracker!.StartTracking(target.Id.Value))
+            if (!existingTargetTracker!.StartTracking(target.GetHashCode()))
             {
                 // only do property mapping if the target hasn't been mapped
                 return;
@@ -74,9 +74,9 @@ internal abstract class RecursiveMapper<T> : IListPropertyMapper, IScalarTypeCon
 
     private class ExistingTargetTracker
     {
-        private ISet<long> _existingTargetIdSet = new HashSet<long>();
+        private ISet<int> _existingTargetIdSet = new HashSet<int>();
 
-        public bool StartTracking(long id) => _existingTargetIdSet.Add(id);
+        public bool StartTracking(int hashCode) => _existingTargetIdSet.Add(hashCode);
     }
 }
 
@@ -101,7 +101,7 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
         {
             foreach (var s in source)
             {
-                if (s.Id == null)
+                if (!s.Id.HasValue)
                 {
                     if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
                     {
@@ -118,7 +118,7 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
                     {
                         if (s.Timestamp == null || !Enumerable.SequenceEqual(s.Timestamp, t.Timestamp!))
                         {
-                            throw new StaleEntityException(typeof(TTarget), s.Id.Value);
+                            throw new StaleEntityException(typeof(TTarget), s.Id);
                         }
 
                         Map(s, t);
@@ -126,7 +126,7 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
                     }
                     else
                     {
-                        throw new EntityNotFoundException(typeof(TTarget), s.Id.Value);
+                        throw new EntityNotFoundException(typeof(TTarget), s.Id);
                     }
                 }
             }
@@ -140,10 +140,10 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
     }
 }
 
-internal sealed class FromEntitiesRecursiveMapper : RecursiveMapper<long>
+internal sealed class FromEntitiesRecursiveMapper : RecursiveMapper<int>
 {
     public FromEntitiesRecursiveMapper(
-        NewTargetTracker<long> newTargetTracker,
+        NewTargetTracker<int> newTargetTracker,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
         : base(newTargetTracker, scalarConverters, mappers)
@@ -156,7 +156,7 @@ internal sealed class FromEntitiesRecursiveMapper : RecursiveMapper<long>
         {
             foreach (var s in source)
             {
-                if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(s.Id!.Value, out var n))
+                if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
                 {
                     Map(s, n!);
                 }

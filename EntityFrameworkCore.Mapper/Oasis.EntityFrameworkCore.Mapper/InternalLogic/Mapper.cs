@@ -32,13 +32,13 @@ internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
-    private readonly NewTargetTracker<long> _newEntityTracker;
+    private readonly NewTargetTracker<int> _newEntityTracker;
 
     public MappingFromEntitiesSession(
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
-        _newEntityTracker = new NewTargetTracker<long>();
+        _newEntityTracker = new NewTargetTracker<int>();
         _scalarConverters = scalarConverters;
         _mappers = mappers;
     }
@@ -49,7 +49,7 @@ internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
         {
             if (source.Timestamp == null)
             {
-                throw new MissingTimestampException(typeof(TSource), source.Id.Value);
+                throw new MissingTimestampException(typeof(TSource), source.Id);
             }
         }
 
@@ -101,17 +101,17 @@ internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
 
             if (target == null)
             {
-                throw new EntityNotFoundException(typeof(TTarget), source.Id.Value);
+                throw new EntityNotFoundException(typeof(TTarget), source.Id);
             }
 
             if (target.Timestamp == null)
             {
-                throw new MissingTimestampException(typeof(TTarget), source.Id.Value);
+                throw new MissingTimestampException(typeof(TTarget), source.Id);
             }
 
             if (!Enumerable.SequenceEqual(target.Timestamp!, source.Timestamp!))
             {
-                throw new StaleEntityException(typeof(TTarget), source.Id.Value);
+                throw new StaleEntityException(typeof(TTarget), source.Id);
             }
 
             new ToEntitiesRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _databaseContext).Map(source, target);

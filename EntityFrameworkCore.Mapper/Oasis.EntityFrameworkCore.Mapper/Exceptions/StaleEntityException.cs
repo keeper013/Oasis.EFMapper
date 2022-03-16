@@ -3,9 +3,9 @@
 public sealed class StaleEntityException : Exception
 {
     private readonly Type _type;
-    private readonly long _id;
+    private readonly object _id;
 
-    public StaleEntityException(Type type, long id)
+    public StaleEntityException(Type type, object id)
     {
         _type = type;
         _id = id;

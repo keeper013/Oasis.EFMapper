@@ -3,9 +3,9 @@
 public sealed class MissingTimestampException : Exception
 {
     private readonly Type _type;
-    private readonly long _id;
+    private readonly object _id;
 
-    public MissingTimestampException(Type type, long id)
+    public MissingTimestampException(Type type, object id)
     {
         _type = type;
         _id = id;
