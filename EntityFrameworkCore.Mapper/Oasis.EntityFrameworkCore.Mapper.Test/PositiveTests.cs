@@ -177,7 +177,7 @@ public sealed class PositiveTests : IDisposable
         result1.Scs!.Remove(result1.Scs.ElementAt(1));
         var item0 = result1.Scs!.ElementAt(0);
         item0.IntProp = 2;
-        item0.LongNullableProp = null;
+        item0.LongNullableProp = default;
         item0.StringProp = "4";
         item0.ByteArrayProp = new byte[] { 2 };
         var session = mapper.CreateMappingToEntitiesSession(_dbContext);
@@ -330,6 +330,33 @@ public sealed class PositiveTests : IDisposable
         Assert.Equal(2, result.SubItems!.Count);
         Assert.Equal(1, result.SubItems[0].IntProp);
         Assert.Equal(2, result.SubItems[1].IntProp);
+    }
+
+    [Fact]
+    public async Task AddOneToOneEntity_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name);
+        mapperBuilder.Register<Outer1, Outer2>();
+        mapperBuilder.Register<Inner1, Inner2>(); // TODO: need to improve register
+        var mapper = mapperBuilder.Build();
+
+        var outer1 = new Outer1(1);
+        var inner1 = new Inner1(1);
+        outer1.Inner = inner1;
+        _dbContext.Set<Outer1>().Add(outer1);
+        await _dbContext.SaveChangesAsync();
+
+        // act
+        var entity = await _dbContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner).FirstAsync();
+        var session = mapper.CreateMappingFromEntitiesSession();
+        var outer2 = session.Map<Outer1, Outer2>(entity);
+
+        // assert
+        Assert.Equal(1, outer2.IntProp);
+        Assert.NotNull(outer2.Inner);
+        Assert.Equal(1, outer2.Inner!.LongProp);
     }
 
     public void Dispose()

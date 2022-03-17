@@ -47,7 +47,7 @@ internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
     {
         if (source.Id.HasValue)
         {
-            if (source.Timestamp == null)
+            if (source.Timestamp == default)
             {
                 throw new MissingTimestampException(typeof(TSource), source.Id);
             }
@@ -84,7 +84,7 @@ internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
         TTarget? target;
         if (source.Id.HasValue)
         {
-            if (includer != null)
+            if (includer != default)
             {
                 var includerString = includer.ToString();
                 if (includerString.Contains(AsNoTrackingMethodCall))
@@ -99,12 +99,12 @@ internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
                 target = await _databaseContext.Set<TTarget>().SingleOrDefaultAsync(t => t.Id == source.Id);
             }
 
-            if (target == null)
+            if (target == default)
             {
                 throw new EntityNotFoundException(typeof(TTarget), source.Id);
             }
 
-            if (target.Timestamp == null)
+            if (target.Timestamp == default)
             {
                 throw new MissingTimestampException(typeof(TTarget), source.Id);
             }

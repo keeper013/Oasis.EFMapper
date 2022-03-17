@@ -30,9 +30,13 @@ internal class DatabaseContext : DbContext
         modelBuilder.Entity<DerivedEntity1>().ToTable(nameof(DerivedEntity1));
         modelBuilder.Entity<DerivedEntity1_1>().ToTable(nameof(DerivedEntity1_1));
         modelBuilder.Entity<SubScalarEntity1>().ToTable(nameof(SubScalarEntity1));
+        modelBuilder.Entity<Inner1>().ToTable(nameof(Inner1));
+        modelBuilder.Entity<Outer1>().ToTable(nameof(Outer1));
         modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListIEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListIEntityId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListEntityId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.CollectionEntity).WithMany(c => c.Scs).HasForeignKey(s => s.CollectionEntityId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Outer1>().HasOne(o => o.Inner).WithOne(i => i.Outer).HasForeignKey<Inner1>(i => i.OuterId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Inner1>().HasOne(i => i.Outer).WithOne(o => o.Inner).HasForeignKey<Outer1>(o => o.InnerId).OnDelete(DeleteBehavior.SetNull);
 
         if (Database.IsSqlite())
         {
@@ -47,7 +51,7 @@ internal class DatabaseContext : DbContext
             {
                 property.SetValueConverter(new SqliteTimestampConverter());
                 property.SetValueComparer(new ValueComparer<byte[]>(
-                    (a1, a2) => (a1 == null || a2 == null) ? false : a1.SequenceEqual(a2),
+                    (a1, a2) => (a1 == default || a2 == default) ? false : a1.SequenceEqual(a2),
                     a => a.Aggregate(0, (v, b) => HashCode.Combine(v, b.GetHashCode())),
                     a => a));
                 property.SetDefaultValueSql("CURRENT_TIMESTAMP");

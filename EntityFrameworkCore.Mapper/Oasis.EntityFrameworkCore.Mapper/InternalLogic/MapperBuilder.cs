@@ -8,19 +8,17 @@ using System.Reflection.Emit;
 internal sealed class MapperBuilder : IMapperBuilder
 {
     private const char MapScalarPropertiesMethod = 's';
+    private const char MapEntityPropertiesMethod = 'e';
     private const char MapListPropertiesMethod = 'l';
-    private static readonly EntityPropertyNameSet DefaultEntityPropertyNameSet = new EntityPropertyNameSet("Id", "Timestamp");
-    private static readonly MethodInfo MapListProperty = typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!;
-    private static readonly MethodInfo ConvertScalarProperty = typeof(IScalarTypeConverter).GetMethod("Convert", Utilities.PublicInstance)!;
-    private static readonly MethodInfo RecursivelyRegisterMethod = typeof(MapperBuilder).GetMethod("RecursivelyRegister", Utilities.NonPublicInstance)!;
 
     private readonly TypeBuilder _typeBuilder;
     private readonly IDictionary<Type, IDictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, IDictionary<Type, MapperMetaDataSet>>();
     private readonly IDictionary<Type, IDictionary<Type, Delegate>> _scalarConverter = new Dictionary<Type, IDictionary<Type, Delegate>>();
     private readonly ISet<Type> _convertableToScalarSourceTypes = new HashSet<Type>();
     private readonly ISet<Type> _convertableToScalarTargetTypes = new HashSet<Type>();
-    private readonly IDictionary<Type, IDictionary<Type, MethodInfo>> _listPropertyMapper = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
-    private readonly IDictionary<Type, IDictionary<Type, MethodInfo>> _scalarPropertyConverter = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
+    private readonly GenericMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethod("Convert", Utilities.PublicInstance)!);
+    private readonly GenericMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper).GetMethod("MapEntityProperty", Utilities.PublicInstance)!);
+    private readonly GenericMethodCache _listPropertyMapperCache = new (typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!);
 
     public MapperBuilder(string assemblyName)
     {
@@ -42,6 +40,7 @@ internal sealed class MapperBuilder : IMapperBuilder
                 var mapperMetaDataSet = innerPair.Value;
                 var mapperSet = new MapperSet(
                     Delegate.CreateDelegate(mapperMetaDataSet.scalarPropertiesMapper.type, type!.GetMethod(mapperMetaDataSet.scalarPropertiesMapper.name)!),
+                    Delegate.CreateDelegate(mapperMetaDataSet.entityPropertiesMapper.type, type!.GetMethod(mapperMetaDataSet.entityPropertiesMapper.name)!),
                     Delegate.CreateDelegate(mapperMetaDataSet.listPropertiesMapper.type, type!.GetMethod(mapperMetaDataSet.listPropertiesMapper.name)!));
                 innerMapper.Add(innerPair.Key, mapperSet);
             }
@@ -66,8 +65,8 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     IMapperBuilder IMapperBuilder.Register<TSource, TTarget>()
     {
-        var stack = new Stack<(Type, Type)>();
-        return RecursivelyRegister<TSource, TTarget>(stack);
+        var pathTracker = new RecursiveRegisterPathTracker(this);
+        return RecursivelyRegister<TSource, TTarget>(pathTracker);
     }
 
     IMapperBuilder IMapperBuilder.RegisterTwoWay<TSource, TTarget>()
@@ -77,9 +76,9 @@ internal sealed class MapperBuilder : IMapperBuilder
             throw new SameTypeException(typeof(TSource));
         }
 
-        var stack = new Stack<(Type, Type)>();
-        RecursivelyRegister<TSource, TTarget>(stack);
-        return RecursivelyRegister<TTarget, TSource>(stack);
+        var pathTracker = new RecursiveRegisterPathTracker(this);
+        RecursivelyRegister<TSource, TTarget>(pathTracker);
+        return RecursivelyRegister<TTarget, TSource>(pathTracker);
     }
 
     public IMapperBuilder WithScalarMapper<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression)
@@ -123,15 +122,15 @@ internal sealed class MapperBuilder : IMapperBuilder
         return this;
     }
 
-    private IMapperBuilder RecursivelyRegister<TSource, TTarget>(Stack<(Type, Type)> stack)
+    private IMapperBuilder RecursivelyRegister<TSource, TTarget>(RecursiveRegisterPathTracker pathTracker)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
-        if (!stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
+        if (!pathTracker.Contains(sourceType, targetType))
         {
-            stack.Push(new (sourceType, targetType));
+            pathTracker.Push(sourceType, targetType);
             lock (_mapper)
             {
                 if (!_mapper.TryGetValue(sourceType, out var innerDictionary))
@@ -142,40 +141,60 @@ internal sealed class MapperBuilder : IMapperBuilder
 
                 if (!innerDictionary.ContainsKey(targetType))
                 {
+                    var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance);
+                    var targetProperties = targetType.GetProperties(Utilities.PublicInstance);
                     innerDictionary[targetType] = new MapperMetaDataSet(
-                        BuildUpScalarPropertiesMapperMethod<TSource, TTarget>(),
-                        BuildUpListPropertiesMapperMethod<TSource, TTarget>(stack));
+                        BuildUpScalarPropertiesMapperMethod<TSource, TTarget>(sourceType, targetType, sourceProperties, targetProperties),
+                        BuildUpEntityPropertiesMapperMethod<TSource, TTarget>(sourceType, targetType, sourceProperties, targetProperties, pathTracker),
+                        BuildUpListPropertiesMapperMethod<TSource, TTarget>(sourceType, targetType, sourceProperties, targetProperties, pathTracker));
                 }
             }
 
-            stack.Pop();
+            pathTracker.Pop();
         }
 
         return this;
     }
 
-    private MapperMetaData BuildUpScalarPropertiesMapperMethod<TSource, TTarget>()
+    private MapperMetaData BuildUpScalarPropertiesMapperMethod<TSource, TTarget>(
+        Type sourceType,
+        Type targetType,
+        PropertyInfo[] sourceProperties,
+        PropertyInfo[] targetProperties)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase
     {
-        var sourceType = typeof(TSource);
-        var targetType = typeof(TTarget);
-
         var method = InitializeDynamicMethod(sourceType, targetType, MapScalarPropertiesMethod, new[] { sourceType, targetType, typeof(IScalarTypeConverter) });
-        FillScalarPropertiesMapper(method.GetILGenerator(), sourceType, targetType);
+        FillScalarPropertiesMapper(method.GetILGenerator(), sourceProperties, targetProperties);
 
         return new MapperMetaData(typeof(Utilities.MapScalarProperties<TSource, TTarget>), method.Name);
     }
 
-    private MapperMetaData BuildUpListPropertiesMapperMethod<TSource, TTarget>(Stack<(Type, Type)> stack)
+    private MapperMetaData BuildUpEntityPropertiesMapperMethod<TSource, TTarget>(
+        Type sourceType,
+        Type targetType,
+        PropertyInfo[] sourceProperties,
+        PropertyInfo[] targetProperties,
+        RecursiveRegisterPathTracker pathTracker)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase
     {
-        var sourceType = typeof(TSource);
-        var targetType = typeof(TTarget);
+        var method = InitializeDynamicMethod(sourceType, targetType, MapEntityPropertiesMethod, new[] { sourceType, targetType, typeof(IEntityPropertyMapper) });
+        FillEntityPropertiesMapper(method.GetILGenerator(), sourceProperties, targetProperties, pathTracker);
+        return new MapperMetaData(typeof(Utilities.MapEntityProperties<TSource, TTarget>), method.Name);
+    }
 
+    private MapperMetaData BuildUpListPropertiesMapperMethod<TSource, TTarget>(
+        Type sourceType,
+        Type targetType,
+        PropertyInfo[] sourceProperties,
+        PropertyInfo[] targetProperties,
+        RecursiveRegisterPathTracker pathTracker)
+        where TSource : class, IEntityBase
+        where TTarget : class, IEntityBase
+    {
         var method = InitializeDynamicMethod(sourceType, targetType, MapListPropertiesMethod, new[] { sourceType, targetType, typeof(IListPropertyMapper) });
-        FillListPropertiesMapper(method.GetILGenerator(), sourceType, targetType, stack);
+        FillListPropertiesMapper(method.GetILGenerator(), sourceProperties, targetProperties, pathTracker);
 
         return new MapperMetaData(typeof(Utilities.MapListProperties<TSource, TTarget>), method.Name);
     }
@@ -190,10 +209,10 @@ internal sealed class MapperBuilder : IMapperBuilder
         return methodBuilder;
     }
 
-    private void FillScalarPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType)
+    private void FillScalarPropertiesMapper(ILGenerator generator, PropertyInfo[] allSourceProperties, PropertyInfo[] allTargetProperties)
     {
-        var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).Where(p => p.IsScalarProperty(_convertableToScalarSourceTypes, true, false));
-        var targetProperties = targetType.GetProperties(Utilities.PublicInstance).Where(p => p.IsScalarProperty(_convertableToScalarTargetTypes, true, true)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = allSourceProperties.Where(p => p.IsScalarProperty(_convertableToScalarSourceTypes, true, false));
+        var targetProperties = allTargetProperties.Where(p => p.IsScalarProperty(_convertableToScalarTargetTypes, true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
@@ -202,17 +221,18 @@ internal sealed class MapperBuilder : IMapperBuilder
                 && (sourcePropertyType == targetProperty.PropertyType || _scalarConverter.ItemExists(sourcePropertyType, targetProperty.PropertyType)))
             {
                 var targetPropertyType = targetProperty.PropertyType;
+                var needToConvert = sourcePropertyType != targetPropertyType;
                 generator.Emit(OpCodes.Ldarg_1);
-                if (sourcePropertyType != targetPropertyType)
+                if (needToConvert)
                 {
                     generator.Emit(OpCodes.Ldarg_2);
                 }
 
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
-                if (sourcePropertyType != targetPropertyType)
+                if (needToConvert)
                 {
-                    generator.Emit(OpCodes.Callvirt, Utilities.GetGenericMethod(_scalarPropertyConverter, ConvertScalarProperty, sourcePropertyType, targetPropertyType));
+                    generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourcePropertyType, targetPropertyType));
                 }
 
                 generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
@@ -222,10 +242,48 @@ internal sealed class MapperBuilder : IMapperBuilder
         generator.Emit(OpCodes.Ret);
     }
 
-    private void FillListPropertiesMapper(ILGenerator generator, Type sourceType, Type targetType, Stack<(Type, Type)> stack)
+    private void FillEntityPropertiesMapper(
+        ILGenerator generator,
+        PropertyInfo[] allSourceProperties,
+        PropertyInfo[] allTargetProperties,
+        RecursiveRegisterPathTracker pathTracker)
     {
-        var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).Where(p => p.IsListOfNavigationProperty(true, false));
-        var targetProperties = targetType.GetProperties(Utilities.PublicInstance).Where(p => p.IsListOfNavigationProperty(true, true)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = allSourceProperties.Where(p => p.IsEntityProperty(true, false));
+        var targetProperties = allTargetProperties.Where(p => p.IsEntityProperty(true, true)).ToDictionary(p => p.Name, p => p);
+
+        foreach (var sourceProperty in sourceProperties)
+        {
+            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty))
+            {
+                var sourcePropertyType = sourceProperty.PropertyType;
+                var targetPropertyType = targetProperty.PropertyType;
+
+                // cascading mapper creation: if entity mapper doesn't exist, create it
+                pathTracker.RegisterIf(sourcePropertyType, targetPropertyType, !_mapper.ItemExists(sourcePropertyType, targetPropertyType));
+
+                // now it's made sure that mapper between entities exists, emit the entity property mapping code
+                generator.Emit(OpCodes.Ldarg_1);
+                generator.Emit(OpCodes.Ldarg_2);
+                generator.Emit(OpCodes.Ldarg_0);
+                generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+                generator.Emit(OpCodes.Ldarg_1);
+                generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+                generator.Emit(OpCodes.Callvirt, _entityPropertyMapperCache.CreateIfNotExist(sourcePropertyType, targetPropertyType));
+                generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
+            }
+        }
+
+        generator.Emit(OpCodes.Ret);
+    }
+
+    private void FillListPropertiesMapper(
+        ILGenerator generator,
+        PropertyInfo[] allSourceProperties,
+        PropertyInfo[] allTargetProperties,
+        RecursiveRegisterPathTracker pathTracker)
+    {
+        var sourceProperties = allSourceProperties.Where(p => p.IsListOfEntityProperty(true, false));
+        var targetProperties = allTargetProperties.Where(p => p.IsListOfEntityProperty(true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
@@ -235,11 +293,7 @@ internal sealed class MapperBuilder : IMapperBuilder
                 var targetItemType = targetProperty.PropertyType.GenericTypeArguments[0];
 
                 // cascading mapper creation: if list item mapper doesn't exist, create it
-                if (!stack.Any(i => i.Item1 == sourceItemType && i.Item2 == targetItemType) && !_mapper.ItemExists(sourceItemType, targetItemType))
-                {
-                    var recursivelyRegisterMethod = RecursivelyRegisterMethod.MakeGenericMethod(sourceItemType, targetItemType);
-                    recursivelyRegisterMethod.Invoke(this, new object[] { stack });
-                }
+                pathTracker.RegisterIf(sourceItemType, targetItemType, !_mapper.ItemExists(sourceItemType, targetItemType));
 
                 // now it's made sure that mapper between list items exists, emit the list property mapping code
                 generator.Emit(OpCodes.Ldarg_1);
@@ -255,7 +309,7 @@ internal sealed class MapperBuilder : IMapperBuilder
                 generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
-                generator.Emit(OpCodes.Callvirt, Utilities.GetGenericMethod(_listPropertyMapper, MapListProperty, sourceItemType, targetItemType));
+                generator.Emit(OpCodes.Callvirt, _listPropertyMapperCache.CreateIfNotExist(sourceItemType, targetItemType));
             }
         }
 
@@ -264,7 +318,7 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     private record struct MapperMetaData(Type type, string name);
 
-    private record struct MapperMetaDataSet(MapperMetaData scalarPropertiesMapper, MapperMetaData listPropertiesMapper);
+    private record struct MapperMetaDataSet(MapperMetaData scalarPropertiesMapper, MapperMetaData entityPropertiesMapper, MapperMetaData listPropertiesMapper);
 
     internal record struct EntityPropertyNameSet(string id, string timestamp);
 }

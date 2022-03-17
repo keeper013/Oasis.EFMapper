@@ -12,7 +12,7 @@ public interface IMapper
 
 public interface IMappingToEntitiesSession
 {
-    Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = null)
+    Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase, new();
 }
