@@ -62,8 +62,7 @@ internal abstract class RecursiveMapper<T> : IScalarTypeConverter, IEntityProper
             if (!existingTargetTracker!.StartTracking(target.GetHashCode()))
             {
                 // Only do mapping if the target hasn't been mapped.
-                // Entity framework doesn't support circular dependency,
-                // this is just to break out of infinite loop in case users do so.
+                // This will be useful to break from infinite loop caused by navigation properties.
                 return;
             }
         }

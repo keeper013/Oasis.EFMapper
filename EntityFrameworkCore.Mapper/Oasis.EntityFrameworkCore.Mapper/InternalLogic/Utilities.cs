@@ -1,12 +1,13 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
+using System.Collections;
 using System.Reflection;
 
 internal static class Utilities
 {
     internal const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
     internal const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
-    private static readonly Type EntityBaseType = typeof(EntityBase);
+    private static readonly Type EnumerableType = typeof(IEnumerable);
 
     public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
         where TSource : class, IEntityBase
@@ -40,7 +41,7 @@ internal static class Utilities
 
     public static bool IsEntityType(this Type type)
     {
-        return type.IsSubclassOf(EntityBaseType);
+        return (type.IsClass || type.IsInterface) && !type.GetInterfaces().Contains(EnumerableType);
     }
 
     public static bool IsEntityProperty(this PropertyInfo prop, bool mustHaveGetter, bool mustHaveSetter)
@@ -56,7 +57,7 @@ internal static class Utilities
         const string ListTypeName = "System.Collections.Generic.List`1[[";
         var typeFullName = type.FullName;
         return (typeFullName!.StartsWith(ICollectionTypeName) || typeFullName.StartsWith(IListTypeName) || typeFullName.StartsWith(ListTypeName))
-            && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments[0].IsSubclassOf(EntityBaseType);
+            && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments[0].IsEntityType();
     }
 
     public static bool IsListOfEntityProperty(this PropertyInfo prop, bool mustHaveGetter, bool mustHaveSetter)
