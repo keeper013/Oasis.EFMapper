@@ -17,24 +17,24 @@ internal sealed class Mapper : IMapper
         _mappers = mappers;
     }
 
-    public IMappingFromEntitiesSession CreateMappingFromEntitiesSession()
+    public IMappingSession CreateMappingSession()
     {
-        return new MappingFromEntitiesSession(_scalarConverters, _mappers);
+        return new MappingSession(_scalarConverters, _mappers);
     }
 
-    public IMappingToEntitiesSession CreateMappingToEntitiesSession(DbContext databaseContext)
+    public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
     {
-        return new MappingToEntitiesSession(databaseContext, _scalarConverters, _mappers);
+        return new MappingToDatabaseSession(databaseContext, _scalarConverters, _mappers);
     }
 }
 
-internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
+internal sealed class MappingSession : IMappingSession
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
     private readonly NewTargetTracker<int> _newEntityTracker;
 
-    public MappingFromEntitiesSession(
+    public MappingSession(
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
     {
@@ -43,7 +43,7 @@ internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
         _mappers = mappers;
     }
 
-    TTarget IMappingFromEntitiesSession.Map<TSource, TTarget>(TSource source)
+    TTarget IMappingSession.Map<TSource, TTarget>(TSource source)
     {
         if (source.Id.HasValue)
         {
@@ -60,7 +60,7 @@ internal sealed class MappingFromEntitiesSession : IMappingFromEntitiesSession
     }
 }
 
-internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
+internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
 {
     private const string AsNoTrackingMethodCall = ".AsNoTracking";
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
@@ -68,7 +68,7 @@ internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
     private readonly DbContext _databaseContext;
     private readonly NewTargetTracker<int> _newEntityTracker;
 
-    public MappingToEntitiesSession(
+    public MappingToDatabaseSession(
         DbContext databaseContext,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
@@ -79,7 +79,7 @@ internal sealed class MappingToEntitiesSession : IMappingToEntitiesSession
         _mappers = mappers;
     }
 
-    async Task<TTarget> IMappingToEntitiesSession.MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
+    async Task<TTarget> IMappingToDatabaseSession.MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
     {
         TTarget? target;
         if (source.Id.HasValue)
@@ -155,10 +155,6 @@ internal sealed class NewTargetTracker<TKeyType>
             if (obj is TTarget)
             {
                 target = obj as TTarget;
-            }
-            else
-            {
-                throw new MultipleMappingException(obj!.GetType(), typeof(TTarget));
             }
         }
 

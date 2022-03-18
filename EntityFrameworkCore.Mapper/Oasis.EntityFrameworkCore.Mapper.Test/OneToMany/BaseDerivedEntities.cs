@@ -1,5 +1,6 @@
-﻿namespace Oasis.EntityFrameworkCore.Mapper.Test;
+﻿namespace Oasis.EntityFrameworkCore.Mapper.Test.OneToMany;
 
+using Oasis.EntityFrameworkCore.Mapper.Test.Scalar;
 using System.Collections.Generic;
 
 public class BaseEntity1 : EntityBase

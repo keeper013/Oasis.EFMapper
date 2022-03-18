@@ -1,5 +1,6 @@
-﻿namespace Oasis.EntityFrameworkCore.Mapper.Test;
+﻿namespace Oasis.EntityFrameworkCore.Mapper.Test.OneToMany;
 
+using Oasis.EntityFrameworkCore.Mapper.Test.Scalar;
 using System.Collections.Generic;
 
 public sealed class CollectionEntity1 : EntityBase
@@ -103,36 +104,4 @@ public sealed class SubScalarEntity1 : EntityBase
     public ListIEntity1? ListIEntity { get; set; }
 
     public ListEntity1? ListEntity { get; set; }
-}
-
-public sealed class RecursiveEntity1 : EntityBase
-{
-    public RecursiveEntity1()
-    {
-    }
-
-    public RecursiveEntity1(int intProp)
-    {
-        IntProp = intProp;
-    }
-
-    public int IntProp { get; set; }
-
-    public IList<RecursiveEntity1>? SubItems { get; set; }
-}
-
-public sealed class RecursiveEntity2 : EntityBase
-{
-    public RecursiveEntity2()
-    {
-    }
-
-    public RecursiveEntity2(int intProp)
-    {
-        IntProp = intProp;
-    }
-
-    public int IntProp { get; set; }
-
-    public IList<RecursiveEntity2>? SubItems { get; set; }
 }

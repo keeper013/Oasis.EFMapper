@@ -1,4 +1,4 @@
-﻿namespace Oasis.EntityFrameworkCore.Mapper.Test;
+﻿namespace Oasis.EntityFrameworkCore.Mapper.Test.Scalar;
 
 public sealed class ScalarEntity1 : EntityBase
 {

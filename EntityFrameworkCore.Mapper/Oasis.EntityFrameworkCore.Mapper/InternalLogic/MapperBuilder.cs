@@ -12,10 +12,8 @@ internal sealed class MapperBuilder : IMapperBuilder
     private const char MapListPropertiesMethod = 'l';
 
     private readonly TypeBuilder _typeBuilder;
-    private readonly IDictionary<Type, IDictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, IDictionary<Type, MapperMetaDataSet>>();
-    private readonly IDictionary<Type, IDictionary<Type, Delegate>> _scalarConverter = new Dictionary<Type, IDictionary<Type, Delegate>>();
-    private readonly ISet<Type> _convertableToScalarSourceTypes = new HashSet<Type>();
-    private readonly ISet<Type> _convertableToScalarTargetTypes = new HashSet<Type>();
+    private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, Dictionary<Type, MapperMetaDataSet>>();
+    private readonly ScalarConverterCache _scalarConverterCache = new ();
     private readonly GenericMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethod("Convert", Utilities.PublicInstance)!);
     private readonly GenericMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper).GetMethod("MapEntityProperty", Utilities.PublicInstance)!);
     private readonly GenericMethodCache _listPropertyMapperCache = new (typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!);
@@ -48,19 +46,7 @@ internal sealed class MapperBuilder : IMapperBuilder
             mapper.Add(pair.Key, innerMapper);
         }
 
-        var scalarConverter = new Dictionary<Type, IReadOnlyDictionary<Type, Delegate>>();
-        foreach (var pair in _scalarConverter)
-        {
-            var innerMapper = new Dictionary<Type, Delegate>();
-            foreach (var innerPair in pair.Value)
-            {
-                innerMapper.Add(innerPair.Key, innerPair.Value);
-            }
-
-            scalarConverter.Add(pair.Key, innerMapper);
-        }
-
-        return new Mapper(scalarConverter, mapper);
+        return new Mapper(_scalarConverterCache.Export(), mapper);
     }
 
     IMapperBuilder IMapperBuilder.Register<TSource, TTarget>()
@@ -83,40 +69,9 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     public IMapperBuilder WithScalarMapper<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression)
     {
-        var sourceType = typeof(TSource);
-        var targetType = typeof(TTarget);
-
-        var sourceIsNotScalarType = !Utilities.IsScalarType(sourceType);
-        var targetIsNotScalarType = !Utilities.IsScalarType(targetType);
-        if (sourceIsNotScalarType && targetIsNotScalarType)
+        lock (_scalarConverterCache)
         {
-            throw new ScalarTypeMissingException(sourceType, targetType);
-        }
-
-        lock (_scalarConverter)
-        {
-            if (!_scalarConverter.TryGetValue(sourceType, out var innerDictionary))
-            {
-                innerDictionary = new Dictionary<Type, Delegate>();
-                _scalarConverter[sourceType] = innerDictionary;
-            }
-
-            if (!innerDictionary.ContainsKey(targetType))
-            {
-                innerDictionary.Add(targetType, expression.Compile());
-                if (sourceIsNotScalarType)
-                {
-                    _convertableToScalarSourceTypes.Add(sourceType);
-                }
-                else if (targetIsNotScalarType)
-                {
-                    _convertableToScalarTargetTypes.Add(targetType);
-                }
-            }
-            else
-            {
-                throw new ScalarMapperExistsException(sourceType, targetType);
-            }
+            _scalarConverterCache.Register(expression);
         }
 
         return this;
@@ -211,14 +166,14 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     private void FillScalarPropertiesMapper(ILGenerator generator, PropertyInfo[] allSourceProperties, PropertyInfo[] allTargetProperties)
     {
-        var sourceProperties = allSourceProperties.Where(p => p.IsScalarProperty(_convertableToScalarSourceTypes, true, false));
-        var targetProperties = allTargetProperties.Where(p => p.IsScalarProperty(_convertableToScalarTargetTypes, true, true)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = allSourceProperties.Where(p => p.IsScalarProperty(_scalarConverterCache.SourceTypes, true, false));
+        var targetProperties = allTargetProperties.Where(p => p.IsScalarProperty(_scalarConverterCache.TargetTypes, true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
             var sourcePropertyType = sourceProperty.PropertyType;
             if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty)
-                && (sourcePropertyType == targetProperty.PropertyType || _scalarConverter.ItemExists(sourcePropertyType, targetProperty.PropertyType)))
+                && (sourcePropertyType == targetProperty.PropertyType || _scalarConverterCache.Contains(sourcePropertyType, targetProperty.PropertyType)))
             {
                 var targetPropertyType = targetProperty.PropertyType;
                 var needToConvert = sourcePropertyType != targetPropertyType;

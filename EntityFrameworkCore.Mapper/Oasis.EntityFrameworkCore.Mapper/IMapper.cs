@@ -5,19 +5,19 @@ using System.Linq.Expressions;
 
 public interface IMapper
 {
-    IMappingFromEntitiesSession CreateMappingFromEntitiesSession();
+    IMappingSession CreateMappingSession();
 
-    IMappingToEntitiesSession CreateMappingToEntitiesSession(DbContext databaseContext);
+    IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext);
 }
 
-public interface IMappingToEntitiesSession
+public interface IMappingToDatabaseSession
 {
     Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase, new();
 }
 
-public interface IMappingFromEntitiesSession
+public interface IMappingSession
 {
     TTarget Map<TSource, TTarget>(TSource source)
         where TSource : class, IEntityBase

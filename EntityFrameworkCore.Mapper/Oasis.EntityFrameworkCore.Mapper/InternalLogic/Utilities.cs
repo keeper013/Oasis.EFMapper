@@ -31,7 +31,7 @@ internal static class Utilities
         return (type.IsValueType && (type.IsPrimitive || ((type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1) && type.GenericTypeArguments[0].IsPrimitive))) || type == typeof(string) || type == typeof(byte[]);
     }
 
-    public static bool IsScalarProperty(this PropertyInfo prop, ISet<Type> convertables, bool mustHaveGetter, bool mustHaveSetter)
+    public static bool IsScalarProperty(this PropertyInfo prop, IReadOnlySet<Type> convertables, bool mustHaveGetter, bool mustHaveSetter)
     {
         var type = prop.PropertyType;
         return (IsScalarType(type) || convertables.Contains(type))
@@ -65,7 +65,7 @@ internal static class Utilities
             && (!mustHaveGetter || prop.GetMethod != default) && (!mustHaveSetter || prop.SetMethod != default);
     }
 
-    public static bool ItemExists<T>(this IDictionary<Type, IDictionary<Type, T>> dict, Type sourceType, Type targetType)
+    public static bool ItemExists<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
     {
         return dict.TryGetValue(sourceType, out var innerDictionary) && innerDictionary.ContainsKey(targetType);
     }
