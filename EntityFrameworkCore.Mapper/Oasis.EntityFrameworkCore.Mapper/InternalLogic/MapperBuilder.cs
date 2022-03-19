@@ -91,12 +91,14 @@ internal sealed class MapperBuilder : IMapperBuilder
         if (customIdColumn || customTimestampColumn)
         {
             var properties = type.GetProperties(Utilities.PublicInstance).Where(p => p.GetMethod != null && p.SetMethod != null);
-            if (customIdColumn && !properties.Any(p => string.Equals(p.Name, configuration.identityColumnName) && p.PropertyType.IsIdType()))
+            if (customIdColumn && !properties.Any(p => string.Equals(p.Name, configuration.identityColumnName)
+                && (Utilities.IdTypes.Contains(p.PropertyType) || Utilities.IdTypes.Any(type => _scalarConverterCache.Contains(p.PropertyType, type)))))
             {
                 throw new InvalidEntityBasePropertyException(type, "id", configuration.identityColumnName!);
             }
 
-            if (customTimestampColumn && !properties.Any(p => string.Equals(p.Name, configuration.timestampColumnName) && p.PropertyType.IsTimeStampType()))
+            if (customTimestampColumn && !properties.Any(p => string.Equals(p.Name, configuration.timestampColumnName)
+                && (Utilities.TimestampTypes.Contains(p.PropertyType) || Utilities.TimestampTypes.Any(type => _scalarConverterCache.Contains(p.PropertyType, type)))))
             {
                 throw new InvalidEntityBasePropertyException(type, "timestamp", configuration.timestampColumnName!);
             }
