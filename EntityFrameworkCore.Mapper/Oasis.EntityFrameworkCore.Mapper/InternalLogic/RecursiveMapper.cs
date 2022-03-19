@@ -203,9 +203,9 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
     }
 }
 
-internal sealed class FromEntitiesRecursiveMapper : RecursiveMapper<int>
+internal sealed class ToMemoryRecursiveMapper : RecursiveMapper<int>
 {
-    public FromEntitiesRecursiveMapper(
+    public ToMemoryRecursiveMapper(
         NewTargetTracker<int> newTargetTracker,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)

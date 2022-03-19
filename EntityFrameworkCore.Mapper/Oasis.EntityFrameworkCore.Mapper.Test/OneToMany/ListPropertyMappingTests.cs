@@ -16,9 +16,7 @@ public class ListPropertyMappingTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.Make(GetType().Name);
-
         mapperBuilder.Register<CollectionEntity1, CollectionEntity2>();
-
         var mapper = mapperBuilder.Build();
 
         var sc1_1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
@@ -52,9 +50,7 @@ public class ListPropertyMappingTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.Make(GetType().Name);
-
         mapperBuilder.Register<CollectionEntity2, CollectionEntity1>();
-
         var mapper = mapperBuilder.Build();
 
         var sc1_1 = new ScalarEntity2(1, 2, "3", new byte[] { 1 });
@@ -87,9 +83,7 @@ public class ListPropertyMappingTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.Make(GetType().Name);
-
         mapperBuilder.RegisterTwoWay<ListIEntity1, CollectionEntity1>();
-
         var mapper = mapperBuilder.Build();
 
         var subInstance = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
@@ -126,9 +120,7 @@ public class ListPropertyMappingTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.Make(GetType().Name);
-
         mapperBuilder.RegisterTwoWay<ListEntity1, CollectionEntity1>();
-
         var mapper = mapperBuilder.Build();
 
         var sc1_1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
@@ -217,6 +209,40 @@ public class ListPropertyMappingTests : TestBase
         Assert.Equal(1, item0.IntProp);
         Assert.Equal(2, item0.LongNullableProp);
         Assert.Equal(item0.ByteArrayProp, instance.Scs!.ElementAt(0).ByteArrayProp);
+    }
+
+    [Fact]
+    public async Task ChangeListEntityById_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name);
+        mapperBuilder.RegisterTwoWay<ListEntity2, ListEntity3>();
+        var mapper = mapperBuilder.Build();
+
+        var listEntity2_1 = new ListEntity2(1);
+        var listEntity2_2 = new ListEntity2(2);
+        var subEntity2 = new SubEntity2("1");
+        subEntity2.ListEntity = listEntity2_1;
+        DatabaseContext.Set<ListEntity2>().AddRange(listEntity2_1, listEntity2_2);
+        DatabaseContext.Set<SubEntity2>().Add(subEntity2);
+        await DatabaseContext.SaveChangesAsync();
+
+        // act
+        var entity = await DatabaseContext.Set<SubEntity2>().AsNoTracking().Include(s => s.ListEntity).FirstAsync();
+        var session1 = mapper.CreateMappingSession();
+        var result1 = session1.Map<SubEntity2, SubEntity3>(entity);
+        var listEntity2 = await DatabaseContext.Set<ListEntity2>().AsNoTracking().FirstAsync(l => l.IntProp == 2);
+        result1.ListEntityId = listEntity2.Id;
+        var session2 = mapper.CreateMappingToDatabaseSession(DatabaseContext);
+        var result2 = await session2.MapAsync<SubEntity3, SubEntity2>(result1);
+        await DatabaseContext.SaveChangesAsync();
+
+        // assert
+        var l1 = await DatabaseContext.Set<ListEntity2>().AsNoTracking().Include(l => l.SubEntities).FirstAsync(l => l.IntProp == 1);
+        Assert.Empty(l1.SubEntities);
+        var l2 = await DatabaseContext.Set<ListEntity2>().AsNoTracking().Include(l => l.SubEntities).FirstAsync(l => l.IntProp == 2);
+        Assert.Single(l2.SubEntities);
     }
 
     [Fact]

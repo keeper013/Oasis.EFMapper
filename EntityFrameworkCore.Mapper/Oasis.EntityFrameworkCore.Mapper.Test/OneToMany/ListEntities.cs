@@ -105,3 +105,69 @@ public sealed class SubScalarEntity1 : EntityBase
 
     public ListEntity1? ListEntity { get; set; }
 }
+
+public sealed class ListEntity2 : EntityBase
+{
+    public ListEntity2()
+    {
+    }
+
+    public ListEntity2(int intProp)
+    {
+        IntProp = intProp;
+    }
+
+    public int IntProp { get; set; }
+
+    public List<SubEntity2>? SubEntities { get; set; }
+}
+
+public sealed class SubEntity2 : EntityBase
+{
+    public SubEntity2()
+    {
+    }
+
+    public SubEntity2(string? stringProp)
+    {
+        StringProp = stringProp;
+    }
+
+    public string? StringProp { get; set; }
+
+    public long? ListEntityId { get; set; }
+
+    public ListEntity2? ListEntity { get; set; }
+}
+
+public sealed class ListEntity3 : EntityBase
+{
+    public ListEntity3()
+    {
+    }
+
+    public ListEntity3(int intProp)
+    {
+        IntProp = intProp;
+    }
+
+    public int IntProp { get; set; }
+
+    public List<SubEntity3>? SubEntities { get; set; }
+}
+
+public sealed class SubEntity3 : EntityBase
+{
+    public SubEntity3()
+    {
+    }
+
+    public SubEntity3(string? stringProp)
+    {
+        StringProp = stringProp;
+    }
+
+    public string? StringProp { get; set; }
+
+    public long? ListEntityId { get; set; }
+}

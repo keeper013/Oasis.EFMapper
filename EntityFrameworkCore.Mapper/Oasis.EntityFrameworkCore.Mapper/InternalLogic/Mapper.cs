@@ -54,7 +54,7 @@ internal sealed class MappingSession : IMappingSession
         }
 
         var target = new TTarget();
-        new FromEntitiesRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers).Map(source, target);
+        new ToMemoryRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers).Map(source, target);
 
         return target;
     }
