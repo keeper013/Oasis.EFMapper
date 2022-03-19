@@ -37,10 +37,8 @@ internal class DatabaseContext : DbContext
         modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListIEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListIEntityId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListEntityId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.CollectionEntity).WithMany(c => c.Scs).HasForeignKey(s => s.CollectionEntityId).OnDelete(DeleteBehavior.Restrict);
-        modelBuilder.Entity<Outer1>().HasOne(o => o.Inner1).WithOne(i => i.Outer).HasForeignKey<Inner1_1>(i => i.OuterId).OnDelete(DeleteBehavior.Cascade);
-        modelBuilder.Entity<Inner1_1>().HasOne(i => i.Outer).WithOne(o => o.Inner1).HasForeignKey<Outer1>(o => o.Inner1Id).OnDelete(DeleteBehavior.SetNull);
-        modelBuilder.Entity<Outer1>().HasOne(o => o.Inner2).WithOne(i => i.Outer).HasForeignKey<Inner1_2>(i => i.OuterId).OnDelete(DeleteBehavior.Cascade);
-        modelBuilder.Entity<Inner1_2>().HasOne(i => i.Outer).WithOne(o => o.Inner2).HasForeignKey<Outer1>(o => o.Inner2Id).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<Inner1_1>().HasOne(i => i.Outer).WithOne(o => o.Inner1).HasForeignKey<Inner1_1>(i => i.OuterId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<Inner1_2>().HasOne(i => i.Outer).WithOne(o => o.Inner2).HasForeignKey<Inner1_2>(i => i.OuterId).OnDelete(DeleteBehavior.SetNull);
 
         if (Database.IsSqlite())
         {

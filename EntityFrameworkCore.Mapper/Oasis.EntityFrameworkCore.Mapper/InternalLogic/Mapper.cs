@@ -114,13 +114,13 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
                 throw new StaleEntityException(typeof(TTarget), source.Id);
             }
 
-            new ToEntitiesRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _databaseContext).Map(source, target);
+            new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _databaseContext).Map(source, target);
         }
         else
         {
             if (!_newEntityTracker.NewTargetIfNotExist<TTarget>(source.GetHashCode(), out target))
             {
-                new ToEntitiesRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _databaseContext).Map(source, target!);
+                new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _databaseContext).Map(source, target!);
                 _databaseContext.Set<TTarget>().Add(target!);
             }
         }

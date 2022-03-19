@@ -88,11 +88,11 @@ internal abstract class RecursiveMapper<T> : IScalarTypeConverter, IEntityProper
     }
 }
 
-internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
+internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
 {
     private readonly DbContext _databaseContext;
 
-    public ToEntitiesRecursiveMapper(
+    public ToDatabaseRecursiveMapper(
         NewTargetTracker<int> newTargetTracker,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
@@ -132,7 +132,17 @@ internal sealed class ToEntitiesRecursiveMapper : RecursiveMapper<int>
             return n;
         }
 
-        if (target == default || source.Id != target.Id)
+        if (target == default)
+        {
+            target = _databaseContext.Set<TTarget>().FirstOrDefault(t => t.Id == source.Id);
+        }
+        else if (source.Id != target.Id)
+        {
+            _databaseContext.Set<TTarget>().Remove(target);
+            target = _databaseContext.Set<TTarget>().FirstOrDefault(t => t.Id == source.Id);
+        }
+
+        if (target == default)
         {
             throw new EntityNotFoundException(typeof(TTarget), source.Id);
         }

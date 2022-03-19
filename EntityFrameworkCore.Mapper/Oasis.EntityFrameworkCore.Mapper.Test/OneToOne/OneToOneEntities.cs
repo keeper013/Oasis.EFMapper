@@ -13,11 +13,7 @@ public sealed class Outer1 : EntityBase
 
     public int IntProp { get; set; }
 
-    public long? Inner1Id { get; set; }
-
     public Inner1_1? Inner1 { get; set; }
-
-    public long? Inner2Id { get; set; }
 
     public Inner1_2? Inner2 { get; set; }
 }
@@ -71,11 +67,7 @@ public sealed class Outer2 : EntityBase
 
     public int IntProp { get; set; }
 
-    public long? Inner1Id { get; set; }
-
     public Inner2_1? Inner1 { get; set; }
-
-    public long? Inner2Id { get; set; }
 
     public Inner2_2? Inner2 { get; set; }
 }
@@ -92,10 +84,6 @@ public class Inner2_1 : EntityBase
     }
 
     public long LongProp { get; set; }
-
-    public long? OuterId { get; set; }
-
-    public Outer2? Outer { get; set; }
 }
 
 public class Inner2_2 : EntityBase
@@ -110,8 +98,4 @@ public class Inner2_2 : EntityBase
     }
 
     public string? StringProp { get; set; }
-
-    public long? OuterId { get; set; }
-
-    public Outer1? Outer { get; set; }
 }
