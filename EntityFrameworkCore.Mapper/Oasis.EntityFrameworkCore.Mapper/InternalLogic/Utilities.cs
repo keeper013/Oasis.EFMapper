@@ -19,10 +19,6 @@ internal static class Utilities
         typeof(short), typeof(ushort), typeof(byte),
     };
 
-    public static IReadOnlySet<Type> IdTypes => IdTypeSet;
-
-    public static IReadOnlySet<Type> TimestampTypes => TimestampTypeSet;
-
     public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase;
@@ -34,6 +30,10 @@ internal static class Utilities
     public delegate void MapListProperties<TSource, TTarget>(TSource source, TTarget target, IListPropertyMapper mapper)
         where TSource : class, IEntityBase
         where TTarget : class, IEntityBase;
+
+    public static IReadOnlySet<Type> IdTypes => IdTypeSet;
+
+    public static IReadOnlySet<Type> TimestampTypes => TimestampTypeSet;
 
     public static string BuildMethodName(char type, Type sourceType, Type targetType)
     {
