@@ -13,13 +13,13 @@ public interface IMapper
 public interface IMappingToDatabaseSession
 {
     Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase, new();
+        where TSource : class
+        where TTarget : class, new();
 }
 
 public interface IMappingSession
 {
     TTarget Map<TSource, TTarget>(TSource source)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase, new();
+        where TSource : class
+        where TTarget : class, new();
 }

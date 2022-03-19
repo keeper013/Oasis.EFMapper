@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 internal class ScalarConverterCache
 {
-    private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverter = new Dictionary<Type, Dictionary<Type, Delegate>>();
+    private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarSourceTypes = new ();
     private readonly HashSet<Type> _convertableToScalarTargetTypes = new ();
 
@@ -25,10 +25,10 @@ internal class ScalarConverterCache
             throw new ScalarTypeMissingException(sourceType, targetType);
         }
 
-        if (!_scalarConverter.TryGetValue(sourceType, out var innerDictionary))
+        if (!_scalarConverterDictionary.TryGetValue(sourceType, out var innerDictionary))
         {
             innerDictionary = new Dictionary<Type, Delegate>();
-            _scalarConverter[sourceType] = innerDictionary;
+            _scalarConverterDictionary[sourceType] = innerDictionary;
         }
 
         if (!innerDictionary.ContainsKey(targetType))
@@ -52,7 +52,7 @@ internal class ScalarConverterCache
     public IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> Export()
     {
         var scalarConverter = new Dictionary<Type, IReadOnlyDictionary<Type, Delegate>>();
-        foreach (var pair in _scalarConverter)
+        foreach (var pair in _scalarConverterDictionary)
         {
             scalarConverter.Add(pair.Key, pair.Value);
         }
@@ -60,5 +60,5 @@ internal class ScalarConverterCache
         return scalarConverter;
     }
 
-    public bool Contains(Type sourceType, Type targetType) => _scalarConverter.ItemExists(sourceType, targetType);
+    public bool Contains(Type sourceType, Type targetType) => _scalarConverterDictionary.ItemExists(sourceType, targetType);
 }

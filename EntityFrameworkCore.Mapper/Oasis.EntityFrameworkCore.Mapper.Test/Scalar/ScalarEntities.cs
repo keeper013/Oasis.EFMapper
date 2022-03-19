@@ -109,3 +109,17 @@ public sealed class ByteArrayWrapper
         return wrapper.Bytes;
     }
 }
+
+public sealed class ScalarEntity5
+{
+    public char Id { get; set; }
+
+    public byte[]? TimeStamp { get; set; }
+}
+
+public sealed class ScalarEntity6
+{
+    public int Id { get; set; }
+
+    public ByteArrayWrapper? TimeStamp1 { get; set; }
+}

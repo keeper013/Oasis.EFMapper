@@ -12,9 +12,9 @@ internal sealed class MapperBuilder : IMapperBuilder
     private const char MapListPropertiesMethod = 'l';
 
     private readonly TypeBuilder _typeBuilder;
-    private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, Dictionary<Type, MapperMetaDataSet>>();
-    private readonly Dictionary<Type, TypeConfiguration> _typeConfigurations = new Dictionary<Type, TypeConfiguration>();
-    private readonly ScalarConverterCache _scalarConverterCache = new ();
+    private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper;
+    private readonly TypeConfigurationCache _typeConfigurationCache;
+    private readonly ScalarConverterCache _scalarConverterCache;
     private readonly GenericMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethod("Convert", Utilities.PublicInstance)!);
     private readonly GenericMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper).GetMethod("MapEntityProperty", Utilities.PublicInstance)!);
     private readonly GenericMethodCache _listPropertyMapperCache = new (typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!);
@@ -25,6 +25,9 @@ internal sealed class MapperBuilder : IMapperBuilder
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
         _typeBuilder = module.DefineType("Mapper", TypeAttributes.Public);
+        _mapper = new ();
+        _scalarConverterCache = new ();
+        _typeConfigurationCache = new (_scalarConverterCache);
     }
 
     public IMapper Build(string? defaultIdPropertyName, string? defaultTimeStampPropertyName)
@@ -47,11 +50,18 @@ internal sealed class MapperBuilder : IMapperBuilder
             mapper.Add(pair.Key, innerMapper);
         }
 
-        return new Mapper(_scalarConverterCache.Export(), mapper, new EntityBaseProxy(_typeConfigurations));
+        return new Mapper(_scalarConverterCache.Export(), mapper, new EntityBaseProxy(_typeConfigurationCache.Export()));
     }
 
     IMapperBuilder IMapperBuilder.Register<TSource, TTarget>()
     {
+        // TypeConfigurationCache relies on ScalarConverterCache, so lock ScalarConverterCache instead
+        lock (_scalarConverterCache)
+        {
+            _typeConfigurationCache.ValidateEntityBaseProperties(typeof(TSource));
+            _typeConfigurationCache.ValidateEntityBaseProperties(typeof(TTarget));
+        }
+
         var pathTracker = new RecursiveRegisterPathTracker(this);
         return RecursivelyRegister<TSource, TTarget>(pathTracker);
     }
@@ -63,6 +73,13 @@ internal sealed class MapperBuilder : IMapperBuilder
             throw new SameTypeException(typeof(TSource));
         }
 
+        // TypeConfigurationCache relies on ScalarConverterCache, so lock ScalarConverterCache instead
+        lock (_scalarConverterCache)
+        {
+            _typeConfigurationCache.ValidateEntityBaseProperties(typeof(TSource));
+            _typeConfigurationCache.ValidateEntityBaseProperties(typeof(TTarget));
+        }
+
         var pathTracker = new RecursiveRegisterPathTracker(this);
         RecursivelyRegister<TSource, TTarget>(pathTracker);
         return RecursivelyRegister<TTarget, TSource>(pathTracker);
@@ -70,6 +87,7 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     public IMapperBuilder WithScalarMapper<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression)
     {
+        // TypeConfigurationCache relies on ScalarConverterCache, so lock ScalarConverterCache instead
         lock (_scalarConverterCache)
         {
             _scalarConverterCache.Register(expression);
@@ -80,46 +98,25 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     IMapperBuilder IMapperBuilder.WithConfiguration<T>(TypeConfiguration configuration)
     {
-        var type = typeof(T);
-        if (_typeConfigurations.ContainsKey(type))
+        lock (_scalarConverterCache)
         {
-            throw new TypeConfiguratedException(type);
+            _typeConfigurationCache.ValidateEntityBaseProperties(typeof(T));
         }
-
-        var customIdColumn = !string.IsNullOrEmpty(configuration.identityColumnName);
-        var customTimestampColumn = !string.IsNullOrEmpty(configuration.timestampColumnName);
-        if (customIdColumn || customTimestampColumn)
-        {
-            var properties = type.GetProperties(Utilities.PublicInstance).Where(p => p.GetMethod != null && p.SetMethod != null);
-            if (customIdColumn && !properties.Any(p => string.Equals(p.Name, configuration.identityColumnName)
-                && (Utilities.IdTypes.Contains(p.PropertyType) || Utilities.IdTypes.Any(type => _scalarConverterCache.Contains(p.PropertyType, type)))))
-            {
-                throw new InvalidEntityBasePropertyException(type, "id", configuration.identityColumnName!);
-            }
-
-            if (customTimestampColumn && !properties.Any(p => string.Equals(p.Name, configuration.timestampColumnName)
-                && (Utilities.TimestampTypes.Contains(p.PropertyType) || Utilities.TimestampTypes.Any(type => _scalarConverterCache.Contains(p.PropertyType, type)))))
-            {
-                throw new InvalidEntityBasePropertyException(type, "timestamp", configuration.timestampColumnName!);
-            }
-        }
-
-        _typeConfigurations.Add(type, configuration);
 
         return this;
     }
 
     private IMapperBuilder RecursivelyRegister<TSource, TTarget>(RecursiveRegisterPathTracker pathTracker)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase
+        where TSource : class
+        where TTarget : class
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
         if (!pathTracker.Contains(sourceType, targetType))
         {
-            pathTracker.Push(sourceType, targetType);
             lock (_mapper)
             {
+                pathTracker.Push(sourceType, targetType);
                 if (!_mapper.TryGetValue(sourceType, out var innerDictionary))
                 {
                     innerDictionary = new Dictionary<Type, MapperMetaDataSet>();
@@ -135,9 +132,9 @@ internal sealed class MapperBuilder : IMapperBuilder
                         BuildUpEntityPropertiesMapperMethod<TSource, TTarget>(sourceType, targetType, sourceProperties, targetProperties, pathTracker),
                         BuildUpListPropertiesMapperMethod<TSource, TTarget>(sourceType, targetType, sourceProperties, targetProperties, pathTracker));
                 }
-            }
 
-            pathTracker.Pop();
+                pathTracker.Pop();
+            }
         }
 
         return this;
@@ -148,8 +145,8 @@ internal sealed class MapperBuilder : IMapperBuilder
         Type targetType,
         PropertyInfo[] sourceProperties,
         PropertyInfo[] targetProperties)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase
+        where TSource : class
+        where TTarget : class
     {
         var method = InitializeDynamicMethod(sourceType, targetType, MapScalarPropertiesMethod, new[] { sourceType, targetType, typeof(IScalarTypeConverter) });
         FillScalarPropertiesMapper(method.GetILGenerator(), sourceProperties, targetProperties);
@@ -163,8 +160,8 @@ internal sealed class MapperBuilder : IMapperBuilder
         PropertyInfo[] sourceProperties,
         PropertyInfo[] targetProperties,
         RecursiveRegisterPathTracker pathTracker)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase
+        where TSource : class
+        where TTarget : class
     {
         var method = InitializeDynamicMethod(sourceType, targetType, MapEntityPropertiesMethod, new[] { sourceType, targetType, typeof(IEntityPropertyMapper) });
         FillEntityPropertiesMapper(method.GetILGenerator(), sourceProperties, targetProperties, pathTracker);
@@ -177,8 +174,8 @@ internal sealed class MapperBuilder : IMapperBuilder
         PropertyInfo[] sourceProperties,
         PropertyInfo[] targetProperties,
         RecursiveRegisterPathTracker pathTracker)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase
+        where TSource : class
+        where TTarget : class
     {
         var method = InitializeDynamicMethod(sourceType, targetType, MapListPropertiesMethod, new[] { sourceType, targetType, typeof(IListPropertyMapper) });
         FillListPropertiesMapper(method.GetILGenerator(), sourceProperties, targetProperties, pathTracker);

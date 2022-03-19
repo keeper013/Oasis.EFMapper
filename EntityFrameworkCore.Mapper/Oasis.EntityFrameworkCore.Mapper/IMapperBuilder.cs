@@ -5,17 +5,17 @@ using System.Linq.Expressions;
 public interface IMapperBuilder
 {
     IMapperBuilder WithConfiguration<T>(TypeConfiguration configuration)
-        where T : class, IEntityBase;
+        where T : class;
 
     IMapperBuilder WithScalarMapper<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression);
 
     IMapperBuilder Register<TSource, TTarget>()
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase;
+        where TSource : class
+        where TTarget : class;
 
     IMapperBuilder RegisterTwoWay<TSource, TTarget>()
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase;
+        where TSource : class
+        where TTarget : class;
 
     IMapper Build(string? defaultIdPropertyName = default, string? defaultTimeStampPropertyName = default);
 }

@@ -63,18 +63,6 @@ public sealed class ScalarPropertyMappingTests : TestBase
     }
 
     [Fact]
-    public void ConvertWithDuplicatedScalarMapper_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
-
-        Assert.Throws<ScalarMapperExistsException>(() => mapperBuilder
-            .WithScalarMapper<ByteArrayWrapper, byte[]>((wrapper) => ByteArrayWrapper.ConvertStatic(wrapper))
-            .WithScalarMapper<ByteArrayWrapper, byte[]>((wrapper) => wrapper.Bytes));
-    }
-
-    [Fact]
     public async Task ConvertWithoutStaticScalarMapper_ShouldSucceed()
     {
         // arrange
@@ -150,5 +138,18 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         // assert
         Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes, result2.ByteArrayProp!));
+    }
+
+    [Fact]
+    public void ConvertWithDuplicatedScalarMapper_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name);
+
+        // assert
+        Assert.Throws<ScalarMapperExistsException>(() => mapperBuilder
+            .WithScalarMapper<ByteArrayWrapper, byte[]>((wrapper) => ByteArrayWrapper.ConvertStatic(wrapper))
+            .WithScalarMapper<ByteArrayWrapper, byte[]>((wrapper) => wrapper.Bytes));
     }
 }

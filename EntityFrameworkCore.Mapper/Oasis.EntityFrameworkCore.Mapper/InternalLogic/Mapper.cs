@@ -22,7 +22,7 @@ internal sealed class Mapper : IMapper
 
     public IMappingSession CreateMappingSession()
     {
-        return new MappingSession(_scalarConverters, _mappers);
+        return new MappingSession(_scalarConverters, _mappers, _entityBaseProxy);
     }
 
     public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
@@ -35,29 +35,32 @@ internal sealed class MappingSession : IMappingSession
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
+    private readonly EntityBaseProxy _entityBaseProxy;
     private readonly NewTargetTracker<int> _newEntityTracker;
 
     public MappingSession(
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        EntityBaseProxy entityBaseProxy)
     {
         _newEntityTracker = new NewTargetTracker<int>();
         _scalarConverters = scalarConverters;
         _mappers = mappers;
+        _entityBaseProxy = entityBaseProxy;
     }
 
     TTarget IMappingSession.Map<TSource, TTarget>(TSource source)
     {
-        if (source.Id != default)
+        if (!_entityBaseProxy.IdIsEmpty(source))
         {
-            if (source.Timestamp == default)
+            if (_entityBaseProxy.TimeStampIsEmpty(source))
             {
-                throw new MissingTimestampException(typeof(TSource), source.Id);
+                throw new MissingTimestampException(typeof(TSource), _entityBaseProxy.GetId(source));
             }
         }
 
         var target = new TTarget();
-        new ToMemoryRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers).Map(source, target);
+        new ToMemoryRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _entityBaseProxy).Map(source, target);
 
         return target;
     }
@@ -65,7 +68,6 @@ internal sealed class MappingSession : IMappingSession
 
 internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
 {
-    private const string AsNoTrackingMethodCall = ".AsNoTracking";
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
     private readonly DbContext _databaseContext;
@@ -87,9 +89,12 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
 
     async Task<TTarget> IMappingToDatabaseSession.MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
     {
+        const string AsNoTrackingMethodCall = ".AsNoTracking";
+
         TTarget? target;
-        if (source.Id != default)
+        if (!_entityBaseProxy.IdIsEmpty(source))
         {
+            var identityEqualsExpression = Utilities.BuildIdEqualsExpression<TTarget>(_entityBaseProxy, _entityBaseProxy.GetId(source));
             if (includer != default)
             {
                 var includerString = includer.ToString();
@@ -98,26 +103,26 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
                     throw new AsNoTrackingNotAllowedException(includerString);
                 }
 
-                target = await includer.Compile()(_databaseContext.Set<TTarget>()).SingleOrDefaultAsync(t => t.Id == source.Id);
+                target = await includer.Compile()(_databaseContext.Set<TTarget>()).SingleOrDefaultAsync(identityEqualsExpression);
             }
             else
             {
-                target = await _databaseContext.Set<TTarget>().SingleOrDefaultAsync(t => t.Id == source.Id);
+                target = await _databaseContext.Set<TTarget>().SingleOrDefaultAsync(identityEqualsExpression);
             }
 
             if (target == default)
             {
-                throw new EntityNotFoundException(typeof(TTarget), source.Id);
+                throw new EntityNotFoundException(typeof(TTarget), _entityBaseProxy.GetId(source));
             }
 
-            if (target.Timestamp == default)
+            if (_entityBaseProxy.TimeStampIsEmpty(target))
             {
-                throw new MissingTimestampException(typeof(TTarget), source.Id);
+                throw new MissingTimestampException(typeof(TTarget), _entityBaseProxy.GetId(source));
             }
 
-            if (!Enumerable.SequenceEqual(target.Timestamp!, source.Timestamp!))
+            if (!_entityBaseProxy.TimeStampEquals(source, target))
             {
-                throw new StaleEntityException(typeof(TTarget), source.Id);
+                throw new StaleEntityException(typeof(TTarget), _entityBaseProxy.GetId(source));
             }
 
             new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _entityBaseProxy, _databaseContext).Map(source, target);

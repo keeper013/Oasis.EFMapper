@@ -10,13 +10,13 @@ public interface IScalarTypeConverter
 public interface IListPropertyMapper
 {
     void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase, new();
+        where TSource : class
+        where TTarget : class, new();
 }
 
 public interface IEntityPropertyMapper
 {
     TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase, new();
+        where TSource : class
+        where TTarget : class, new();
 }

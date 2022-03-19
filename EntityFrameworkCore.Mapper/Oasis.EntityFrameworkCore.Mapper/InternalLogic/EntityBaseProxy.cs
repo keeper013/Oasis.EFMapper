@@ -2,31 +2,51 @@
 
 using Microsoft.EntityFrameworkCore;
 
-internal sealed class EntityBaseProxy
+internal interface IIdPropertyNameTracker
 {
-    private readonly Dictionary<Type, TypeConfiguration> _configurations;
+    string GetIdPropertyName<TEntity>();
+}
 
-    public EntityBaseProxy(Dictionary<Type, TypeConfiguration> configurations)
+internal sealed class EntityBaseProxy : IIdPropertyNameTracker
+{
+    private readonly IReadOnlyDictionary<Type, TypeConfiguration> _configurations;
+
+    public EntityBaseProxy(IReadOnlyDictionary<Type, TypeConfiguration> configurations)
     {
         _configurations = configurations;
     }
 
-    //object GetId<TEntity>(TEntity entity)
-    //    where TEntity : class;
+    public object GetId<TEntity>(TEntity entity)
+        where TEntity : class
+    {
+        throw new NotImplementedException();
+    }
 
-    //bool IdIsEmpty<TEntity>(TEntity entity)
-    //    where TEntity : class;
+    public bool IdIsEmpty<TEntity>(TEntity entity)
+        where TEntity : class
+    {
+        throw new NotImplementedException();
+    }
 
-    //bool TimeStampIsEmpty<TEntity>(TEntity entity)
-    //    where TEntity : class;
+    public bool TimeStampIsEmpty<TEntity>(TEntity entity)
+        where TEntity : class
+    {
+        throw new NotImplementedException();
+    }
 
-    //bool IdEquals<TEntity1, TEntity2>(TEntity1 entity1, TEntity2 entity2)
-    //    where TEntity1 : class
-    //    where TEntity2 : class;
+    public bool IdEquals<TEntity1, TEntity2>(TEntity1 entity1, TEntity2 entity2)
+        where TEntity1 : class
+        where TEntity2 : class
+    {
+        throw new NotImplementedException();
+    }
 
-    //bool TimeStampEquals<TEntity1, TEntity2>(TEntity1 entity1, TEntity2 entity2)
-    //    where TEntity1 : class
-    //    where TEntity2 : class;
+    public bool TimeStampEquals<TEntity1, TEntity2>(TEntity1 entity1, TEntity2 entity2)
+        where TEntity1 : class
+        where TEntity2 : class
+    {
+        throw new NotImplementedException();
+    }
 
     public void HandleRemove<TEntity>(DbContext databaseContext, TEntity entity)
         where TEntity : class
@@ -35,5 +55,10 @@ internal sealed class EntityBaseProxy
         {
             databaseContext.Set<TEntity>().Remove(entity);
         }
+    }
+
+    public string GetIdPropertyName<TEntity>()
+    {
+        return _configurations.TryGetValue(typeof(TEntity), out var entity) ? entity.GetIdPropertyname() : Utilities.DefaultIdPropertyName;
     }
 }

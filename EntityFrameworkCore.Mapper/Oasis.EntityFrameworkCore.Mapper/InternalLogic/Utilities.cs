@@ -1,12 +1,15 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using System.Collections;
+using System.Linq.Expressions;
 using System.Reflection;
 
 internal static class Utilities
 {
-    internal const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
-    internal const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
+    public const string DefaultIdPropertyName = "Id";
+    public const string DefaultTimestampPropertyName = "Timestamp";
+    public const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
+    public const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
     private static readonly Type EnumerableType = typeof(IEnumerable);
     private static readonly IReadOnlySet<Type> IdTypeSet = new HashSet<Type>
     {
@@ -20,16 +23,16 @@ internal static class Utilities
     };
 
     public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase;
+        where TSource : class
+        where TTarget : class;
 
     public delegate void MapEntityProperties<TSource, TTarget>(TSource source, TTarget target, IEntityPropertyMapper mapper)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase;
+        where TSource : class
+        where TTarget : class;
 
     public delegate void MapListProperties<TSource, TTarget>(TSource source, TTarget target, IListPropertyMapper mapper)
-        where TSource : class, IEntityBase
-        where TTarget : class, IEntityBase;
+        where TSource : class
+        where TTarget : class;
 
     public static IReadOnlySet<Type> IdTypes => IdTypeSet;
 
@@ -83,6 +86,27 @@ internal static class Utilities
     public static bool ItemExists<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
     {
         return dict.TryGetValue(sourceType, out var innerDictionary) && innerDictionary.ContainsKey(targetType);
+    }
+
+    public static string GetIdPropertyname(this TypeConfiguration configuration)
+    {
+        return configuration.identityColumnName ?? DefaultIdPropertyName;
+    }
+
+    public static string GetTimestampPropertyName(this TypeConfiguration configuration)
+    {
+        return configuration.timestampColumnName ?? DefaultTimestampPropertyName;
+    }
+
+    public static Expression<Func<TEntity, bool>> BuildIdEqualsExpression<TEntity>(IIdPropertyNameTracker identityPropertyNameTracker, object? value)
+        where TEntity : class
+    {
+        var type = typeof(TEntity);
+        var parameter = Expression.Parameter(typeof(TEntity), "entity");
+        var equal = Expression.Equal(
+            Expression.Property(parameter, type.GetProperty(identityPropertyNameTracker.GetIdPropertyName<TEntity>(), PublicInstance)!),
+            Expression.Constant(value));
+        return Expression.Lambda<Func<TEntity, bool>>(equal, parameter);
     }
 }
 
