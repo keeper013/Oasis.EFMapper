@@ -45,6 +45,7 @@ public class ListPropertyMappingTests : TestBase
         Assert.Equal(sc1_2.ByteArrayProp, item1.ByteArrayProp);
     }
 
+    [Fact]
     public async Task MapListProperties_ICollection_MappingToDatabaseShouldSucceed()
     {
         // arrange
