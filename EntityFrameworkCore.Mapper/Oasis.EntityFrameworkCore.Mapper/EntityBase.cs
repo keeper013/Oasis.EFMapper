@@ -7,7 +7,7 @@ public abstract class EntityBase : IEntityBase
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public long? Id { get; set; }
+    public long Id { get; set; }
 
     [Timestamp]
     [ConcurrencyCheck]

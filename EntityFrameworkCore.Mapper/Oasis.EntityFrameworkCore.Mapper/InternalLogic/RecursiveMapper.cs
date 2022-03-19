@@ -51,7 +51,7 @@ internal abstract class RecursiveMapper<T> : IScalarTypeConverter, IEntityProper
         var targetType = typeof(TTarget);
         var targetTypeIsTracked = _trackerDictionary.TryGetValue(targetType, out var existingTargetTracker);
 
-        if (target.Id.HasValue)
+        if (target.Id != default)
         {
             if (!targetTypeIsTracked)
             {
@@ -91,14 +91,17 @@ internal abstract class RecursiveMapper<T> : IScalarTypeConverter, IEntityProper
 internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
 {
     private readonly DbContext _databaseContext;
+    private readonly EntityBaseProxy _entityBaseProxy;
 
     public ToDatabaseRecursiveMapper(
         NewTargetTracker<int> newTargetTracker,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        EntityBaseProxy entityBaseProxy,
         DbContext databaseContext)
         : base(newTargetTracker, scalarConverters, mappers)
     {
+        _entityBaseProxy = entityBaseProxy;
         _databaseContext = databaseContext;
     }
 
@@ -110,17 +113,17 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
         {
             if (target != default)
             {
-                _databaseContext.Set<TTarget>().Remove(target);
+                _entityBaseProxy.HandleRemove(_databaseContext, target);
             }
 
             return default;
         }
 
-        if (!source.Id.HasValue)
+        if (source.Id == default)
         {
-            if (target != default && target.Id.HasValue)
+            if (target != default && target.Id != default)
             {
-                _databaseContext.Set<TTarget>().Remove(target);
+                _entityBaseProxy.HandleRemove(_databaseContext, target);
             }
 
             if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(source.GetHashCode(), out var n))
@@ -138,7 +141,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
         }
         else if (source.Id != target.Id)
         {
-            _databaseContext.Set<TTarget>().Remove(target);
+            _entityBaseProxy.HandleRemove(_databaseContext, target);
             target = _databaseContext.Set<TTarget>().FirstOrDefault(t => t.Id == source.Id);
         }
 
@@ -158,7 +161,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
         {
             foreach (var s in source)
             {
-                if (!s.Id.HasValue)
+                if (s.Id == default)
                 {
                     if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
                     {
@@ -192,13 +195,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
         foreach (var toBeRemoved in shadowSet)
         {
             target.Remove(toBeRemoved);
-
-            // TODO: add class specific configuration for this, removing should be default option
-            // this mapper believes that all navigation properties in collections are relationship entities,
-            // that if the entity is removed from the collection, it should be directly removed from the database.
-            // Without this assumption, users will need to specify logic of deletion for every one-to-many navigation properties,
-            // which is unpractical and troublesome
-            _databaseContext.Set<TTarget>().Remove(toBeRemoved);
+            _entityBaseProxy.HandleRemove(_databaseContext, toBeRemoved);
         }
     }
 }

@@ -8,6 +8,16 @@ internal static class Utilities
     internal const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
     internal const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
     private static readonly Type EnumerableType = typeof(IEnumerable);
+    private static readonly Type ByteType = typeof(byte);
+    private static readonly Type ShortType = typeof(short);
+    private static readonly Type UShortType = typeof(ushort);
+    private static readonly Type IntType = typeof(int);
+    private static readonly Type LongType = typeof(long);
+    private static readonly Type UIntType = typeof(uint);
+    private static readonly Type ULongType = typeof(ulong);
+    private static readonly Type ByteArrayType = typeof(byte[]);
+    private static readonly Type StringType = typeof(string);
+    private static readonly Type DateTimeType = typeof(DateTime);
 
     public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
         where TSource : class, IEntityBase
@@ -69,6 +79,19 @@ internal static class Utilities
     public static bool ItemExists<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
     {
         return dict.TryGetValue(sourceType, out var innerDictionary) && innerDictionary.ContainsKey(targetType);
+    }
+
+    public static bool IsIdType(this Type type)
+    {
+        return type == IntType || type == LongType || type == UIntType || type == ULongType || type == StringType
+            || type == ShortType || type == UShortType || type == ByteType;
+    }
+
+    public static bool IsTimeStampType(this Type type)
+    {
+        return type == ByteArrayType || type == DateTimeType || type == StringType
+            || type == IntType || type == LongType || type == UIntType || type == ULongType || type == ShortType
+            || type == UShortType || type == ByteType;
     }
 }
 

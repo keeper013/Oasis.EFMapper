@@ -13,6 +13,7 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     private readonly TypeBuilder _typeBuilder;
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new Dictionary<Type, Dictionary<Type, MapperMetaDataSet>>();
+    private readonly Dictionary<Type, TypeConfiguration> _typeConfigurations = new Dictionary<Type, TypeConfiguration>();
     private readonly ScalarConverterCache _scalarConverterCache = new ();
     private readonly GenericMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethod("Convert", Utilities.PublicInstance)!);
     private readonly GenericMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper).GetMethod("MapEntityProperty", Utilities.PublicInstance)!);
@@ -46,7 +47,7 @@ internal sealed class MapperBuilder : IMapperBuilder
             mapper.Add(pair.Key, innerMapper);
         }
 
-        return new Mapper(_scalarConverterCache.Export(), mapper);
+        return new Mapper(_scalarConverterCache.Export(), mapper, new EntityBaseProxy(_typeConfigurations));
     }
 
     IMapperBuilder IMapperBuilder.Register<TSource, TTarget>()
@@ -73,6 +74,35 @@ internal sealed class MapperBuilder : IMapperBuilder
         {
             _scalarConverterCache.Register(expression);
         }
+
+        return this;
+    }
+
+    IMapperBuilder IMapperBuilder.WithConfiguration<T>(TypeConfiguration configuration)
+    {
+        var type = typeof(T);
+        if (_typeConfigurations.ContainsKey(type))
+        {
+            throw new TypeConfiguratedException(type);
+        }
+
+        var customIdColumn = !string.IsNullOrEmpty(configuration.identityColumnName);
+        var customTimestampColumn = !string.IsNullOrEmpty(configuration.timestampColumnName);
+        if (customIdColumn || customTimestampColumn)
+        {
+            var properties = type.GetProperties(Utilities.PublicInstance).Where(p => p.GetMethod != null && p.SetMethod != null);
+            if (customIdColumn && !properties.Any(p => string.Equals(p.Name, configuration.identityColumnName) && p.PropertyType.IsIdType()))
+            {
+                throw new InvalidEntityBasePropertyException(type, "id", configuration.identityColumnName!);
+            }
+
+            if (customTimestampColumn && !properties.Any(p => string.Equals(p.Name, configuration.timestampColumnName) && p.PropertyType.IsTimeStampType()))
+            {
+                throw new InvalidEntityBasePropertyException(type, "timestamp", configuration.timestampColumnName!);
+            }
+        }
+
+        _typeConfigurations.Add(type, configuration);
 
         return this;
     }

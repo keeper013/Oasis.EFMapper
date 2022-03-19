@@ -8,13 +8,16 @@ internal sealed class Mapper : IMapper
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
+    private readonly EntityBaseProxy _entityBaseProxy;
 
     public Mapper(
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        EntityBaseProxy entityBaseProxy)
     {
         _scalarConverters = scalarConverters;
         _mappers = mappers;
+        _entityBaseProxy = entityBaseProxy;
     }
 
     public IMappingSession CreateMappingSession()
@@ -24,7 +27,7 @@ internal sealed class Mapper : IMapper
 
     public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
     {
-        return new MappingToDatabaseSession(databaseContext, _scalarConverters, _mappers);
+        return new MappingToDatabaseSession(_scalarConverters, _mappers, _entityBaseProxy, databaseContext);
     }
 }
 
@@ -45,7 +48,7 @@ internal sealed class MappingSession : IMappingSession
 
     TTarget IMappingSession.Map<TSource, TTarget>(TSource source)
     {
-        if (source.Id.HasValue)
+        if (source.Id != default)
         {
             if (source.Timestamp == default)
             {
@@ -66,13 +69,16 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
     private readonly DbContext _databaseContext;
+    private readonly EntityBaseProxy _entityBaseProxy;
     private readonly NewTargetTracker<int> _newEntityTracker;
 
     public MappingToDatabaseSession(
-        DbContext databaseContext,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers)
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        EntityBaseProxy entityBaseProxy,
+        DbContext databaseContext)
     {
+        _entityBaseProxy = entityBaseProxy;
         _databaseContext = databaseContext;
         _newEntityTracker = new NewTargetTracker<int>();
         _scalarConverters = scalarConverters;
@@ -82,7 +88,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
     async Task<TTarget> IMappingToDatabaseSession.MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
     {
         TTarget? target;
-        if (source.Id.HasValue)
+        if (source.Id != default)
         {
             if (includer != default)
             {
@@ -114,13 +120,13 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
                 throw new StaleEntityException(typeof(TTarget), source.Id);
             }
 
-            new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _databaseContext).Map(source, target);
+            new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _entityBaseProxy, _databaseContext).Map(source, target);
         }
         else
         {
-            if (!_newEntityTracker.NewTargetIfNotExist<TTarget>(source.GetHashCode(), out target))
+            if (!_newEntityTracker.NewTargetIfNotExist(source.GetHashCode(), out target))
             {
-                new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _databaseContext).Map(source, target!);
+                new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverters, _mappers, _entityBaseProxy, _databaseContext).Map(source, target!);
                 _databaseContext.Set<TTarget>().Add(target!);
             }
         }
