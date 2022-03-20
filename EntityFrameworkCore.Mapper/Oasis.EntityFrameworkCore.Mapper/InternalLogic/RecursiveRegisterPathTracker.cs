@@ -2,7 +2,7 @@
 
 using System.Reflection;
 
-internal class RecursiveRegisterPathTracker
+internal sealed class RecursiveRegisterPathTracker
 {
     private static readonly MethodInfo RecursivelyRegisterMethod = typeof(MapperBuilder).GetMethod("RecursivelyRegister", Utilities.NonPublicInstance)!;
     private readonly Stack<(Type, Type)> _stack = new Stack<(Type, Type)>();

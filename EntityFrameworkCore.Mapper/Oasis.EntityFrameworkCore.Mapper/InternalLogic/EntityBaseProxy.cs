@@ -11,8 +11,6 @@ internal interface IIdPropertyTracker
 
 internal sealed class EntityBaseProxy : IIdPropertyTracker
 {
-    private static readonly Type StringType = typeof(string);
-    private static readonly Type ByteArrayType = typeof(byte[]);
     private static readonly IReadOnlyDictionary<Type, object> DefaultIdValues = new Dictionary<Type, object>
     {
         { typeof(int), Activator.CreateInstance(typeof(int))! },

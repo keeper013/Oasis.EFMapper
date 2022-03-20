@@ -6,17 +6,6 @@ using System.Reflection.Emit;
 
 internal sealed class TypeConfigurationCache
 {
-    private static readonly IReadOnlySet<Type> IdTypes = new HashSet<Type>
-    {
-        typeof(int), typeof(long), typeof(uint), typeof(ulong), typeof(string), typeof(short), typeof(ushort), typeof(byte),
-    };
-
-    private static readonly IReadOnlySet<Type> TimestampTypes = new HashSet<Type>
-    {
-        typeof(byte[]), typeof(DateTime), typeof(string), typeof(int), typeof(long), typeof(uint), typeof(ulong),
-        typeof(short), typeof(ushort), typeof(byte),
-    };
-
     private readonly IDynamicMethodBuilder _methodBuilder;
     private readonly ScalarConverterCache _scalarConverterCache;
     private readonly Dictionary<Type, TypeConfiguration> _typesUsingCustomConfiguration = new ();

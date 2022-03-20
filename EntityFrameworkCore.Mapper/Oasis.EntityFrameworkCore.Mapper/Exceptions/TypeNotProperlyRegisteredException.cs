@@ -1,14 +1,13 @@
-﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions
+﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
+
+public sealed class TypeNotProperlyRegisteredException : Exception
 {
-    public class TypeNotProperlyRegisteredException : Exception
+    private readonly Type _type;
+
+    public TypeNotProperlyRegisteredException(Type type)
     {
-        private readonly Type _type;
-
-        public TypeNotProperlyRegisteredException(Type type)
-        {
-            _type = type;
-        }
-
-        public override string Message => $"Unexpected exception: Type {_type} is not property registered.";
+        _type = type;
     }
+
+    public override string Message => $"Unexpected exception: Type {_type} is not property registered.";
 }

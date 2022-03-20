@@ -3,7 +3,7 @@
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Linq.Expressions;
 
-internal class ScalarConverterCache : IScalarTypeConverter
+internal sealed class ScalarConverterCache : IScalarTypeConverter
 {
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarSourceTypes = new ();

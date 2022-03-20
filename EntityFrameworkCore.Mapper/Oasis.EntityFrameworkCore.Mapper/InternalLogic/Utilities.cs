@@ -10,6 +10,8 @@ internal static class Utilities
     public const string DefaultTimestampPropertyName = "Timestamp";
     public const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
     public const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
+    public static readonly Type StringType = typeof(string);
+    public static readonly Type ByteArrayType = typeof(byte[]);
     private static readonly Type EnumerableType = typeof(IEnumerable);
 
     public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
@@ -41,10 +43,15 @@ internal static class Utilities
         where TSource : class
         where TTarget : class;
 
-    public static bool IsScalarType(this Type type)
+    public static bool IsNullablePrimitive(this Type type)
     {
         const string NullableTypeName = "System.Nullable`1[[";
-        return (type.IsValueType && (type.IsPrimitive || ((type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1) && type.GenericTypeArguments[0].IsPrimitive))) || type == typeof(string) || type == typeof(byte[]);
+        return type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments[0].IsPrimitive;
+    }
+
+    public static bool IsScalarType(this Type type)
+    {
+        return (type.IsValueType && (type.IsPrimitive || type.IsNullablePrimitive())) || type == typeof(string) || type == typeof(byte[]);
     }
 
     public static bool IsScalarProperty(this PropertyInfo prop, IReadOnlySet<Type> convertables, bool mustHaveGetter, bool mustHaveSetter)

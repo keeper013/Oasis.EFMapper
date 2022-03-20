@@ -10,12 +10,15 @@ internal sealed class MapperBuilder : IMapperBuilder
     private const char MapScalarPropertiesMethod = 's';
     private const char MapEntityPropertiesMethod = 'e';
     private const char MapListPropertiesMethod = 'l';
+    private const char CompareIdMethod = 'i';
+    private const char CompareTimeStampMethod = 't';
 
     private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, ComparerMetaDataSet>> _comparer = new ();
     private readonly TypeConfigurationCache _typeConfigurationCache;
     private readonly ScalarConverterCache _scalarConverterCache = new ();
+    private readonly NullableTypeMethodCache _nullableTypeMethodCache = new ();
     private readonly GenericMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethod("Convert", Utilities.PublicInstance)!);
     private readonly GenericMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper).GetMethod("MapEntityProperty", Utilities.PublicInstance)!);
     private readonly GenericMethodCache _listPropertyMapperCache = new (typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!);
@@ -139,7 +142,12 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     private static string BuildMapperMethodName(char type, Type sourceType, Type targetType)
     {
-        return $"_{type}_{sourceType.FullName!.Replace(".", "_")}__To__{targetType.FullName!.Replace(".", "_")}";
+        return $"_{type}_{sourceType.FullName!.Replace(".", "_")}__MapTo__{targetType.FullName!.Replace(".", "_")}";
+    }
+
+    private static string BuildPropertyCompareMethodName(char type, Type sourceType, Type targetType)
+    {
+        return $"_{type}_{sourceType.FullName!.Replace(".", "_")}__CompareTo__{targetType.FullName!.Replace(".", "_")}";
     }
 
     private IMapperBuilder RecursivelyRegister<TSource, TTarget>(RecursiveRegisterPathTracker pathTracker)
@@ -197,7 +205,6 @@ internal sealed class MapperBuilder : IMapperBuilder
     {
         var methodName = BuildMapperMethodName(MapScalarPropertiesMethod, sourceType, targetType);
         var method = _dynamicMethodBuilder.Build(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
-
         var generator = method.GetILGenerator();
         var sourceProperties = allSourceProperties.Where(p => p.IsScalarProperty(_scalarConverterCache.SourceTypes, true, false));
         var targetProperties = allTargetProperties.Where(p => p.IsScalarProperty(_scalarConverterCache.TargetTypes, true, true)).ToDictionary(p => p.Name, p => p);
@@ -243,7 +250,6 @@ internal sealed class MapperBuilder : IMapperBuilder
     {
         var methodName = BuildMapperMethodName(MapEntityPropertiesMethod, sourceType, targetType);
         var method = _dynamicMethodBuilder.Build(methodName, new[] { sourceType, targetType, typeof(IEntityPropertyMapper) }, typeof(void));
-
         var generator = method.GetILGenerator();
         var sourceProperties = allSourceProperties.Where(p => p.IsEntityProperty(true, false));
         var targetProperties = allTargetProperties.Where(p => p.IsEntityProperty(true, true)).ToDictionary(p => p.Name, p => p);
@@ -286,7 +292,6 @@ internal sealed class MapperBuilder : IMapperBuilder
     {
         var methodName = BuildMapperMethodName(MapListPropertiesMethod, sourceType, targetType);
         var method = _dynamicMethodBuilder.Build(methodName, new[] { sourceType, targetType, typeof(IListPropertyMapper) }, typeof(void));
-
         var generator = method.GetILGenerator();
         var sourceProperties = allSourceProperties.Where(p => p.IsListOfEntityProperty(true, false));
         var targetProperties = allTargetProperties.Where(p => p.IsListOfEntityProperty(true, true)).ToDictionary(p => p.Name, p => p);
@@ -329,8 +334,52 @@ internal sealed class MapperBuilder : IMapperBuilder
         Type targetType,
         PropertyInfo sourceIdProperty,
         PropertyInfo targetIdProperty)
+        where TSource : class
+        where TTarget : class
     {
-        throw new NotImplementedException();
+        var methodName = BuildPropertyCompareMethodName(CompareIdMethod, sourceType, targetType);
+        var method = _dynamicMethodBuilder.Build(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(bool));
+        var generator = method.GetILGenerator();
+        if (sourceIdProperty.PropertyType == targetIdProperty.PropertyType)
+        {
+            if (targetType.IsPrimitive)
+            {
+                GeneratePrimitiveEqualIL(generator, sourceIdProperty, targetIdProperty);
+            }
+            else if (targetType.IsNullablePrimitive())
+            {
+                GenerateNullablePrimitiveEqualIL(generator, sourceIdProperty, targetIdProperty);
+            }
+            else if (targetType == Utilities.StringType)
+            {
+                GenerateStringEqualIL(generator, sourceIdProperty, targetIdProperty);
+            }
+            else
+            {
+                GenerateObjectEqualIL(generator, sourceIdProperty, targetIdProperty);
+            }
+        }
+        else
+        {
+            if (targetType.IsPrimitive)
+            {
+                GenerateConvertedPrimitiveEqualIL(generator, sourceIdProperty, targetIdProperty);
+            }
+            else if (targetType.IsNullablePrimitive())
+            {
+                GenerateConvertedNullablePrimitiveEqualIL(generator, sourceIdProperty, targetIdProperty);
+            }
+            else if (targetType == Utilities.StringType)
+            {
+                GenerateConvertedStringEqualIL(generator, sourceIdProperty, targetIdProperty);
+            }
+            else
+            {
+                GenerateConvertedObjectEqualIL(generator, sourceIdProperty, targetIdProperty);
+            }
+        }
+
+        return new MethodMetaData(typeof(Utilities.IdsAreEqual<TSource, TTarget>), method.Name);
     }
 
     private MethodMetaData BuildUpTimeStampEqualComparerMethod<TSource, TTarget>(
@@ -338,8 +387,168 @@ internal sealed class MapperBuilder : IMapperBuilder
         Type targetType,
         PropertyInfo sourceTimeStampProperty,
         PropertyInfo targetTimeStampProperty)
+        where TSource : class
+        where TTarget : class
     {
-        throw new NotImplementedException();
+        var methodName = BuildPropertyCompareMethodName(CompareTimeStampMethod, sourceType, targetType);
+        var method = _dynamicMethodBuilder.Build(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(bool));
+        var generator = method.GetILGenerator();
+        if (sourceTimeStampProperty.PropertyType == targetTimeStampProperty.PropertyType)
+        {
+            if (targetType.IsPrimitive)
+            {
+                GeneratePrimitiveEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
+            }
+            else if (targetType.IsNullablePrimitive())
+            {
+                GenerateNullablePrimitiveEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
+            }
+            else if (targetType == Utilities.StringType)
+            {
+                GenerateStringEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
+            }
+            else if (targetType == Utilities.ByteArrayType)
+            {
+                GenerateByteArrayEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
+            }
+            else
+            {
+                GenerateObjectEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
+            }
+        }
+        else
+        {
+            if (targetType.IsPrimitive)
+            {
+                GenerateConvertedPrimitiveEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
+            }
+            else if (targetType.IsNullablePrimitive())
+            {
+                GenerateConvertedNullablePrimitiveEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
+            }
+            else if (targetType == Utilities.StringType)
+            {
+                GenerateConvertedStringEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
+            }
+            else if (targetType == Utilities.ByteArrayType)
+            {
+                GenerateConvertedByteArrayEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
+            }
+            else
+            {
+                GenerateConvertedObjectEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
+            }
+        }
+
+        return new MethodMetaData(typeof(Utilities.TimeStampsAreEqual<TSource, TTarget>), method.Name);
+    }
+
+    private void GeneratePrimitiveEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
+    {
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Ceq);
+        generator.Emit(OpCodes.Ret);
+    }
+
+    private void GenerateConvertedPrimitiveEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
+    {
+        var local0Type = typeof(Nullable<>).MakeGenericType(targetProperty.PropertyType);
+        generator.DeclareLocal(local0Type);
+        generator.DeclareLocal(targetProperty.PropertyType);
+
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        var jumpLabel = generator.DefineLabel();
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_2);
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourceProperty.PropertyType, targetProperty.PropertyType));
+        generator.Emit(OpCodes.Stloc_0);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Stloc_1);
+        generator.Emit(OpCodes.Ldloca_S, 0);
+        generator.Emit(OpCodes.Call, _nullableTypeMethodCache.CreateIfNotExist(local0Type, NullableTypeMethodCache.GetValueOrDefault));
+        generator.Emit(OpCodes.Ldloc_1);
+        generator.Emit(OpCodes.Ceq);
+        generator.Emit(OpCodes.Ldloca_S, 0);
+        generator.Emit(OpCodes.Call, _nullableTypeMethodCache.CreateIfNotExist(local0Type, NullableTypeMethodCache.HasValue));
+        generator.Emit(OpCodes.And);
+        generator.Emit(OpCodes.Ret);
+        generator.MarkLabel(jumpLabel);
+        generator.Emit(OpCodes.Ldc_I4_0);
+        generator.Emit(OpCodes.Ret);
+    }
+
+    private void GenerateNullablePrimitiveEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
+    {
+        var sourcePropertyType = sourceProperty.PropertyType;
+        var targetPropertyType = targetProperty.PropertyType;
+        generator.DeclareLocal(sourcePropertyType);
+
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Stloc_0);
+        generator.Emit(OpCodes.Ldloca_S, 0);
+        generator.Emit(OpCodes.Call, _nullableTypeMethodCache.CreateIfNotExist(sourcePropertyType, NullableTypeMethodCache.HasValue));
+        var jumpLabel = generator.DefineLabel();
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Stloc_0);
+        generator.Emit(OpCodes.Ldloca_S, 0);
+        generator.Emit(OpCodes.Call, _nullableTypeMethodCache.CreateIfNotExist(targetPropertyType, NullableTypeMethodCache.HasValue));
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Stloc_0);
+        generator.Emit(OpCodes.Ldloca_S, 0);
+        generator.Emit(OpCodes.Call, _nullableTypeMethodCache.CreateIfNotExist(sourcePropertyType, NullableTypeMethodCache.Value));
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Stloc_0);
+        generator.Emit(OpCodes.Ldloca_S, 0);
+        generator.Emit(OpCodes.Call, _nullableTypeMethodCache.CreateIfNotExist(targetPropertyType, NullableTypeMethodCache.Value));
+        generator.Emit(OpCodes.Ceq);
+        generator.Emit(OpCodes.Ret);
+        generator.MarkLabel(jumpLabel);
+        generator.Emit(OpCodes.Ldc_I4_0);
+        generator.Emit(OpCodes.Ret);
+    }
+
+    private void GenerateConvertedNullablePrimitiveEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
+    {
+    }
+
+    private void GenerateStringEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
+    {
+    }
+
+    private void GenerateConvertedStringEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
+    {
+    }
+
+    private void GenerateByteArrayEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
+    {
+    }
+
+    private void GenerateConvertedByteArrayEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
+    {
+    }
+
+    private void GenerateObjectEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
+    {
+    }
+
+    private void GenerateConvertedObjectEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
+    {
     }
 
     private record struct MapperMetaDataSet(MethodMetaData scalarPropertiesMapper, MethodMetaData entityPropertiesMapper, MethodMetaData listPropertiesMapper);

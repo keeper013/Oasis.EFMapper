@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-public class ScalarConverterMissingException : Exception
+public sealed class ScalarConverterMissingException : Exception
 {
     private readonly Type _sourceType;
     private readonly Type _targetType;

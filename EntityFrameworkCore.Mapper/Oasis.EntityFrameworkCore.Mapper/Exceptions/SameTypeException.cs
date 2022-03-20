@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-public class SameTypeException : Exception
+public sealed class SameTypeException : Exception
 {
     private readonly Type _type;
 
