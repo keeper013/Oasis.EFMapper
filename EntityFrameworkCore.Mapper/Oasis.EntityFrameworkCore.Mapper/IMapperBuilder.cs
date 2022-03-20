@@ -4,10 +4,14 @@ using System.Linq.Expressions;
 
 public interface IMapperBuilder
 {
+    public const bool DefaultKeepEntityOnMappingRemoved = false;
+
     IMapperBuilder WithConfiguration<T>(TypeConfiguration configuration)
         where T : class;
 
-    IMapperBuilder WithScalarMapper<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression);
+    IMapperBuilder WithScalarMapper<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression)
+        where TSource : notnull
+        where TTarget : notnull;
 
     IMapperBuilder Register<TSource, TTarget>()
         where TSource : class
@@ -20,4 +24,4 @@ public interface IMapperBuilder
     IMapper Build(string? defaultIdPropertyName = default, string? defaultTimeStampPropertyName = default);
 }
 
-public record struct TypeConfiguration(string? identityColumnName = null, string? timestampColumnName = null, bool keepEntityOnMappingRemoved = false);
+public record struct TypeConfiguration(string? identityPropertyName = null, string? timestampPropertyName = null, bool keepEntityOnMappingRemoved = IMapperBuilder.DefaultKeepEntityOnMappingRemoved);

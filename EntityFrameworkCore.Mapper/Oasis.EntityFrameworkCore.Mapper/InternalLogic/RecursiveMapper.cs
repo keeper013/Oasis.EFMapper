@@ -3,21 +3,21 @@
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-internal abstract class RecursiveMapper<T> : IScalarTypeConverter, IEntityPropertyMapper, IListPropertyMapper
+internal abstract class RecursiveMapper<T> : IEntityPropertyMapper, IListPropertyMapper
     where T : struct
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
-    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarConverters;
+    private readonly IScalarTypeConverter _scalarConverter;
     private readonly IDictionary<Type, ExistingTargetTracker> _trackerDictionary = new Dictionary<Type, ExistingTargetTracker>();
 
     internal RecursiveMapper(
         NewTargetTracker<T> newTargetTracker,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
+        IScalarTypeConverter scalarConverter,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
         EntityBaseProxy entityBaseProxy)
     {
         NewTargetTracker = newTargetTracker;
-        _scalarConverters = scalarConverters;
+        _scalarConverter = scalarConverter;
         _mappers = mappers;
         EntityBaseProxy = entityBaseProxy;
     }
@@ -25,20 +25,6 @@ internal abstract class RecursiveMapper<T> : IScalarTypeConverter, IEntityProper
     protected NewTargetTracker<T> NewTargetTracker { get; init; }
 
     protected EntityBaseProxy EntityBaseProxy { get; init; }
-
-    public TTarget? Convert<TSource, TTarget>(TSource? source)
-        where TSource : notnull
-        where TTarget : notnull
-    {
-        var sourceType = typeof(TSource);
-        var targetType = typeof(TTarget);
-        if (!_scalarConverters.TryGetValue(sourceType, out var innerDictionary) || !innerDictionary.TryGetValue(targetType, out var converter))
-        {
-            throw new ScalarConverterMissingException(sourceType, targetType);
-        }
-
-        return ((Func<TSource?, TTarget?>)converter)(source);
-    }
 
     public abstract TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target)
         where TSource : class
@@ -79,7 +65,7 @@ internal abstract class RecursiveMapper<T> : IScalarTypeConverter, IEntityProper
             throw new ArgumentException($"Entity mapper from type {typeof(TSource)} to {targetType} hasn't been registered yet.");
         }
 
-        ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.scalarPropertiesMapper)(source, target, this);
+        ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.scalarPropertiesMapper)(source, target, _scalarConverter);
         ((Utilities.MapEntityProperties<TSource, TTarget>)mapperSet.entityPropertiesMapper)(source, target, this);
         ((Utilities.MapListProperties<TSource, TTarget>)mapperSet.listPropertiesMapper)(source, target, this);
     }
@@ -98,11 +84,11 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
 
     public ToDatabaseRecursiveMapper(
         NewTargetTracker<int> newTargetTracker,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
+        IScalarTypeConverter scalarConverter,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
         EntityBaseProxy entityBaseProxy,
         DbContext databaseContext)
-        : base(newTargetTracker, scalarConverters, mappers, entityBaseProxy)
+        : base(newTargetTracker, scalarConverter, mappers, entityBaseProxy)
     {
         _databaseContext = databaseContext;
     }
@@ -137,16 +123,15 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
             return n;
         }
 
-        var identityEqualsExpression = Utilities.BuildIdEqualsExpression<TTarget>(EntityBaseProxy, EntityBaseProxy.GetId(source));
-        if (target == default)
-        {
-            target = _databaseContext.Set<TTarget>().FirstOrDefault(identityEqualsExpression);
-        }
-        else if (!EntityBaseProxy.IdEquals(source, target))
+        if (target != default && !EntityBaseProxy.IdEquals(source, target))
         {
             EntityBaseProxy.HandleRemove(_databaseContext, target);
-            target = _databaseContext.Set<TTarget>().FirstOrDefault(identityEqualsExpression);
         }
+
+        var identityEqualsExpression = Utilities.BuildIdEqualsExpression<TTarget>(EntityBaseProxy, EntityBaseProxy.GetId(source));
+
+        // TODO: add async
+        target = _databaseContext.Set<TTarget>().FirstOrDefault(identityEqualsExpression);
 
         if (target == default)
         {
@@ -207,10 +192,10 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper<int>
 {
     public ToMemoryRecursiveMapper(
         NewTargetTracker<int> newTargetTracker,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarConverters,
+        IScalarTypeConverter scalarConverter,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
         EntityBaseProxy entityBaseProxy)
-        : base(newTargetTracker, scalarConverters, mappers, entityBaseProxy)
+        : base(newTargetTracker, scalarConverter, mappers, entityBaseProxy)
     {
     }
 

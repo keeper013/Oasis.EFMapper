@@ -3,7 +3,7 @@
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Linq.Expressions;
 
-internal class ScalarConverterCache
+internal class ScalarConverterCache : IScalarTypeConverter
 {
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarSourceTypes = new ();
@@ -49,16 +49,19 @@ internal class ScalarConverterCache
         }
     }
 
-    public IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> Export()
+    public TTarget? Convert<TSource, TTarget>(TSource? source)
+        where TSource : notnull
+        where TTarget : notnull
     {
-        var scalarConverter = new Dictionary<Type, IReadOnlyDictionary<Type, Delegate>>();
-        foreach (var pair in _scalarConverterDictionary)
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        if (!_scalarConverterDictionary.TryGetValue(sourceType, out var innerDictionary) || !innerDictionary.TryGetValue(targetType, out var converter))
         {
-            scalarConverter.Add(pair.Key, pair.Value);
+            throw new ScalarConverterMissingException(sourceType, targetType);
         }
 
-        return scalarConverter;
+        return ((Func<TSource?, TTarget?>)converter)(source);
     }
 
-    public bool Contains(Type sourceType, Type targetType) => _scalarConverterDictionary.ItemExists(sourceType, targetType);
+    public bool CanConvert(Type sourceType, Type targetType) => _scalarConverterDictionary.ItemExists(sourceType, targetType);
 }

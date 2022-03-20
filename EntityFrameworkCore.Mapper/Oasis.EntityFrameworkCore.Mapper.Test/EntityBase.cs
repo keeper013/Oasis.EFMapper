@@ -3,7 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public abstract class EntityBase : IEntityBase
+public abstract class EntityBase
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

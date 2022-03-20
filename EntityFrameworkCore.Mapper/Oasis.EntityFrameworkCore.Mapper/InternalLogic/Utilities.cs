@@ -11,16 +11,6 @@ internal static class Utilities
     public const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
     public const BindingFlags NonPublicInstance = BindingFlags.NonPublic | BindingFlags.Instance;
     private static readonly Type EnumerableType = typeof(IEnumerable);
-    private static readonly IReadOnlySet<Type> IdTypeSet = new HashSet<Type>
-    {
-        typeof(int), typeof(long), typeof(uint), typeof(ulong), typeof(string), typeof(short), typeof(ushort), typeof(byte),
-    };
-
-    private static readonly IReadOnlySet<Type> TimestampTypeSet = new HashSet<Type>
-    {
-        typeof(byte[]), typeof(DateTime), typeof(string), typeof(int), typeof(long), typeof(uint), typeof(ulong),
-        typeof(short), typeof(ushort), typeof(byte),
-    };
 
     public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
         where TSource : class
@@ -34,14 +24,22 @@ internal static class Utilities
         where TSource : class
         where TTarget : class;
 
-    public static IReadOnlySet<Type> IdTypes => IdTypeSet;
+    public delegate object GetId<TEntity>(TEntity entity)
+        where TEntity : class;
 
-    public static IReadOnlySet<Type> TimestampTypes => TimestampTypeSet;
+    public delegate bool IdIsEmpty<TEntity>(TEntity entity)
+        where TEntity : class;
 
-    public static string BuildMethodName(char type, Type sourceType, Type targetType)
-    {
-        return $"_{type}_{sourceType.FullName!.Replace(".", "_")}__To__{targetType.FullName!.Replace(".", "_")}";
-    }
+    public delegate bool TimeStampIsEmpty<TEntity>(TEntity entity)
+        where TEntity : class;
+
+    public delegate bool IdsAreEqual<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
+        where TSource : class
+        where TTarget : class;
+
+    public delegate bool TimeStampsAreEqual<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
+        where TSource : class
+        where TTarget : class;
 
     public static bool IsScalarType(this Type type)
     {
@@ -88,26 +86,39 @@ internal static class Utilities
         return dict.TryGetValue(sourceType, out var innerDictionary) && innerDictionary.ContainsKey(targetType);
     }
 
-    public static string GetIdPropertyname(this TypeConfiguration configuration)
+    public static PropertyInfo GetIdProperty(this TypeProxy proxy)
     {
-        return configuration.identityColumnName ?? DefaultIdPropertyName;
+        return proxy.identityProperty;
+    }
+
+    public static string GetIdPropertyName(this TypeConfiguration configuration)
+    {
+        return configuration.identityPropertyName ?? DefaultIdPropertyName;
     }
 
     public static string GetTimestampPropertyName(this TypeConfiguration configuration)
     {
-        return configuration.timestampColumnName ?? DefaultTimestampPropertyName;
+        return configuration.timestampPropertyName ?? DefaultTimestampPropertyName;
     }
 
-    public static Expression<Func<TEntity, bool>> BuildIdEqualsExpression<TEntity>(IIdPropertyNameTracker identityPropertyNameTracker, object? value)
+    public static Expression<Func<TEntity, bool>> BuildIdEqualsExpression<TEntity>(IIdPropertyTracker identityPropertyTracker, object? value)
         where TEntity : class
     {
         var type = typeof(TEntity);
         var parameter = Expression.Parameter(typeof(TEntity), "entity");
         var equal = Expression.Equal(
-            Expression.Property(parameter, type.GetProperty(identityPropertyNameTracker.GetIdPropertyName<TEntity>(), PublicInstance)!),
+            Expression.Property(parameter, identityPropertyTracker.GetIdProperty<TEntity>()),
             Expression.Constant(value));
         return Expression.Lambda<Func<TEntity, bool>>(equal, parameter);
     }
 }
 
+internal record struct MethodMetaData(Type type, string name);
+
 internal record struct MapperSet(Delegate scalarPropertiesMapper, Delegate entityPropertiesMapper, Delegate listPropertiesMapper);
+
+internal record struct TypeProxyMetaDataSet(MethodMetaData getId, MethodMetaData identityIsEmpty, MethodMetaData timestampIsEmpty, PropertyInfo identityProperty, bool keepEntityOnMappingRemoved);
+
+internal record struct TypeProxy(Delegate getId, Delegate identityIsEmpty, Delegate timestampIsEmpty, PropertyInfo identityProperty, bool keepEntityOnMappingRemoved);
+
+internal record struct EntityComparer(Delegate idsAreEqual, Delegate timestampsAreEqual);
