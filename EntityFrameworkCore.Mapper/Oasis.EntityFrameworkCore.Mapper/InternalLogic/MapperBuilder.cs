@@ -13,15 +13,18 @@ internal sealed class MapperBuilder : IMapperBuilder
     private const char CompareIdMethod = 'i';
     private const char CompareTimeStampMethod = 't';
 
+    private static readonly MethodInfo StringEqual = typeof(string).GetMethod("Equals", new[] { typeof(string), typeof(string) })!;
+    private static readonly MethodInfo ByteArraySequenceEqual = GetByteArraySequenceEqual();
+
     private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, ComparerMetaDataSet>> _comparer = new ();
     private readonly TypeConfigurationCache _typeConfigurationCache;
     private readonly ScalarConverterCache _scalarConverterCache = new ();
     private readonly NullableTypeMethodCache _nullableTypeMethodCache = new ();
-    private readonly GenericMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethod("Convert", Utilities.PublicInstance)!);
-    private readonly GenericMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper).GetMethod("MapEntityProperty", Utilities.PublicInstance)!);
-    private readonly GenericMethodCache _listPropertyMapperCache = new (typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!);
+    private readonly GenericMapperMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethod("Convert", Utilities.PublicInstance)!);
+    private readonly GenericMapperMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper).GetMethod("MapEntityProperty", Utilities.PublicInstance)!);
+    private readonly GenericMapperMethodCache _listPropertyMapperCache = new (typeof(IListPropertyMapper).GetMethod("MapListProperty", Utilities.PublicInstance)!);
 
     // TODO: add default configuration support
     public MapperBuilder(string assemblyName)
@@ -138,6 +141,16 @@ internal sealed class MapperBuilder : IMapperBuilder
         }
 
         return this;
+    }
+
+    private static MethodInfo GetByteArraySequenceEqual()
+    {
+        var enumerableSequenceEqual = typeof(Enumerable)
+            .GetMethods(BindingFlags.Static | BindingFlags.Public)
+            .Where(x => x.Name.Contains("SequenceEqual"))
+            .Single(x => x.GetParameters().Length == 2);
+        var enumerableType = typeof(IEnumerable<>).MakeGenericType(typeof(byte));
+        return enumerableSequenceEqual.MakeGenericMethod(enumerableType, enumerableType);
     }
 
     private static string BuildMapperMethodName(char type, Type sourceType, Type targetType)
@@ -525,22 +538,114 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     private void GenerateConvertedNullablePrimitiveEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
     {
+        var targetPropertyType = targetProperty.PropertyType;
+        generator.DeclareLocal(targetPropertyType);
+        generator.DeclareLocal(targetPropertyType);
+
+        generator.Emit(OpCodes.Ldarg_2);
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourceProperty.PropertyType, targetProperty.PropertyType));
+        generator.Emit(OpCodes.Stloc_0);
+        generator.Emit(OpCodes.Ldloca_S, 0);
+        generator.Emit(OpCodes.Call, _nullableTypeMethodCache.CreateIfNotExist(targetPropertyType, NullableTypeMethodCache.HasValue));
+        var jumpLabel = generator.DefineLabel();
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Stloc_1);
+        generator.Emit(OpCodes.Ldloca_S, 1);
+        generator.Emit(OpCodes.Call, _nullableTypeMethodCache.CreateIfNotExist(targetPropertyType, NullableTypeMethodCache.HasValue));
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldloca_S, 0);
+        generator.Emit(OpCodes.Call, _nullableTypeMethodCache.CreateIfNotExist(targetPropertyType, NullableTypeMethodCache.Value));
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Stloc_1);
+        generator.Emit(OpCodes.Ldloca_S, 1);
+        generator.Emit(OpCodes.Call, _nullableTypeMethodCache.CreateIfNotExist(targetPropertyType, NullableTypeMethodCache.Value));
+        generator.Emit(OpCodes.Ceq);
+        generator.Emit(OpCodes.Ret);
+        generator.MarkLabel(jumpLabel);
+        generator.Emit(OpCodes.Ldc_I4_0);
+        generator.Emit(OpCodes.Ret);
     }
 
     private void GenerateStringEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
     {
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Call, StringEqual);
+        generator.Emit(OpCodes.Ret);
     }
 
     private void GenerateConvertedStringEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
     {
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        var jumpLabel = generator.DefineLabel();
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_2);
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourceProperty.PropertyType, targetProperty.PropertyType));
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Call, StringEqual);
+        generator.Emit(OpCodes.Ret);
+        generator.MarkLabel(jumpLabel);
+        generator.Emit(OpCodes.Ldc_I4_0);
+        generator.Emit(OpCodes.Ret);
     }
 
     private void GenerateByteArrayEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
     {
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        var jumpLabel = generator.DefineLabel();
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Call, ByteArraySequenceEqual);
+        generator.Emit(OpCodes.Ret);
+        generator.MarkLabel(jumpLabel);
+        generator.Emit(OpCodes.Ldc_I4_0);
+        generator.Emit(OpCodes.Ret);
     }
 
     private void GenerateConvertedByteArrayEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
     {
+        generator.DeclareLocal(targetProperty.PropertyType);
+
+        generator.Emit(OpCodes.Ldarg_2);
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourceProperty.PropertyType, targetProperty.PropertyType));
+        generator.Emit(OpCodes.Stloc_0);
+        generator.Emit(OpCodes.Ldloc_0);
+        var jumpLabel = generator.DefineLabel();
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldloc_0);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Call, ByteArraySequenceEqual);
+        generator.Emit(OpCodes.Ret);
+        generator.MarkLabel(jumpLabel);
+        generator.Emit(OpCodes.Ldc_I4_0);
+        generator.Emit(OpCodes.Ret);
     }
 
     private void GenerateObjectEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)

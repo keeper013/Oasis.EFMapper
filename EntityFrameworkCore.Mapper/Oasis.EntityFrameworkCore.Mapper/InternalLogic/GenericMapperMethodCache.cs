@@ -2,12 +2,12 @@
 
 using System.Reflection;
 
-internal sealed class GenericMethodCache
+internal sealed class GenericMapperMethodCache
 {
     private readonly IDictionary<Type, IDictionary<Type, MethodInfo>> _dict = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
     private readonly MethodInfo _template;
 
-    public GenericMethodCache(MethodInfo template)
+    public GenericMapperMethodCache(MethodInfo template)
     {
         _template = template;
     }
