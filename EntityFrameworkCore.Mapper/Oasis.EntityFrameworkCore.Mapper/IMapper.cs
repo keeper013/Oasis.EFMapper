@@ -14,7 +14,7 @@ public interface IMappingToDatabaseSession
 {
     Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default)
         where TSource : class
-        where TTarget : class, new();
+        where TTarget : class, new(); // TODO: get rid of new()
 }
 
 public interface IMappingSession

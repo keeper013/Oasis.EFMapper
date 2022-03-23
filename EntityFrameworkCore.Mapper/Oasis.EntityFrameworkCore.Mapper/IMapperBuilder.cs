@@ -6,8 +6,8 @@ public interface IMapperBuilder
 {
     public const bool DefaultKeepEntityOnMappingRemoved = false;
 
-    IMapperBuilder WithConfiguration<T>(TypeConfiguration configuration)
-        where T : class;
+    IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration)
+        where TEntity : class;
 
     IMapperBuilder WithScalarMapper<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression)
         where TSource : notnull

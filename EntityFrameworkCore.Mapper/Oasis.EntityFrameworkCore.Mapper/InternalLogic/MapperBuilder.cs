@@ -13,8 +13,9 @@ internal sealed class MapperBuilder : IMapperBuilder
     private const char CompareIdMethod = 'i';
     private const char CompareTimeStampMethod = 't';
 
-    private static readonly MethodInfo StringEqual = typeof(string).GetMethod("Equals", new[] { typeof(string), typeof(string) })!;
+    private static readonly MethodInfo StringEqual = typeof(string).GetMethod(nameof(string.Equals), new[] { typeof(string), typeof(string) })!;
     private static readonly MethodInfo ByteArraySequenceEqual = GetByteArraySequenceEqual();
+    private static readonly MethodInfo ObjectEqual = typeof(object).GetMethod(nameof(object.Equals), new[] { typeof(object), typeof(object) })!;
 
     private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new ();
@@ -33,7 +34,7 @@ internal sealed class MapperBuilder : IMapperBuilder
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
         _dynamicMethodBuilder = new DynamicMethodBuilder(module.DefineType("Mapper", TypeAttributes.Public));
-        _typeConfigurationCache = new (_dynamicMethodBuilder, _scalarConverterCache);
+        _typeConfigurationCache = new (_dynamicMethodBuilder, _scalarConverterCache, _nullableTypeMethodCache);
     }
 
     public IMapper Build(string? defaultIdPropertyName, string? defaultTimeStampPropertyName)
@@ -94,7 +95,7 @@ internal sealed class MapperBuilder : IMapperBuilder
         // TypeConfigurationCache relies on ScalarConverterCache, so lock ScalarConverterCache instead
         lock (_scalarConverterCache)
         {
-            _typeConfigurationCache.ValidateEntityBaseProperties(typeof(TSource), typeof(TTarget));
+            _typeConfigurationCache.ValidateEntityBaseProperties<TSource, TTarget>();
         }
 
         var pathTracker = new RecursiveRegisterPathTracker(this);
@@ -111,8 +112,8 @@ internal sealed class MapperBuilder : IMapperBuilder
         // TypeConfigurationCache relies on ScalarConverterCache, so lock ScalarConverterCache instead
         lock (_scalarConverterCache)
         {
-            _typeConfigurationCache.ValidateEntityBaseProperties(typeof(TSource), typeof(TTarget));
-            _typeConfigurationCache.ValidateEntityBaseProperties(typeof(TTarget), typeof(TSource));
+            _typeConfigurationCache.ValidateEntityBaseProperties<TSource, TTarget>();
+            _typeConfigurationCache.ValidateEntityBaseProperties<TTarget, TSource>();
         }
 
         var pathTracker = new RecursiveRegisterPathTracker(this);
@@ -137,7 +138,7 @@ internal sealed class MapperBuilder : IMapperBuilder
     {
         lock (_scalarConverterCache)
         {
-            _typeConfigurationCache.AddConfiguration(typeof(T), configuration);
+            _typeConfigurationCache.AddConfiguration<T>(configuration);
         }
 
         return this;
@@ -147,7 +148,7 @@ internal sealed class MapperBuilder : IMapperBuilder
     {
         var enumerableSequenceEqual = typeof(Enumerable)
             .GetMethods(BindingFlags.Static | BindingFlags.Public)
-            .Where(x => x.Name.Contains("SequenceEqual"))
+            .Where(x => x.Name.Contains(nameof(Enumerable.SequenceEqual)))
             .Single(x => x.GetParameters().Length == 2);
         var enumerableType = typeof(IEnumerable<>).MakeGenericType(typeof(byte));
         return enumerableSequenceEqual.MakeGenericMethod(enumerableType, enumerableType);
@@ -264,8 +265,8 @@ internal sealed class MapperBuilder : IMapperBuilder
         var methodName = BuildMapperMethodName(MapEntityPropertiesMethod, sourceType, targetType);
         var method = _dynamicMethodBuilder.Build(methodName, new[] { sourceType, targetType, typeof(IEntityPropertyMapper) }, typeof(void));
         var generator = method.GetILGenerator();
-        var sourceProperties = allSourceProperties.Where(p => p.IsEntityProperty(true, false));
-        var targetProperties = allTargetProperties.Where(p => p.IsEntityProperty(true, true)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = allSourceProperties.Where(p => p.IsEntityProperty(_scalarConverterCache.SourceTypes, true, false));
+        var targetProperties = allTargetProperties.Where(p => p.IsEntityProperty(_scalarConverterCache.TargetTypes, true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
@@ -306,8 +307,8 @@ internal sealed class MapperBuilder : IMapperBuilder
         var methodName = BuildMapperMethodName(MapListPropertiesMethod, sourceType, targetType);
         var method = _dynamicMethodBuilder.Build(methodName, new[] { sourceType, targetType, typeof(IListPropertyMapper) }, typeof(void));
         var generator = method.GetILGenerator();
-        var sourceProperties = allSourceProperties.Where(p => p.IsListOfEntityProperty(true, false));
-        var targetProperties = allTargetProperties.Where(p => p.IsListOfEntityProperty(true, true)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = allSourceProperties.Where(p => p.IsListOfEntityProperty(_scalarConverterCache.SourceTypes, true, false));
+        var targetProperties = allTargetProperties.Where(p => p.IsListOfEntityProperty(_scalarConverterCache.TargetTypes, true, true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
@@ -650,10 +651,47 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     private void GenerateObjectEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
     {
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        var jumpLabel = generator.DefineLabel();
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Call, ObjectEqual);
+        generator.Emit(OpCodes.Ret);
+        generator.MarkLabel(jumpLabel);
+        generator.Emit(OpCodes.Ldc_I4_0);
+        generator.Emit(OpCodes.Ret);
     }
 
     private void GenerateConvertedObjectEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
     {
+        generator.DeclareLocal(targetProperty.PropertyType);
+
+        generator.Emit(OpCodes.Ldarg_2);
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+        generator.Emit(OpCodes.Call, _scalarPropertyConverterCache.CreateIfNotExist(sourceProperty.PropertyType, targetProperty.PropertyType));
+        generator.Emit(OpCodes.Stloc_0);
+        generator.Emit(OpCodes.Ldloc_0);
+        var jumpLabel = generator.DefineLabel();
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        generator.Emit(OpCodes.Ldloc_0);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
+        generator.Emit(OpCodes.Call, ObjectEqual);
+        generator.Emit(OpCodes.Ret);
+        generator.MarkLabel(jumpLabel);
+        generator.Emit(OpCodes.Ldc_I4_0);
+        generator.Emit(OpCodes.Ret);
     }
 
     private record struct MapperMetaDataSet(MethodMetaData scalarPropertiesMapper, MethodMetaData entityPropertiesMapper, MethodMetaData listPropertiesMapper);

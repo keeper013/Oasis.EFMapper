@@ -2,6 +2,6 @@
 
 public interface IMapperBuilderFactory
 {
-    // TODO: integrate with .net core pipeline
+    // TODO: consider to integrate with .net core pipeline
     IMapperBuilder Make(string assemblyName);
 }

@@ -18,8 +18,8 @@ internal sealed class ScalarConverterCache : IScalarTypeConverter
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
 
-        var sourceIsNotScalarType = !Utilities.IsScalarType(sourceType);
-        var targetIsNotScalarType = !Utilities.IsScalarType(targetType);
+        var sourceIsNotScalarType = !Utilities.IsScalarType(sourceType) && !_convertableToScalarSourceTypes.Contains(sourceType);
+        var targetIsNotScalarType = !Utilities.IsScalarType(targetType) && !_convertableToScalarTargetTypes.Contains(targetType);
         if (sourceIsNotScalarType && targetIsNotScalarType)
         {
             throw new ScalarTypeMissingException(sourceType, targetType);
