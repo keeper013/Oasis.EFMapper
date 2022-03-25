@@ -6,19 +6,19 @@ using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 internal abstract class RecursiveMapper<T> : IEntityPropertyMapper, IListPropertyMapper
     where T : struct
 {
-    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
+    private readonly MapperSetLookUp _lookup;
     private readonly IScalarTypeConverter _scalarConverter;
     private readonly IDictionary<Type, ExistingTargetTracker> _trackerDictionary = new Dictionary<Type, ExistingTargetTracker>();
 
     internal RecursiveMapper(
         NewTargetTracker<T> newTargetTracker,
         IScalarTypeConverter scalarConverter,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy)
     {
         NewTargetTracker = newTargetTracker;
         _scalarConverter = scalarConverter;
-        _mappers = mappers;
+        _lookup = lookup;
         EntityBaseProxy = entityBaseProxy;
     }
 
@@ -57,14 +57,7 @@ internal abstract class RecursiveMapper<T> : IEntityPropertyMapper, IListPropert
             }
         }
 
-        MapperSet mapperSet = default;
-        var mapperSetFound = _mappers.TryGetValue(typeof(TSource), out var innerDictionary)
-            && innerDictionary.TryGetValue(typeof(TTarget), out mapperSet);
-        if (!mapperSetFound)
-        {
-            throw new ArgumentException($"Entity mapper from type {typeof(TSource)} to {targetType} hasn't been registered yet.");
-        }
-
+        var mapperSet = _lookup.LookUp(typeof(TSource), typeof(TTarget));
         ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.scalarPropertiesMapper)(source, target, _scalarConverter);
         ((Utilities.MapEntityProperties<TSource, TTarget>)mapperSet.entityPropertiesMapper)(source, target, this);
         ((Utilities.MapListProperties<TSource, TTarget>)mapperSet.listPropertiesMapper)(source, target, this);
@@ -85,10 +78,10 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
     public ToDatabaseRecursiveMapper(
         NewTargetTracker<int> newTargetTracker,
         IScalarTypeConverter scalarConverter,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy,
         DbContext databaseContext)
-        : base(newTargetTracker, scalarConverter, mappers, entityBaseProxy)
+        : base(newTargetTracker, scalarConverter, lookup, entityBaseProxy)
     {
         _databaseContext = databaseContext;
     }
@@ -193,9 +186,9 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper<int>
     public ToMemoryRecursiveMapper(
         NewTargetTracker<int> newTargetTracker,
         IScalarTypeConverter scalarConverter,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy)
-        : base(newTargetTracker, scalarConverter, mappers, entityBaseProxy)
+        : base(newTargetTracker, scalarConverter, lookup, entityBaseProxy)
     {
     }
 

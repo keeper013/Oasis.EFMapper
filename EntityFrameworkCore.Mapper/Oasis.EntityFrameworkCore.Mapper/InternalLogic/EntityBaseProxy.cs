@@ -39,12 +39,44 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
     private readonly IScalarTypeConverter _scalarConverter;
 
     public EntityBaseProxy(
-        IReadOnlyDictionary<Type, TypeProxy> proxies,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, EntityComparer>> comparers,
+        Dictionary<Type, TypeProxyMetaDataSet> proxies,
+        Dictionary<Type, Dictionary<Type, ComparerMetaDataSet>> comparers,
+        Type type,
         IScalarTypeConverter scalarConverter)
     {
-        _proxies = proxies;
-        _comparers = comparers;
+        var typeProxies = new Dictionary<Type, TypeProxy>();
+        foreach (var pair in proxies)
+        {
+            var typeMetaDataSet = pair.Value;
+            var typeProxy = new TypeProxy(
+                Delegate.CreateDelegate(typeMetaDataSet.getId.type, type!.GetMethod(typeMetaDataSet.getId.name)!),
+                Delegate.CreateDelegate(typeMetaDataSet.identityIsEmpty.type, type!.GetMethod(typeMetaDataSet.identityIsEmpty.name)!),
+                Delegate.CreateDelegate(typeMetaDataSet.timestampIsEmpty.type, type!.GetMethod(typeMetaDataSet.timestampIsEmpty.name)!),
+                typeMetaDataSet.identityProperty,
+                typeMetaDataSet.keepEntityOnMappingRemoved);
+            typeProxies.Add(pair.Key, typeProxy);
+        }
+
+        _proxies = typeProxies;
+
+        var comparer = new Dictionary<Type, IReadOnlyDictionary<Type, EntityComparer>>();
+        foreach (var pair in comparers)
+        {
+            var innerDictionary = new Dictionary<Type, EntityComparer>();
+            foreach (var innerPair in pair.Value)
+            {
+                var comparerMetaDataSet = innerPair.Value;
+                var comparerSet = new EntityComparer(
+                    Delegate.CreateDelegate(comparerMetaDataSet.identityComparer.type, type!.GetMethod(comparerMetaDataSet.identityComparer.name)!),
+                    Delegate.CreateDelegate(comparerMetaDataSet.timeStampComparer.type, type!.GetMethod(comparerMetaDataSet.timeStampComparer.name)!));
+                innerDictionary.Add(innerPair.Key, comparerSet);
+            }
+
+            comparer.Add(pair.Key, innerDictionary);
+        }
+
+        _comparers = comparer;
+
         _scalarConverter = scalarConverter;
     }
 
@@ -93,7 +125,7 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
     {
         if (_proxies.TryGetValue(typeof(TEntity), out var proxy))
         {
-            return proxy.GetIdProperty();
+            return proxy.identityProperty;
         }
 
         throw new TypeNotProperlyRegisteredException(typeof(TEntity));

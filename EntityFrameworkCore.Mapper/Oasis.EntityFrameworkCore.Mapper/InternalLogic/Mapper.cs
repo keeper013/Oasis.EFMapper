@@ -7,45 +7,45 @@ using System.Linq.Expressions;
 internal sealed class Mapper : IMapper
 {
     private readonly IScalarTypeConverter _scalarConverter;
-    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
+    private readonly MapperSetLookUp _lookup;
     private readonly EntityBaseProxy _entityBaseProxy;
 
     public Mapper(
         IScalarTypeConverter scalarConverter,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy)
     {
         _scalarConverter = scalarConverter;
-        _mappers = mappers;
+        _lookup = lookup;
         _entityBaseProxy = entityBaseProxy;
     }
 
     public IMappingSession CreateMappingSession()
     {
-        return new MappingSession(_scalarConverter, _mappers, _entityBaseProxy);
+        return new MappingSession(_scalarConverter, _lookup, _entityBaseProxy);
     }
 
     public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
     {
-        return new MappingToDatabaseSession(_scalarConverter, _mappers, _entityBaseProxy, databaseContext);
+        return new MappingToDatabaseSession(_scalarConverter, _lookup, _entityBaseProxy, databaseContext);
     }
 }
 
 internal sealed class MappingSession : IMappingSession
 {
     private readonly IScalarTypeConverter _scalarConverter;
-    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
+    private readonly MapperSetLookUp _lookup;
     private readonly EntityBaseProxy _entityBaseProxy;
     private readonly NewTargetTracker<int> _newEntityTracker;
 
     public MappingSession(
         IScalarTypeConverter scalarConverter,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy)
     {
         _newEntityTracker = new NewTargetTracker<int>();
         _scalarConverter = scalarConverter;
-        _mappers = mappers;
+        _lookup = lookup;
         _entityBaseProxy = entityBaseProxy;
     }
 
@@ -60,7 +60,7 @@ internal sealed class MappingSession : IMappingSession
         }
 
         var target = new TTarget();
-        new ToMemoryRecursiveMapper(_newEntityTracker, _scalarConverter, _mappers, _entityBaseProxy).Map(source, target);
+        new ToMemoryRecursiveMapper(_newEntityTracker, _scalarConverter, _lookup, _entityBaseProxy).Map(source, target);
 
         return target;
     }
@@ -69,14 +69,14 @@ internal sealed class MappingSession : IMappingSession
 internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
 {
     private readonly IScalarTypeConverter _scalarConverter;
-    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
+    private readonly MapperSetLookUp _lookup;
     private readonly DbContext _databaseContext;
     private readonly EntityBaseProxy _entityBaseProxy;
     private readonly NewTargetTracker<int> _newEntityTracker;
 
     public MappingToDatabaseSession(
         IScalarTypeConverter scalarConverter,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> mappers,
+        MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy,
         DbContext databaseContext)
     {
@@ -84,7 +84,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         _databaseContext = databaseContext;
         _newEntityTracker = new NewTargetTracker<int>();
         _scalarConverter = scalarConverter;
-        _mappers = mappers;
+        _lookup = lookup;
     }
 
     async Task<TTarget> IMappingToDatabaseSession.MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
@@ -125,13 +125,13 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
                 throw new StaleEntityException(typeof(TTarget), _entityBaseProxy.GetId(source));
             }
 
-            new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _mappers, _entityBaseProxy, _databaseContext).Map(source, target);
+            new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _lookup, _entityBaseProxy, _databaseContext).Map(source, target);
         }
         else
         {
             if (!_newEntityTracker.NewTargetIfNotExist(source.GetHashCode(), out target))
             {
-                new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _mappers, _entityBaseProxy, _databaseContext).Map(source, target!);
+                new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _lookup, _entityBaseProxy, _databaseContext).Map(source, target!);
                 _databaseContext.Set<TTarget>().Add(target!);
             }
         }

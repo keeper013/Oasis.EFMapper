@@ -9,7 +9,7 @@ public interface IMapperBuilder
     IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration)
         where TEntity : class;
 
-    IMapperBuilder WithScalarMapper<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression)
+    IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression)
         where TSource : notnull
         where TTarget : notnull;
 

@@ -91,8 +91,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.Make(GetType().Name);
         mapperBuilder
-            .WithScalarMapper((ByteArrayWrapper? wrapper) => wrapper!.Bytes)
-            .WithScalarMapper((byte[]? array) => new ByteArrayWrapper(array!))
+            .WithScalarConverter((ByteArrayWrapper? wrapper) => wrapper!.Bytes)
+            .WithScalarConverter((byte[]? array) => new ByteArrayWrapper(array!))
             .RegisterTwoWay<ScalarEntity1, ScalarEntity4>();
 
         var mapper = mapperBuilder.Build();
@@ -119,8 +119,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.Make(GetType().Name);
         mapperBuilder
-            .WithScalarMapper((ByteArrayWrapper? wrapper) => ByteArrayWrapper.ConvertStatic(wrapper!))
-            .WithScalarMapper((byte[]? array) => ByteArrayWrapper.ConvertStatic(array!))
+            .WithScalarConverter((ByteArrayWrapper? wrapper) => ByteArrayWrapper.ConvertStatic(wrapper!))
+            .WithScalarConverter((byte[]? array) => ByteArrayWrapper.ConvertStatic(array!))
             .RegisterTwoWay<ScalarEntity1, ScalarEntity4>();
 
         var mapper = mapperBuilder.Build();
@@ -149,7 +149,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         // assert
         Assert.Throws<ScalarMapperExistsException>(() => mapperBuilder
-            .WithScalarMapper<ByteArrayWrapper, byte[]>((wrapper) => ByteArrayWrapper.ConvertStatic(wrapper!))
-            .WithScalarMapper<ByteArrayWrapper, byte[]>((wrapper) => wrapper!.Bytes));
+            .WithScalarConverter<ByteArrayWrapper, byte[]>((wrapper) => ByteArrayWrapper.ConvertStatic(wrapper!))
+            .WithScalarConverter<ByteArrayWrapper, byte[]>((wrapper) => wrapper!.Bytes));
     }
 }
