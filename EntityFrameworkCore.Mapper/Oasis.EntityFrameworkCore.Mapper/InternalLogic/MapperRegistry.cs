@@ -5,6 +5,7 @@ using System.Reflection;
 
 internal sealed class MapperRegistry
 {
+    private readonly TypeConfiguration _defaultConfiguration;
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarSourceTypes = new ();
     private readonly HashSet<Type> _convertableToScalarTargetTypes = new ();
@@ -14,8 +15,9 @@ internal sealed class MapperRegistry
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, ComparerMetaDataSet>> _comparer = new ();
 
-    public MapperRegistry()
+    public MapperRegistry(TypeConfiguration defaultConfiguration)
     {
+        _defaultConfiguration = defaultConfiguration;
         ScalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTargetTypes);
         EntityMapperTypeValidator = new EntityMapperTypeValidator(_mapper, _convertableToScalarSourceTypes, _convertableToScalarTargetTypes);
         EntityListMapperTypeValidator = new EntityListMapperTypeValidator(_mapper, _convertableToScalarSourceTypes, _convertableToScalarTargetTypes);
@@ -61,8 +63,8 @@ internal sealed class MapperRegistry
 
         _typesUsingCustomConfiguration[type] = configuration;
 
-        var identityPropertyName = configuration.GetIdPropertyName();
-        var timeStampPropertyName = configuration.GetTimestampPropertyName();
+        var identityPropertyName = configuration.identityPropertyName;
+        var timeStampPropertyName = configuration.timestampPropertyName;
         GetEntityBaseProperties(type, identityPropertyName, timeStampPropertyName, out var identityProperty, out var timeStampProperty);
         _typeProxies.Add(type, BuildTypeProxy(type, identityProperty, timeStampProperty, methodBuilder, configuration.keepEntityOnMappingRemoved));
     }
@@ -240,29 +242,13 @@ internal sealed class MapperRegistry
             keepEntityOnMappingRemoved);
     }
 
-    private string GetIdPropertyName(Type type)
+    private string? GetIdPropertyName(Type type)
     {
-        return _typesUsingCustomConfiguration.TryGetValue(type, out var configuration) ? configuration.GetIdPropertyName() : MapperRegistryExtensions.DefaultIdPropertyName;
+        return _typesUsingCustomConfiguration.TryGetValue(type, out var configuration) ? configuration.identityPropertyName : _defaultConfiguration.identityPropertyName;
     }
 
-    private string GetTimeStampPropertyName(Type type)
+    private string? GetTimeStampPropertyName(Type type)
     {
-        return _typesUsingCustomConfiguration.TryGetValue(type, out var configuration) ? configuration.GetTimestampPropertyName() : MapperRegistryExtensions.DefaultTimestampPropertyName;
-    }
-}
-
-internal static class MapperRegistryExtensions
-{
-    internal const string DefaultIdPropertyName = "Id";
-    internal const string DefaultTimestampPropertyName = "Timestamp";
-
-    public static string GetIdPropertyName(this TypeConfiguration configuration)
-    {
-        return configuration.identityPropertyName ?? DefaultIdPropertyName;
-    }
-
-    public static string GetTimestampPropertyName(this TypeConfiguration configuration)
-    {
-        return configuration.timestampPropertyName ?? DefaultTimestampPropertyName;
+        return _typesUsingCustomConfiguration.TryGetValue(type, out var configuration) ? configuration.timestampPropertyName : _defaultConfiguration.timestampPropertyName;
     }
 }

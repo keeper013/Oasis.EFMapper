@@ -10,13 +10,12 @@ internal sealed class MapperBuilder : IMapperBuilder
     private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly MapperRegistry _mapperRegistry;
 
-    // TODO: add default configuration support
-    public MapperBuilder(string assemblyName)
+    public MapperBuilder(string assemblyName, TypeConfiguration defaultConfiguration)
     {
         var name = new AssemblyName($"{assemblyName}.Oasis.EntityFrameworkCore.Mapper.Generated");
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
-        _mapperRegistry = new ();
+        _mapperRegistry = new (defaultConfiguration);
         _dynamicMethodBuilder = new DynamicMethodBuilder(
             module.DefineType("Mapper", TypeAttributes.Public),
             _mapperRegistry.ScalarMapperTypeValidator,
@@ -24,7 +23,7 @@ internal sealed class MapperBuilder : IMapperBuilder
             _mapperRegistry.EntityListMapperTypeValidator);
     }
 
-    public IMapper Build(string? defaultIdPropertyName, string? defaultTimeStampPropertyName)
+    public IMapper Build()
     {
         var type = _dynamicMethodBuilder.Build();
         var scalarTypeConverter = _mapperRegistry.MakeScalarTypeConverter();

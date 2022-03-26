@@ -13,7 +13,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<ScalarEntity1, ScalarEntity2>();
         var mapper = mapperBuilder.Build();
 
@@ -43,7 +43,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
         mapperBuilder.Register<ScalarEntity1, ScalarEntity3>();
         var mapper = mapperBuilder.Build();
 
@@ -67,7 +67,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
         mapperBuilder.Register<ScalarEntity1, ScalarEntity4>();
 
         var mapper = mapperBuilder.Build();
@@ -89,7 +89,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
         mapperBuilder
             .WithScalarConverter((ByteArrayWrapper? wrapper) => wrapper!.Bytes)
             .WithScalarConverter((byte[]? array) => new ByteArrayWrapper(array!))
@@ -117,7 +117,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
         mapperBuilder
             .WithScalarConverter((ByteArrayWrapper? wrapper) => ByteArrayWrapper.ConvertStatic(wrapper!))
             .WithScalarConverter((byte[]? array) => ByteArrayWrapper.ConvertStatic(array!))
@@ -145,7 +145,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
 
         // assert
         Assert.Throws<ScalarMapperExistsException>(() => mapperBuilder

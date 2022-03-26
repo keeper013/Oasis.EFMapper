@@ -21,7 +21,7 @@ public interface IMapperBuilder
         where TSource : class
         where TTarget : class;
 
-    IMapper Build(string? defaultIdPropertyName = default, string? defaultTimeStampPropertyName = default);
+    IMapper Build();
 }
 
 public record struct TypeConfiguration(string? identityPropertyName = null, string? timestampPropertyName = null, bool keepEntityOnMappingRemoved = IMapperBuilder.DefaultKeepEntityOnMappingRemoved);

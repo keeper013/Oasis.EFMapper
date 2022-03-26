@@ -17,9 +17,12 @@ public abstract class TestBase : IDisposable
             .Options;
         DatabaseContext = new DatabaseContext(options);
         DatabaseContext.Database.EnsureCreated();
+        DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp));
     }
 
     protected DbContext DatabaseContext { get; }
+
+    protected TypeConfiguration DefaultConfiguration { get; }
 
     public void Dispose()
     {

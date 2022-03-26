@@ -15,7 +15,7 @@ public class ListPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
         mapperBuilder.Register<CollectionEntity1, CollectionEntity2>();
         var mapper = mapperBuilder.Build();
 
@@ -50,7 +50,7 @@ public class ListPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
         mapperBuilder.Register<CollectionEntity2, CollectionEntity1>();
         var mapper = mapperBuilder.Build();
 
@@ -83,7 +83,7 @@ public class ListPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<ListIEntity1, CollectionEntity1>();
         var mapper = mapperBuilder.Build();
 
@@ -120,7 +120,7 @@ public class ListPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<ListEntity1, CollectionEntity1>();
         var mapper = mapperBuilder.Build();
 
@@ -159,7 +159,7 @@ public class ListPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
 
         mapperBuilder.Register<DerivedEntity2, DerivedEntity1>();
 
@@ -188,7 +188,7 @@ public class ListPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
 
         mapperBuilder.Register<DerivedEntity2_2, DerivedEntity1_1>();
 
@@ -217,7 +217,7 @@ public class ListPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<ListEntity2, ListEntity3>();
         var mapper = mapperBuilder.Build();
 
@@ -251,7 +251,7 @@ public class ListPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
 
         mapperBuilder.RegisterTwoWay<ListIEntity1, CollectionEntity1>();
 
@@ -282,7 +282,7 @@ public class ListPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name);
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
 
         mapperBuilder.RegisterTwoWay<ListIEntity1, CollectionEntity1>();
 
