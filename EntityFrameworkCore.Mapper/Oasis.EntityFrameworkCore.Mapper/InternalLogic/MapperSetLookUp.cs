@@ -1,5 +1,7 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
+using Oasis.EntityFrameworkCore.Mapper.Exceptions;
+
 internal sealed class MapperSetLookUp
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet>> _mappers;
@@ -33,7 +35,7 @@ internal sealed class MapperSetLookUp
             && innerDictionary.TryGetValue(targetType, out mapperSet);
         if (!mapperSetFound)
         {
-            throw new ArgumentException($"Entity mapper from type {sourceType} to {targetType} hasn't been registered yet.");
+            throw new MapperMissingException(sourceType, targetType);
         }
 
         return mapperSet;
