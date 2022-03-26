@@ -14,12 +14,12 @@ public interface IMappingToDatabaseSession
 {
     Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default)
         where TSource : class
-        where TTarget : class, new(); // TODO: get rid of new()
+        where TTarget : class;
 }
 
 public interface IMappingSession
 {
     TTarget Map<TSource, TTarget>(TSource source)
         where TSource : class
-        where TTarget : class, new();
+        where TTarget : class;
 }

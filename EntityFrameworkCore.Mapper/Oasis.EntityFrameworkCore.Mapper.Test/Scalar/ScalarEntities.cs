@@ -103,23 +103,14 @@ public sealed class ByteArrayWrapper
     {
         return new ByteArrayWrapper(array);
     }
+}
 
-    public byte[] ConvertInstance(ByteArrayWrapper wrapper)
+public sealed class EntityWithoutDefaultConstructor : EntityBase
+{
+    public EntityWithoutDefaultConstructor(int intProp)
     {
-        return wrapper.Bytes;
+        IntProp = intProp;
     }
-}
 
-public sealed class ScalarEntity5
-{
-    public char Id { get; set; }
-
-    public byte[]? TimeStamp { get; set; }
-}
-
-public sealed class ScalarEntity6
-{
-    public int Id { get; set; }
-
-    public ByteArrayWrapper? TimeStamp1 { get; set; }
+    public int IntProp { get; set; }
 }

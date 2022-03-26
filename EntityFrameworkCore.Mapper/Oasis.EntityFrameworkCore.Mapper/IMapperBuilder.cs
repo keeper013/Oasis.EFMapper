@@ -6,6 +6,9 @@ public interface IMapperBuilder
 {
     public const bool DefaultKeepEntityOnMappingRemoved = false;
 
+    IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod)
+        where TEntity : class;
+
     IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration)
         where TEntity : class;
 
@@ -24,4 +27,7 @@ public interface IMapperBuilder
     IMapper Build();
 }
 
-public record struct TypeConfiguration(string? identityPropertyName = null, string? timestampPropertyName = null, bool keepEntityOnMappingRemoved = IMapperBuilder.DefaultKeepEntityOnMappingRemoved);
+public record struct TypeConfiguration(
+    string? identityPropertyName = null,
+    string? timestampPropertyName = null,
+    bool keepEntityOnMappingRemoved = IMapperBuilder.DefaultKeepEntityOnMappingRemoved);

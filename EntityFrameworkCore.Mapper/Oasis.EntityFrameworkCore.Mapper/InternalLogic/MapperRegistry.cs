@@ -1,6 +1,7 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
+using System.Linq.Expressions;
 using System.Reflection;
 
 internal sealed class MapperRegistry
@@ -14,6 +15,7 @@ internal sealed class MapperRegistry
     private readonly Dictionary<Type, TypeProxyMetaDataSet> _typeProxies = new ();
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, ComparerMetaDataSet>> _comparer = new ();
+    private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
 
     public MapperRegistry(TypeConfiguration defaultConfiguration)
     {
@@ -42,6 +44,24 @@ internal sealed class MapperRegistry
         }
 
         RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, methodBuilder));
+    }
+
+    public void WithFactoryMethod(Type type, Delegate factoryMethod)
+    {
+        if (factoryMethod != null && type.GetConstructor(Array.Empty<Type>()) != null)
+        {
+            throw new FactoryMethodException(type, false);
+        }
+
+        if (_factoryMethods.ContainsKey(type))
+        {
+            throw new FactoryMethodExistsException(type);
+        }
+
+        if (factoryMethod != null)
+        {
+            _factoryMethods.Add(type, factoryMethod);
+        }
     }
 
     public void WithConfiguration(Type type, TypeConfiguration configuration, IDynamicMethodBuilder methodBuilder)
@@ -117,6 +137,11 @@ internal sealed class MapperRegistry
         return new EntityBaseProxy(_typeProxies, _comparer, type, scalarTypeConverter);
     }
 
+    public EntityFactory MakeEntityFactory()
+    {
+        return new EntityFactory(_factoryMethods);
+    }
+
     private static void GetEntityBaseProperties(
         Type type,
         string identityPropertyName,
@@ -145,6 +170,11 @@ internal sealed class MapperRegistry
     {
         if (!context.Contains(sourceType, targetType))
         {
+            if (!_factoryMethods.ContainsKey(targetType) && targetType.GetConstructor(Array.Empty<Type>()) == null)
+            {
+                throw new FactoryMethodException(targetType, true);
+            }
+
             context.Push(sourceType, targetType);
 
             RegisterTypeProxies(sourceType, targetType, context.MethodBuilder);

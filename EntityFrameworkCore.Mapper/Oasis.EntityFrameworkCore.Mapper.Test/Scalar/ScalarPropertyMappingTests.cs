@@ -39,6 +39,29 @@ public sealed class ScalarPropertyMappingTests : TestBase
     }
 
     [Fact]
+    public async Task RegisterTarget_WithFactoryMethod_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder
+            .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(100))
+            .Register<ScalarEntity1, EntityWithoutDefaultConstructor>();
+        var mapper = mapperBuilder.Build();
+
+        DatabaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(2, 3, "4", new byte[] { 2, 3, 4 }));
+        await DatabaseContext.SaveChangesAsync();
+
+        // act
+        var entity = await DatabaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+        var session1 = mapper.CreateMappingSession();
+        var instance = session1.Map<ScalarEntity1, EntityWithoutDefaultConstructor>(entity);
+
+        // assert
+        Assert.Equal(2, instance.IntProp);
+    }
+
+    [Fact]
     public async Task MapScalarProperties_InvalidProperties_ShouldNotBeMapped()
     {
         // arrange
@@ -151,5 +174,43 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.Throws<ScalarMapperExistsException>(() => mapperBuilder
             .WithScalarConverter<ByteArrayWrapper, byte[]>((wrapper) => ByteArrayWrapper.ConvertStatic(wrapper!))
             .WithScalarConverter<ByteArrayWrapper, byte[]>((wrapper) => wrapper!.Bytes));
+    }
+
+    [Fact]
+    public void RegisterTarget_WithoutDefaultConstructorAndNoFactoryMethod_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+
+        // act & assert
+        Assert.Throws<FactoryMethodException>(() => mapperBuilder.Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
+    }
+
+    [Fact]
+    public void RegisterTarget_WithDefaultConstructorAndFactoryMethod_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+
+        // act & assert
+        Assert.Throws<FactoryMethodException>(() => mapperBuilder
+            .WithFactoryMethod<ScalarEntity1>(() => new ScalarEntity1())
+            .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
+    }
+
+    [Fact]
+    public void RegisterTarget_WithDuplicatedFactoryMethod_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+
+        // act & assert
+        Assert.Throws<FactoryMethodExistsException>(() => mapperBuilder
+            .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(1))
+            .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(2))
+            .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
     }
 }

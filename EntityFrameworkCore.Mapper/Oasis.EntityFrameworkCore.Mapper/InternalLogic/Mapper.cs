@@ -7,44 +7,50 @@ using System.Linq.Expressions;
 internal sealed class Mapper : IMapper
 {
     private readonly IScalarTypeConverter _scalarConverter;
+    private readonly IEntityFactory _entityFactory;
     private readonly MapperSetLookUp _lookup;
     private readonly EntityBaseProxy _entityBaseProxy;
 
     public Mapper(
         IScalarTypeConverter scalarConverter,
+        IEntityFactory entityFactory,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy)
     {
         _scalarConverter = scalarConverter;
+        _entityFactory = entityFactory;
         _lookup = lookup;
         _entityBaseProxy = entityBaseProxy;
     }
 
     public IMappingSession CreateMappingSession()
     {
-        return new MappingSession(_scalarConverter, _lookup, _entityBaseProxy);
+        return new MappingSession(_scalarConverter, _entityFactory, _lookup, _entityBaseProxy);
     }
 
     public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
     {
-        return new MappingToDatabaseSession(_scalarConverter, _lookup, _entityBaseProxy, databaseContext);
+        return new MappingToDatabaseSession(_scalarConverter, _entityFactory, _lookup, _entityBaseProxy, databaseContext);
     }
 }
 
 internal sealed class MappingSession : IMappingSession
 {
     private readonly IScalarTypeConverter _scalarConverter;
+    private readonly IEntityFactory _entityFactory;
     private readonly MapperSetLookUp _lookup;
     private readonly EntityBaseProxy _entityBaseProxy;
     private readonly NewTargetTracker<int> _newEntityTracker;
 
     public MappingSession(
         IScalarTypeConverter scalarConverter,
+        IEntityFactory entityFactory,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy)
     {
-        _newEntityTracker = new NewTargetTracker<int>();
+        _newEntityTracker = new NewTargetTracker<int>(entityFactory);
         _scalarConverter = scalarConverter;
+        _entityFactory = entityFactory;
         _lookup = lookup;
         _entityBaseProxy = entityBaseProxy;
     }
@@ -59,7 +65,7 @@ internal sealed class MappingSession : IMappingSession
             }
         }
 
-        var target = new TTarget();
+        var target = _entityFactory.Make<TTarget>();
         new ToMemoryRecursiveMapper(_newEntityTracker, _scalarConverter, _lookup, _entityBaseProxy).Map(source, target);
 
         return target;
@@ -76,13 +82,14 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
 
     public MappingToDatabaseSession(
         IScalarTypeConverter scalarConverter,
+        IEntityFactory entityFactory,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy,
         DbContext databaseContext)
     {
         _entityBaseProxy = entityBaseProxy;
         _databaseContext = databaseContext;
-        _newEntityTracker = new NewTargetTracker<int>();
+        _newEntityTracker = new NewTargetTracker<int>(entityFactory);
         _scalarConverter = scalarConverter;
         _lookup = lookup;
     }
@@ -144,9 +151,15 @@ internal sealed class NewTargetTracker<TKeyType>
     where TKeyType : struct
 {
     private readonly IDictionary<TKeyType, object> _newTargetDictionary = new Dictionary<TKeyType, object>();
+    private readonly IEntityFactory _entityFactory;
+
+    public NewTargetTracker(IEntityFactory entityFactory)
+    {
+        _entityFactory = entityFactory;
+    }
 
     public bool NewTargetIfNotExist<TTarget>(TKeyType key, out TTarget? target)
-        where TTarget : class, new()
+        where TTarget : class
     {
         bool result = false;
         object? obj;
@@ -156,7 +169,7 @@ internal sealed class NewTargetTracker<TKeyType>
             result = _newTargetDictionary.TryGetValue(key, out obj);
             if (!result)
             {
-                target = new TTarget();
+                target = _entityFactory.Make<TTarget>();
                 _newTargetDictionary.Add(key, target);
             }
         }

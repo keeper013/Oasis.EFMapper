@@ -29,7 +29,8 @@ internal sealed class MapperBuilder : IMapperBuilder
         var scalarTypeConverter = _mapperRegistry.MakeScalarTypeConverter();
         var mapper = _mapperRegistry.MakeMapperSetLookUp(type);
         var proxy = _mapperRegistry.MakeEntityBaseProxy(type, scalarTypeConverter);
-        return new Mapper(scalarTypeConverter, mapper, proxy);
+        var entityFactory = _mapperRegistry.MakeEntityFactory();
+        return new Mapper(scalarTypeConverter, entityFactory, mapper, proxy);
     }
 
     public IMapperBuilder Register<TSource, TTarget>()
@@ -59,6 +60,17 @@ internal sealed class MapperBuilder : IMapperBuilder
         {
             _mapperRegistry.Register(sourceType, targetType, _dynamicMethodBuilder);
             _mapperRegistry.Register(targetType, sourceType, _dynamicMethodBuilder);
+        }
+
+        return this;
+    }
+
+    public IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod)
+        where TEntity : class
+    {
+        lock (_mapperRegistry)
+        {
+            _mapperRegistry.WithFactoryMethod(typeof(TEntity), factoryMethod?.Compile());
         }
 
         return this;

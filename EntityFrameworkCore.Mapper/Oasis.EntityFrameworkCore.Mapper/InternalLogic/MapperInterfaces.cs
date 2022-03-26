@@ -11,12 +11,12 @@ public interface IListPropertyMapper
 {
     void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target)
         where TSource : class
-        where TTarget : class, new();
+        where TTarget : class;
 }
 
 public interface IEntityPropertyMapper
 {
     TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target)
         where TSource : class
-        where TTarget : class, new();
+        where TTarget : class;
 }

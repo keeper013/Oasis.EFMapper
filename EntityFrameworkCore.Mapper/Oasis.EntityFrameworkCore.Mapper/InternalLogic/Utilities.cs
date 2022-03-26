@@ -53,7 +53,7 @@ internal record struct MapperSet(Delegate scalarPropertiesMapper, Delegate entit
 
 internal record struct TypeProxyMetaDataSet(MethodMetaData getId, MethodMetaData identityIsEmpty, MethodMetaData timestampIsEmpty, PropertyInfo identityProperty, bool keepEntityOnMappingRemoved);
 
-internal record struct TypeProxy(Delegate getId, Delegate identityIsEmpty, Delegate timestampIsEmpty, PropertyInfo identityProperty, bool keepEntityOnMappingRemoved);
+internal record struct TypeProxy(Delegate getId, Delegate identityIsEmpty, Delegate timestampIsEmpty, PropertyInfo identityProperty);
 
 internal record struct EntityComparer(Delegate idsAreEqual, Delegate timestampsAreEqual);
 

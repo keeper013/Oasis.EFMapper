@@ -28,11 +28,11 @@ internal abstract class RecursiveMapper<T> : IEntityPropertyMapper, IListPropert
 
     public abstract TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target)
         where TSource : class
-        where TTarget : class, new();
+        where TTarget : class;
 
     public abstract void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target)
         where TSource : class
-        where TTarget : class, new();
+        where TTarget : class;
 
     internal void Map<TSource, TTarget>(TSource source, TTarget target)
         where TSource : class

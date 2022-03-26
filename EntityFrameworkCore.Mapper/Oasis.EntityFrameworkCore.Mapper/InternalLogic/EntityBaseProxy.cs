@@ -34,6 +34,7 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         { typeof(byte), Activator.CreateInstance(typeof(byte))! },
     };
 
+    private readonly IReadOnlySet<Type> _keepEntityOnMappingRemovedTypes;
     private readonly IReadOnlyDictionary<Type, TypeProxy> _proxies;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, EntityComparer>> _comparers;
     private readonly IScalarTypeConverter _scalarConverter;
@@ -45,6 +46,7 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         IScalarTypeConverter scalarConverter)
     {
         var typeProxies = new Dictionary<Type, TypeProxy>();
+        var keepEntityOnMappingRemoved = new HashSet<Type>();
         foreach (var pair in proxies)
         {
             var typeMetaDataSet = pair.Value;
@@ -52,11 +54,15 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
                 Delegate.CreateDelegate(typeMetaDataSet.getId.type, type!.GetMethod(typeMetaDataSet.getId.name)!),
                 Delegate.CreateDelegate(typeMetaDataSet.identityIsEmpty.type, type!.GetMethod(typeMetaDataSet.identityIsEmpty.name)!),
                 Delegate.CreateDelegate(typeMetaDataSet.timestampIsEmpty.type, type!.GetMethod(typeMetaDataSet.timestampIsEmpty.name)!),
-                typeMetaDataSet.identityProperty,
-                typeMetaDataSet.keepEntityOnMappingRemoved);
+                typeMetaDataSet.identityProperty);
             typeProxies.Add(pair.Key, typeProxy);
+            if (typeMetaDataSet.keepEntityOnMappingRemoved)
+            {
+                keepEntityOnMappingRemoved.Add(pair.Key);
+            }
         }
 
+        _keepEntityOnMappingRemovedTypes = keepEntityOnMappingRemoved;
         _proxies = typeProxies;
 
         var comparer = new Dictionary<Type, IReadOnlyDictionary<Type, EntityComparer>>();
@@ -115,7 +121,7 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
     public void HandleRemove<TEntity>(DbContext databaseContext, TEntity entity)
         where TEntity : class
     {
-        if (!(_proxies.TryGetValue(typeof(TEntity), out var config) && config.keepEntityOnMappingRemoved))
+        if (!_keepEntityOnMappingRemovedTypes.Contains(typeof(TEntity)))
         {
             databaseContext.Set<TEntity>().Remove(entity);
         }
