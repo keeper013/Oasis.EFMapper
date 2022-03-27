@@ -17,22 +17,34 @@ public sealed class ScalarPropertyMappingTests : TestBase
         mapperBuilder.RegisterTwoWay<ScalarEntity1, ScalarEntity2>();
         var mapper = mapperBuilder.Build();
 
-        DatabaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(2, 3, "4", new byte[] { 2, 3, 4 }));
-        await DatabaseContext.SaveChangesAsync();
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(2, 3, "4", new byte[] { 2, 3, 4 }));
+            await databaseContext.SaveChangesAsync();
+        });
 
         // act
-        var entity = await DatabaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+        ScalarEntity1? entity = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+        });
+
         var session1 = mapper.CreateMappingSession();
-        var instance = session1.Map<ScalarEntity1, ScalarEntity2>(entity);
+        var instance = session1.Map<ScalarEntity1, ScalarEntity2>(entity!);
         instance.IntProp = 1;
         instance.LongNullableProp = 2;
         instance.StringProp = "3";
         instance.ByteArrayProp = new byte[] { 1, 2, 3 };
-        var session2 = mapper.CreateMappingToDatabaseSession(DatabaseContext);
-        var result = await session2.MapAsync<ScalarEntity2, ScalarEntity1>(instance);
+        ScalarEntity1? result = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
+            result = await session2.MapAsync<ScalarEntity2, ScalarEntity1>(instance);
+        });
 
         // assert
-        Assert.Equal(1, result.IntProp);
+        Assert.Equal(1, result!.IntProp);
         Assert.Equal(2, result.LongNullableProp);
         Assert.Equal("3", result.StringProp);
         Assert.Equal(result.ByteArrayProp, instance.ByteArrayProp);
@@ -49,13 +61,20 @@ public sealed class ScalarPropertyMappingTests : TestBase
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>();
         var mapper = mapperBuilder.Build();
 
-        DatabaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(2, 3, "4", new byte[] { 2, 3, 4 }));
-        await DatabaseContext.SaveChangesAsync();
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(2, 3, "4", new byte[] { 2, 3, 4 }));
+            await databaseContext.SaveChangesAsync();
+        });
 
         // act
-        var entity = await DatabaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+        ScalarEntity1? entity = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+        });
         var session1 = mapper.CreateMappingSession();
-        var instance = session1.Map<ScalarEntity1, EntityWithoutDefaultConstructor>(entity);
+        var instance = session1.Map<ScalarEntity1, EntityWithoutDefaultConstructor>(entity!);
 
         // assert
         Assert.Equal(2, instance.IntProp);
@@ -70,13 +89,21 @@ public sealed class ScalarPropertyMappingTests : TestBase
         mapperBuilder.Register<ScalarEntity1, ScalarEntity3>();
         var mapper = mapperBuilder.Build();
 
-        DatabaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, 2, "3", new byte[] { 1, 2, 3 }));
-        await DatabaseContext.SaveChangesAsync();
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, 2, "3", new byte[] { 1, 2, 3 }));
+            await databaseContext.SaveChangesAsync();
+        });
 
         // act
-        var entity = await DatabaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+        ScalarEntity1? entity = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+        });
+
         var session = mapper.CreateMappingSession();
-        var result = session.Map<ScalarEntity1, ScalarEntity3>(entity);
+        var result = session.Map<ScalarEntity1, ScalarEntity3>(entity!);
 
         // assert
         Assert.Null(result.IntProp);
@@ -95,13 +122,21 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         var mapper = mapperBuilder.Build();
 
-        DatabaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, 2, "3", new byte[] { 1, 2, 3 }));
-        await DatabaseContext.SaveChangesAsync();
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, 2, "3", new byte[] { 1, 2, 3 }));
+            await databaseContext.SaveChangesAsync();
+        });
 
         // act
-        var entity = await DatabaseContext.Set<ScalarEntity1>().FirstAsync();
+        ScalarEntity1? entity = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<ScalarEntity1>().FirstAsync();
+        });
+
         var session = mapper.CreateMappingSession();
-        var result = session.Map<ScalarEntity1, ScalarEntity4>(entity);
+        var result = session.Map<ScalarEntity1, ScalarEntity4>(entity!);
 
         // assert
         Assert.Null(result.ByteArrayProp);
@@ -120,19 +155,32 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         var mapper = mapperBuilder.Build();
 
-        DatabaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, null, "abc", new byte[] { 1, 2, 3 }));
-        await DatabaseContext.SaveChangesAsync();
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, null, "abc", new byte[] { 1, 2, 3 }));
+            await databaseContext.SaveChangesAsync();
+        });
 
         // act
-        var entity = await DatabaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
+        ScalarEntity1? entity = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
+        });
+
         var session1 = mapper.CreateMappingSession();
-        var result1 = session1.Map<ScalarEntity1, ScalarEntity4>(entity);
+        var result1 = session1.Map<ScalarEntity1, ScalarEntity4>(entity!);
         result1.ByteArrayProp = new ByteArrayWrapper(new byte[] { 2, 3, 4 });
-        var session2 = mapper.CreateMappingToDatabaseSession(DatabaseContext);
-        var result2 = await session2.MapAsync<ScalarEntity4, ScalarEntity1>(result1);
+
+        ScalarEntity1? result2 = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
+            result2 = await session2.MapAsync<ScalarEntity4, ScalarEntity1>(result1);
+        });
 
         // assert
-        Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes, result2.ByteArrayProp!));
+        Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes, result2!.ByteArrayProp!));
     }
 
     [Fact]
@@ -148,19 +196,33 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         var mapper = mapperBuilder.Build();
 
-        DatabaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, null, "abc", new byte[] { 1, 2, 3 }));
-        await DatabaseContext.SaveChangesAsync();
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, null, "abc", new byte[] { 1, 2, 3 }));
+            await databaseContext.SaveChangesAsync();
+        });
 
         // act
-        var entity = await DatabaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
+        ScalarEntity1? entity = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
+        });
+
+
         var session1 = mapper.CreateMappingSession();
-        var result1 = session1.Map<ScalarEntity1, ScalarEntity4>(entity);
+        var result1 = session1.Map<ScalarEntity1, ScalarEntity4>(entity!);
         result1.ByteArrayProp = new ByteArrayWrapper(new byte[] { 2, 3, 4 });
-        var session2 = mapper.CreateMappingToDatabaseSession(DatabaseContext);
-        var result2 = await session2.MapAsync<ScalarEntity4, ScalarEntity1>(result1);
+
+        ScalarEntity1? result2 = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
+            result2 = await session2.MapAsync<ScalarEntity4, ScalarEntity1>(result1);
+        });
 
         // assert
-        Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes, result2.ByteArrayProp!));
+        Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes, result2!.ByteArrayProp!));
     }
 
     [Fact]

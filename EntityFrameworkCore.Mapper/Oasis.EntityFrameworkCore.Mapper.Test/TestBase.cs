@@ -3,48 +3,38 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Threading.Tasks;
 
-public abstract class TestBase : IDisposable
+public abstract class TestBase
 {
-    private bool _disposed;
+    private readonly DbContextOptions _options;
 
     protected TestBase()
     {
         var connection = new SqliteConnection("Filename=:memory:");
         connection.Open();
-        var options = new DbContextOptionsBuilder<DatabaseContext>()
+        _options = new DbContextOptionsBuilder<DatabaseContext>()
             .UseSqlite(connection)
             .Options;
-        DatabaseContext = new DatabaseContext(options);
-        DatabaseContext.Database.EnsureCreated();
+
         DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp));
     }
 
-    protected DbContext DatabaseContext { get; }
-
     protected TypeConfiguration DefaultConfiguration { get; }
 
-    public void Dispose()
+    protected DbContext CreateDatabaseContext()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
+        var databaseContext = new DatabaseContext(_options);
+        databaseContext.Database.EnsureCreated();
+
+        return databaseContext;
     }
 
-    protected virtual void Dispose(bool disposing)
+    protected async Task ExecuteWithNewDatabaseContext(Func<DbContext, Task> action)
     {
-        if (_disposed)
+        using (var databaseContext = CreateDatabaseContext())
         {
-            return;
+            await action(databaseContext);
         }
-
-        if (disposing)
-        {
-            // free managed resources
-            DatabaseContext.Database.EnsureDeleted();
-            DatabaseContext.Dispose();
-        }
-
-        // free native resources if there are any.
-        _disposed = true;
     }
 }
