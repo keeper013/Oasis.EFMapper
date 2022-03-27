@@ -235,7 +235,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         // assert
         Assert.Throws<ScalarMapperExistsException>(() => mapperBuilder
             .WithScalarConverter<ByteArrayWrapper, byte[]>((wrapper) => ByteArrayWrapper.ConvertStatic(wrapper!))
-            .WithScalarConverter<ByteArrayWrapper, byte[]>((wrapper) => wrapper!.Bytes));
+            .WithScalarConverter<ByteArrayWrapper, byte[]>((wrapper) => wrapper!.Bytes, true));
     }
 
     [Fact]
@@ -272,7 +272,21 @@ public sealed class ScalarPropertyMappingTests : TestBase
         // act & assert
         Assert.Throws<FactoryMethodExistsException>(() => mapperBuilder
             .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(1))
-            .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(2))
+            .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(2), true)
+            .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
+    }
+
+    [Fact]
+    public void RegisterTarget_WithDuplicatedConfig_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+
+        // act & assert
+        Assert.Throws<TypeConfiguratedException>(() => mapperBuilder
+            .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp)))
+            .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp)), true)
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
     }
 }

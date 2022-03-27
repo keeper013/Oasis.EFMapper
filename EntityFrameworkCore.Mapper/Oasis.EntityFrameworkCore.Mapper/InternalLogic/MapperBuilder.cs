@@ -66,35 +66,35 @@ internal sealed class MapperBuilder : IMapperBuilder
         return this;
     }
 
-    public IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod)
+    public IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod, bool throwIfRedundant = false)
         where TEntity : class
     {
         lock (_mapperRegistry)
         {
-            _mapperRegistry.WithFactoryMethod(typeof(TEntity), factoryMethod?.Compile());
+            _mapperRegistry.WithFactoryMethod(typeof(TEntity), factoryMethod.Compile(), throwIfRedundant);
         }
 
         return this;
     }
 
-    public IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration)
+    public IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration, bool throwIfRedundant = false)
         where TEntity : class
     {
         lock (_mapperRegistry)
         {
-            _mapperRegistry.WithConfiguration(typeof(TEntity), configuration, _dynamicMethodBuilder);
+            _mapperRegistry.WithConfiguration(typeof(TEntity), configuration, _dynamicMethodBuilder, throwIfRedundant);
         }
 
         return this;
     }
 
-    public IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression)
+    public IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression, bool throwIfRedundant = false)
         where TSource : notnull
         where TTarget : notnull
     {
         lock (_mapperRegistry)
         {
-            _mapperRegistry.WithScalarConverter(typeof(TSource), typeof(TTarget), expression.Compile());
+            _mapperRegistry.WithScalarConverter(typeof(TSource), typeof(TTarget), expression.Compile(), throwIfRedundant);
         }
 
         return this;

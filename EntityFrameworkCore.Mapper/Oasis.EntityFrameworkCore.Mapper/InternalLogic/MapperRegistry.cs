@@ -51,50 +51,69 @@ internal sealed class MapperRegistry
         RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, methodBuilder));
     }
 
-    public void WithFactoryMethod(Type type, Delegate factoryMethod)
+    public void WithFactoryMethod(Type type, Delegate factoryMethod, bool throwIfRedundant = false)
     {
-        if (factoryMethod != null && type.GetConstructor(Array.Empty<Type>()) != null)
+        if (factoryMethod == null)
+        {
+            throw new ArgumentNullException(nameof(factoryMethod));
+        }
+
+        if (type.GetConstructor(Array.Empty<Type>()) != null)
         {
             throw new FactoryMethodException(type, false);
         }
 
         if (_factoryMethods.ContainsKey(type))
         {
-            throw new FactoryMethodExistsException(type);
+            if (throwIfRedundant)
+            {
+                throw new FactoryMethodExistsException(type);
+            }
         }
-
-        if (factoryMethod != null)
+        else
         {
-            _factoryMethods.Add(type, factoryMethod);
+            _factoryMethods.Add(type, factoryMethod!);
         }
     }
 
-    public void WithConfiguration(Type type, TypeConfiguration configuration, IDynamicMethodBuilder methodBuilder)
+    public void WithConfiguration(Type type, TypeConfiguration configuration, IDynamicMethodBuilder methodBuilder, bool throwIfRedundant = false)
     {
         if (!EntityMapperTypeValidator.IsSourceType(type) && !EntityMapperTypeValidator.IsTargetType(type))
         {
             throw new InvalidEntityTypeException(type);
         }
 
+        bool typeIsConfigurated = false;
         if (_typesUsingCustomConfiguration.ContainsKey(type))
         {
-            throw new TypeConfiguratedException(type);
+            typeIsConfigurated = true;
+            if (throwIfRedundant)
+            {
+                throw new TypeConfiguratedException(type);
+            }
         }
 
         if (_typesUsingDefaultConfiguration.Contains(type))
         {
-            throw new TypeAlreadyRegisteredException(type);
+            typeIsConfigurated = true;
+            if (throwIfRedundant)
+            {
+                throw new TypeAlreadyRegisteredException(type);
+            }
         }
 
-        _typesUsingCustomConfiguration[type] = configuration;
+        if (!typeIsConfigurated)
+        {
+            _typesUsingCustomConfiguration[type] = configuration;
 
-        var properties = type.GetProperties(Utilities.PublicInstance);
-        var identityProperty = properties.GetProperty(configuration.identityPropertyName);
-        var timeStampProperty = properties.GetProperty(configuration.timestampPropertyName);
-        _typeProxies.Add(type, BuildTypeProxy(type, identityProperty, timeStampProperty, methodBuilder, configuration.keepEntityOnMappingRemoved));
+            var properties = type.GetProperties(Utilities.PublicInstance);
+            var identityProperty = properties.GetProperty(configuration.identityPropertyName);
+            var timeStampProperty = properties.GetProperty(configuration.timestampPropertyName);
+            _typeProxies.Add(type, BuildTypeProxy(type, identityProperty, timeStampProperty, methodBuilder, configuration.keepEntityOnMappingRemoved));
+        }
     }
 
-    public void WithScalarConverter(Type sourceType, Type targetType, Delegate @delegate)
+    public void WithScalarConverter(Type sourceType, Type targetType, Delegate @delegate, bool throwIfRedundant = false)
     {
         var sourceIsScalarType = ScalarMapperTypeValidator.IsSourceType(sourceType);
         var targetIsScalarType = ScalarMapperTypeValidator.IsTargetType(targetType);
@@ -121,7 +140,7 @@ internal sealed class MapperRegistry
                 _convertableToScalarTargetTypes.Add(targetType);
             }
         }
-        else
+        else if (throwIfRedundant)
         {
             throw new ScalarMapperExistsException(sourceType, targetType);
         }

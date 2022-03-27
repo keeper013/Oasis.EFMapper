@@ -6,13 +6,13 @@ public interface IMapperBuilder
 {
     public const bool DefaultKeepEntityOnMappingRemoved = false;
 
-    IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod)
+    IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod, bool throwIfRedundant = false)
         where TEntity : class;
 
-    IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration)
+    IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration, bool throwIfRedundant = false)
         where TEntity : class;
 
-    IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression)
+    IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression, bool throwIfRedundant = false)
         where TSource : notnull
         where TTarget : notnull;
 
