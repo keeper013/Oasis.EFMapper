@@ -9,7 +9,7 @@ using Xunit;
 public sealed class ScalarPropertyMappingTests : TestBase
 {
     [Fact]
-    public async Task MapScalarProperties_ValidProperties_ShouldBeMapped()
+    public async Task MapScalarProperties_ValidProperties_ShouldSucceed()
     {
         // arrange
         var factory = new MapperBuilderFactory();
@@ -225,6 +225,95 @@ public sealed class ScalarPropertyMappingTests : TestBase
     }
 
     [Fact]
+    public async Task MapScalarProperties_ToEntityNoId_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder
+            .Register<ScalarEntity1, ScalarEntityNoBase1>()
+            .Register<ScalarEntityNoBase1, ScalarEntityNoBase2>();
+        var mapper = mapperBuilder.Build();
+        var byteArray = new byte[] { 2, 3, 4 };
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(2, 3, "4", byteArray));
+            await databaseContext.SaveChangesAsync();
+        });
+
+        // act
+        ScalarEntity1? entity = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+        });
+
+        var session = mapper.CreateMappingSession();
+        var instance1 = session.Map<ScalarEntity1, ScalarEntityNoBase1>(entity!);
+
+        // assert
+        Assert.Equal(2, instance1!.IntProp);
+        Assert.Equal(3, instance1.LongNullableProp);
+        Assert.Equal("4", instance1.StringProp);
+        Assert.Equal(byteArray, instance1.ByteArrayProp);
+
+        var instance2 = session.Map<ScalarEntityNoBase1, ScalarEntityNoBase2>(instance1);
+
+        // assert
+        Assert.Equal(2, instance2!.IntProp);
+        Assert.Equal(3, instance2.LongNullableProp);
+        Assert.Equal("4", instance2.StringProp);
+        Assert.Equal(byteArray, instance2.ByteArrayProp);
+    }
+
+    [Fact]
+    public async Task MapScalarProperties_CustomKeyProperties_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder
+            .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.Timestamp), nameof(EntityBase.Id)))
+            .WithConfiguration<ScalarEntityNoTimeStamp1>(new TypeConfiguration(nameof(EntityBaseNoTimeStamp.AnotherId)))
+            .Register<ScalarEntity1, ScalarEntityCustomKeyProperties1>()
+            .Register<ScalarEntity1, ScalarEntityNoTimeStamp1>();
+        var mapper = mapperBuilder.Build();
+
+        var byteArray = new byte[] { 2, 3, 4 };
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(2, 3, "4", byteArray));
+            await databaseContext.SaveChangesAsync();
+        });
+
+        // act
+        ScalarEntity1? entity = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+        });
+
+        var session1 = mapper.CreateMappingSession();
+        var instance1 = session1.Map<ScalarEntity1, ScalarEntityCustomKeyProperties1>(entity!);
+
+        // assert
+        Assert.NotEqual(default, instance1.Timestamp);
+        Assert.NotNull(instance1.Id);
+        Assert.Equal(2, instance1.IntProp);
+        Assert.Equal(3, instance1.LongNullableProp);
+        Assert.Equal("4", instance1.StringProp);
+        Assert.Equal(byteArray, instance1.ByteArrayProp);
+
+        var instance2 = session1.Map<ScalarEntity1, ScalarEntityNoTimeStamp1>(entity!);
+        Assert.NotEqual(default, instance2.AnotherId);
+        Assert.Equal(2, instance2.IntProp);
+        Assert.Equal(3, instance2.LongNullableProp);
+        Assert.Equal("4", instance2.StringProp);
+        Assert.Equal(byteArray, instance2.ByteArrayProp);
+    }
+
+    [Fact]
     public void ConvertWithDuplicatedScalarMapper_ShouldFail()
     {
         // arrange
@@ -287,5 +376,23 @@ public sealed class ScalarPropertyMappingTests : TestBase
             .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp)))
             .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp)), true)
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
+    }
+
+    [Fact]
+    public async Task MapScalarProperties_ToEntityNoIdToDatabase_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder
+            .Register<ScalarEntityNoBase1, ScalarEntity1>();
+        var mapper = mapperBuilder.Build();
+        var instance = new ScalarEntityNoBase1(2, 3, "4", new byte[] { 2, 3, 4 });
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
+            await Assert.ThrowsAsync<IdentityPropertyMissingException>(async () => await session.MapAsync<ScalarEntityNoBase1, ScalarEntity1>(instance));
+        });
     }
 }

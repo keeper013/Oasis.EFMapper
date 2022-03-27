@@ -166,6 +166,40 @@ public sealed class EntityPropertyMappingTests : TestBase
             .RegisterTwoWay<Outer1, Outer2>();
         var mapper = mapperBuilder.Build();
 
+        await ReplaceOneToOneMapping(mapper);
+
+        // assert
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            Assert.Equal(2, await databaseContext.Set<Inner1_1>().CountAsync());
+            Assert.Equal(2, await databaseContext.Set<Inner1_2>().CountAsync());
+        });
+    }
+
+    [Fact]
+    public async Task UpdateOneToOneEntity_WithDefaultKeepEntityOnMappingRemoved_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp), true));
+        mapperBuilder
+            .WithConfiguration<Inner1_1>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp), false))
+            .WithConfiguration<Inner1_2>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp), true))
+            .RegisterTwoWay<Outer1, Outer2>();
+        var mapper = mapperBuilder.Build();
+
+        await ReplaceOneToOneMapping(mapper);
+
+        // assert
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            Assert.Equal(1, await databaseContext.Set<Inner1_1>().CountAsync());
+            Assert.Equal(2, await databaseContext.Set<Inner1_2>().CountAsync());
+        });
+    }
+
+    private async Task ReplaceOneToOneMapping(IMapper mapper)
+    {
         var outer1 = new Outer1(1);
         var inner1 = new Inner1_1(1);
         var inner2 = new Inner1_2("1");
@@ -195,13 +229,6 @@ public sealed class EntityPropertyMappingTests : TestBase
             var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
             var result1 = await session2.MapAsync<Outer2, Outer1>(outer2!, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
             await databaseContext.SaveChangesAsync();
-        });
-
-        // assert
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            Assert.Equal(2, await databaseContext.Set<Inner1_1>().CountAsync());
-            Assert.Equal(2, await databaseContext.Set<Inner1_2>().CountAsync());
         });
     }
 }

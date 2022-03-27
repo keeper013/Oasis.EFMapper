@@ -500,46 +500,6 @@ public static class ScalarTypeIsDefaultValueMethods
         return !x.HasValue;
     }
 
-    public static bool IsDefaultValue(float x)
-    {
-        return x == default;
-    }
-
-    public static bool IsDefaultValue(float? x)
-    {
-        return !x.HasValue;
-    }
-
-    public static bool IsDefaultValue(double x)
-    {
-        return x == default;
-    }
-
-    public static bool IsDefaultValue(double? x)
-    {
-        return !x.HasValue;
-    }
-
-    public static bool IsDefaultValue(decimal x)
-    {
-        return x == default;
-    }
-
-    public static bool IsDefaultValue(decimal? x)
-    {
-        return !x.HasValue;
-    }
-
-    public static bool IsDefaultValue(DateTime x)
-    {
-        return x == default;
-    }
-
-    public static bool IsDefaultValue(DateTime? x)
-    {
-        return !x.HasValue;
-    }
-
     public static bool IsDefaultValue(string? x)
     {
         return string.IsNullOrEmpty(x);
@@ -624,46 +584,6 @@ public static class ScalarTypeEqualMethods
     }
 
     public static bool AreEqual(ulong? x, ulong? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(float x, float y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(float? x, float? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(double x, double y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(double? x, double? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(decimal x, decimal y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(decimal? x, decimal? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(DateTime x, DateTime y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(DateTime? x, DateTime? y)
     {
         return x.HasValue && y.HasValue && x.Value == y.Value;
     }

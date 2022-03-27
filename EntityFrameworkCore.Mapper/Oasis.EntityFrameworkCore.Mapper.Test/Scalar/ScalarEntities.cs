@@ -83,6 +83,98 @@ public class ScalarEntity4 : EntityBase
     public ByteArrayWrapper? ByteArrayProp { get; set; }
 }
 
+public sealed class ScalarEntityNoBase1
+{
+    public ScalarEntityNoBase1()
+    {
+    }
+
+    public ScalarEntityNoBase1(int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
+    {
+        IntProp = intProp;
+        LongNullableProp = longNullableProp;
+        StringProp = stringProp;
+        ByteArrayProp = byteArrayProp;
+    }
+
+    public int IntProp { get; set; }
+
+    public long? LongNullableProp { get; set; }
+
+    public string? StringProp { get; set; }
+
+    public byte[]? ByteArrayProp { get; set; }
+}
+
+public sealed class ScalarEntityNoBase2
+{
+    public ScalarEntityNoBase2()
+    {
+    }
+
+    public ScalarEntityNoBase2(int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
+    {
+        IntProp = intProp;
+        LongNullableProp = longNullableProp;
+        StringProp = stringProp;
+        ByteArrayProp = byteArrayProp;
+    }
+
+    public int IntProp { get; set; }
+
+    public long? LongNullableProp { get; set; }
+
+    public string? StringProp { get; set; }
+
+    public byte[]? ByteArrayProp { get; set; }
+}
+
+public sealed class ScalarEntityCustomKeyProperties1 : ReversedEntityBase
+{
+    public ScalarEntityCustomKeyProperties1()
+    {
+    }
+
+    public ScalarEntityCustomKeyProperties1(int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
+    {
+        IntProp = intProp;
+        LongNullableProp = longNullableProp;
+        StringProp = stringProp;
+        ByteArrayProp = byteArrayProp;
+    }
+
+    public int IntProp { get; set; }
+
+    public long? LongNullableProp { get; set; }
+
+    public string? StringProp { get; set; }
+
+    public byte[]? ByteArrayProp { get; set; }
+}
+
+public sealed class ScalarEntityNoTimeStamp1 : EntityBaseNoTimeStamp
+{
+    public ScalarEntityNoTimeStamp1()
+    {
+    }
+
+    public ScalarEntityNoTimeStamp1(int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
+    {
+        IntProp = intProp;
+        LongNullableProp = longNullableProp;
+        StringProp = stringProp;
+        ByteArrayProp = byteArrayProp;
+    }
+
+    public int IntProp { get; set; }
+
+    public long? LongNullableProp { get; set; }
+
+    public string? StringProp { get; set; }
+
+    public byte[]? ByteArrayProp { get; set; }
+}
+
 public sealed class ByteArrayWrapper
 {
     private readonly byte[] _bytes;

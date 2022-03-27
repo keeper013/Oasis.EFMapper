@@ -198,10 +198,13 @@ internal sealed class MapperRegistry
 
             if (!innerComparer.ContainsKey(targetType))
             {
-                var sourceIdProperty = sourceProperties.First(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(sourceType)));
-                var targetIdProperty = sourceProperties.First(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(targetType)));
-                innerComparer![targetType] = new ComparerMetaDataSet(
-                    methodBuilder.BuildUpIdEqualComparerMethod(sourceType, targetType, sourceIdProperty, targetIdProperty));
+                var sourceIdProperty = sourceProperties.FirstOrDefault(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(sourceType)));
+                var targetIdProperty = sourceProperties.FirstOrDefault(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(targetType)));
+                if (sourceIdProperty != default && targetIdProperty != default)
+                {
+                    innerComparer![targetType] = new ComparerMetaDataSet(
+                        methodBuilder.BuildUpIdEqualComparerMethod(sourceType, targetType, sourceIdProperty, targetIdProperty));
+                }
             }
 
             if (!innerMapper.ContainsKey(targetType))
