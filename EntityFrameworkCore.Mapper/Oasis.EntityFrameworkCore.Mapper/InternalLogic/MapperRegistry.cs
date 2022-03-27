@@ -6,7 +6,6 @@ using System.Reflection;
 
 internal sealed class MapperRegistry
 {
-    private readonly TypeConfiguration _defaultConfiguration;
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarSourceTypes = new ();
     private readonly HashSet<Type> _convertableToScalarTargetTypes = new ();
@@ -16,10 +15,14 @@ internal sealed class MapperRegistry
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, ComparerMetaDataSet>> _comparer = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
+    private readonly bool _defaultKeepEntityOnMappingRemoved;
 
     public MapperRegistry(TypeConfiguration defaultConfiguration)
     {
-        _defaultConfiguration = defaultConfiguration;
+        _defaultKeepEntityOnMappingRemoved = defaultConfiguration.keepEntityOnMappingRemoved;
+        KeyPropertyNames = new KeyPropertyNameManager(
+            new KeyPropertyNameConfiguration(defaultConfiguration.identityPropertyName, defaultConfiguration.timestampPropertyName),
+            _typesUsingCustomConfiguration);
         ScalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTargetTypes);
         EntityMapperTypeValidator = new EntityMapperTypeValidator(_mapper, _convertableToScalarSourceTypes, _convertableToScalarTargetTypes);
         EntityListMapperTypeValidator = new EntityListMapperTypeValidator(_mapper, _convertableToScalarSourceTypes, _convertableToScalarTargetTypes);
@@ -30,6 +33,8 @@ internal sealed class MapperRegistry
     public IMapperTypeValidator EntityMapperTypeValidator { get; }
 
     public IMapperTypeValidator EntityListMapperTypeValidator { get; }
+
+    public IKeyPropertyNameManager KeyPropertyNames { get; }
 
     public void Register(Type sourceType, Type targetType, IDynamicMethodBuilder methodBuilder)
     {
@@ -83,9 +88,9 @@ internal sealed class MapperRegistry
 
         _typesUsingCustomConfiguration[type] = configuration;
 
-        var identityPropertyName = configuration.identityPropertyName;
-        var timeStampPropertyName = configuration.timestampPropertyName;
-        GetEntityBaseProperties(type, identityPropertyName, timeStampPropertyName, out var identityProperty, out var timeStampProperty);
+        var properties = type.GetProperties(Utilities.PublicInstance);
+        var identityProperty = properties.GetProperty(configuration.identityPropertyName);
+        var timeStampProperty = properties.GetProperty(configuration.timestampPropertyName);
         _typeProxies.Add(type, BuildTypeProxy(type, identityProperty, timeStampProperty, methodBuilder, configuration.keepEntityOnMappingRemoved));
     }
 
@@ -134,36 +139,12 @@ internal sealed class MapperRegistry
 
     public EntityBaseProxy MakeEntityBaseProxy(Type type, IScalarTypeConverter scalarTypeConverter)
     {
-        return new EntityBaseProxy(_typeProxies, _comparer, type, scalarTypeConverter);
+        return new EntityBaseProxy(_typeProxies, _comparer, type, scalarTypeConverter, _defaultKeepEntityOnMappingRemoved);
     }
 
     public EntityFactory MakeEntityFactory()
     {
         return new EntityFactory(_factoryMethods);
-    }
-
-    private static void GetEntityBaseProperties(
-        Type type,
-        string identityPropertyName,
-        string timestampPropertyName,
-        out PropertyInfo identityProperty,
-        out PropertyInfo timestampProperty)
-    {
-        var properties = type.GetProperties(Utilities.PublicInstance).Where(p => p.GetMethod != null && p.SetMethod != null);
-        var tempIdentityProperty = properties.SingleOrDefault(p => string.Equals(p.Name, identityPropertyName));
-        var tempTimeStampProperty = properties.SingleOrDefault(p => string.Equals(p.Name, timestampPropertyName));
-        if (tempIdentityProperty == null)
-        {
-            throw new InvalidEntityBasePropertyException(type, "id", identityPropertyName);
-        }
-
-        if (tempTimeStampProperty == null)
-        {
-            throw new InvalidEntityBasePropertyException(type, "timestamp", timestampPropertyName);
-        }
-
-        identityProperty = tempIdentityProperty;
-        timestampProperty = tempTimeStampProperty;
     }
 
     private void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context)
@@ -179,15 +160,13 @@ internal sealed class MapperRegistry
 
             RegisterTypeProxies(sourceType, targetType, context.MethodBuilder);
 
-            Dictionary<Type, MapperMetaDataSet>? innerMapper = default;
-            Dictionary<Type, ComparerMetaDataSet>? innerComparer = default;
-            if (!_comparer.TryGetValue(sourceType, out innerComparer))
+            if (!_comparer.TryGetValue(sourceType, out Dictionary<Type, ComparerMetaDataSet>? innerComparer))
             {
                 innerComparer = new Dictionary<Type, ComparerMetaDataSet>();
                 _comparer[sourceType] = innerComparer;
             }
 
-            if (!_mapper.TryGetValue(sourceType, out innerMapper))
+            if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet>? innerMapper))
             {
                 innerMapper = new Dictionary<Type, MapperMetaDataSet>();
                 _mapper[sourceType] = innerMapper;
@@ -199,10 +178,10 @@ internal sealed class MapperRegistry
 
             if (!innerComparer.ContainsKey(targetType))
             {
-                var sourceIdProperty = sourceProperties.First(p => string.Equals(p.Name, GetIdPropertyName(sourceType)));
-                var sourceTimeStampProperty = sourceProperties.First(p => string.Equals(p.Name, GetTimeStampPropertyName(sourceType)));
-                var targetIdProperty = sourceProperties.First(p => string.Equals(p.Name, GetIdPropertyName(targetType)));
-                var targetTimeStampProperty = sourceProperties.First(p => string.Equals(p.Name, GetTimeStampPropertyName(targetType)));
+                var sourceIdProperty = sourceProperties.First(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(sourceType)));
+                var sourceTimeStampProperty = sourceProperties.First(p => string.Equals(p.Name, KeyPropertyNames.GetTimeStampPropertyName(sourceType)));
+                var targetIdProperty = sourceProperties.First(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(targetType)));
+                var targetTimeStampProperty = sourceProperties.First(p => string.Equals(p.Name, KeyPropertyNames.GetTimeStampPropertyName(targetType)));
                 innerComparer![targetType] = new ComparerMetaDataSet(
                     methodBuilder.BuildUpIdEqualComparerMethod(sourceType, targetType, sourceIdProperty, targetIdProperty),
                     methodBuilder.BuildUpTimeStampEqualComparerMethod(sourceType, targetType, sourceTimeStampProperty, targetTimeStampProperty));
@@ -211,6 +190,7 @@ internal sealed class MapperRegistry
             if (!innerMapper.ContainsKey(targetType))
             {
                 innerMapper[targetType] = new MapperMetaDataSet(
+                    methodBuilder.BuildUpKeyScalarPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties),
                     methodBuilder.BuildUpScalarPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties),
                     methodBuilder.BuildUpEntityPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties, context),
                     methodBuilder.BuildUpEntityListPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties, context));
@@ -226,8 +206,12 @@ internal sealed class MapperRegistry
         var targetTypeRegistered = _typesUsingCustomConfiguration.ContainsKey(targetType) || _typesUsingDefaultConfiguration.Contains(targetType);
         if (!sourceTypeRegistered || !targetTypeRegistered)
         {
-            GetEntityBaseProperties(sourceType, GetIdPropertyName(sourceType), GetTimeStampPropertyName(sourceType), out var sourceIdProperty, out var sourceTimeStampProperty);
-            GetEntityBaseProperties(targetType, GetIdPropertyName(targetType), GetTimeStampPropertyName(targetType), out var targetIdProperty, out var targetTimeStampProperty);
+            var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance);
+            var sourceIdProperty = sourceProperties.GetProperty(KeyPropertyNames.GetIdentityPropertyName(sourceType));
+            var sourceTimeStampProperty = sourceProperties.GetProperty(KeyPropertyNames.GetTimeStampPropertyName(sourceType));
+            var targetProperties = targetType.GetProperties(Utilities.PublicInstance);
+            var targetIdProperty = targetProperties.GetProperty(KeyPropertyNames.GetIdentityPropertyName(targetType));
+            var targetTimeStampProperty = targetProperties.GetProperty(KeyPropertyNames.GetTimeStampPropertyName(targetType));
 
             var sourceIdType = sourceIdProperty.PropertyType;
             var targetIdType = targetIdProperty.PropertyType;
@@ -270,15 +254,5 @@ internal sealed class MapperRegistry
             methodBuilder.BuildUpTimeStampIsEmptyMethod(type, timeStampProperty),
             identityProperty,
             keepEntityOnMappingRemoved);
-    }
-
-    private string? GetIdPropertyName(Type type)
-    {
-        return _typesUsingCustomConfiguration.TryGetValue(type, out var configuration) ? configuration.identityPropertyName : _defaultConfiguration.identityPropertyName;
-    }
-
-    private string? GetTimeStampPropertyName(Type type)
-    {
-        return _typesUsingCustomConfiguration.TryGetValue(type, out var configuration) ? configuration.timestampPropertyName : _defaultConfiguration.timestampPropertyName;
     }
 }

@@ -11,30 +11,9 @@ internal interface IIdPropertyTracker
 
 internal sealed class EntityBaseProxy : IIdPropertyTracker
 {
-    private static readonly IReadOnlyDictionary<Type, object> DefaultIdValues = new Dictionary<Type, object>
-    {
-        { typeof(int), Activator.CreateInstance(typeof(int))! },
-        { typeof(long), Activator.CreateInstance(typeof(long))! },
-        { typeof(uint), Activator.CreateInstance(typeof(uint))! },
-        { typeof(ulong), Activator.CreateInstance(typeof(ulong))! },
-        { typeof(short), Activator.CreateInstance(typeof(short))! },
-        { typeof(ushort), Activator.CreateInstance(typeof(ushort))! },
-        { typeof(byte), Activator.CreateInstance(typeof(byte))! },
-    };
-
-    private static readonly IReadOnlyDictionary<Type, object> DefaultTimeStampValues = new Dictionary<Type, object>
-    {
-        { typeof(DateTime), Activator.CreateInstance(typeof(DateTime))! },
-        { typeof(int), Activator.CreateInstance(typeof(int))! },
-        { typeof(long), Activator.CreateInstance(typeof(long))! },
-        { typeof(uint), Activator.CreateInstance(typeof(uint))! },
-        { typeof(ulong), Activator.CreateInstance(typeof(ulong))! },
-        { typeof(short), Activator.CreateInstance(typeof(short))! },
-        { typeof(ushort), Activator.CreateInstance(typeof(ushort))! },
-        { typeof(byte), Activator.CreateInstance(typeof(byte))! },
-    };
-
+    private readonly bool _defaultKeepEntityOnMappingRemoved;
     private readonly IReadOnlySet<Type> _keepEntityOnMappingRemovedTypes;
+    private readonly IReadOnlySet<Type> _removeEntityOnMappingRemoveTypes;
     private readonly IReadOnlyDictionary<Type, TypeProxy> _proxies;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, EntityComparer>> _comparers;
     private readonly IScalarTypeConverter _scalarConverter;
@@ -43,10 +22,13 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         Dictionary<Type, TypeProxyMetaDataSet> proxies,
         Dictionary<Type, Dictionary<Type, ComparerMetaDataSet>> comparers,
         Type type,
-        IScalarTypeConverter scalarConverter)
+        IScalarTypeConverter scalarConverter,
+        bool defaultKeepEntityOnMappingRemoved)
     {
+        _defaultKeepEntityOnMappingRemoved = defaultKeepEntityOnMappingRemoved;
         var typeProxies = new Dictionary<Type, TypeProxy>();
         var keepEntityOnMappingRemoved = new HashSet<Type>();
+        var removeEntityOnMappingRemoved = new HashSet<Type>();
         foreach (var pair in proxies)
         {
             var typeMetaDataSet = pair.Value;
@@ -60,9 +42,14 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
             {
                 keepEntityOnMappingRemoved.Add(pair.Key);
             }
+            else
+            {
+                removeEntityOnMappingRemoved.Add(pair.Key);
+            }
         }
 
         _keepEntityOnMappingRemovedTypes = keepEntityOnMappingRemoved;
+        _removeEntityOnMappingRemoveTypes = removeEntityOnMappingRemoved;
         _proxies = typeProxies;
 
         var comparer = new Dictionary<Type, IReadOnlyDictionary<Type, EntityComparer>>();
@@ -121,7 +108,9 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
     public void HandleRemove<TEntity>(DbContext databaseContext, TEntity entity)
         where TEntity : class
     {
-        if (!_keepEntityOnMappingRemovedTypes.Contains(typeof(TEntity)))
+        if (_defaultKeepEntityOnMappingRemoved ?
+            _removeEntityOnMappingRemoveTypes.Contains(typeof(TEntity)) :
+            !_keepEntityOnMappingRemovedTypes.Contains(typeof(TEntity)))
         {
             databaseContext.Set<TEntity>().Remove(entity);
         }

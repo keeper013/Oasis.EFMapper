@@ -1,7 +1,5 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-using System.Linq.Expressions;
-
 internal interface IEntityFactory
 {
     TEntity Make<TEntity>()

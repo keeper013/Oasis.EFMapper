@@ -20,7 +20,8 @@ internal sealed class MapperBuilder : IMapperBuilder
             module.DefineType("Mapper", TypeAttributes.Public),
             _mapperRegistry.ScalarMapperTypeValidator,
             _mapperRegistry.EntityMapperTypeValidator,
-            _mapperRegistry.EntityListMapperTypeValidator);
+            _mapperRegistry.EntityListMapperTypeValidator,
+            _mapperRegistry.KeyPropertyNames);
     }
 
     public IMapper Build()

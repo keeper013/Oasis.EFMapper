@@ -36,20 +36,22 @@ internal static class Utilities
         where TSource : class
         where TTarget : class;
 
-    public static Expression<Func<TEntity, bool>> BuildIdEqualsExpression<TEntity>(IIdPropertyTracker identityPropertyTracker, object? value)
-        where TEntity : class
+    public static PropertyInfo? GetProperty(this IEnumerable<PropertyInfo> properties, string? propertyName)
     {
-        var parameter = Expression.Parameter(typeof(TEntity), "entity");
-        var equal = Expression.Equal(
-            Expression.Property(parameter, identityPropertyTracker.GetIdProperty<TEntity>()),
-            Expression.Constant(value));
-        return Expression.Lambda<Func<TEntity, bool>>(equal, parameter);
+        return string.IsNullOrEmpty(propertyName) ?
+            null :
+            properties.SingleOrDefault(p => p.VerifyGetterSetter() && string.Equals(propertyName, p.Name));
+    }
+
+    public static bool VerifyGetterSetter(this PropertyInfo prop)
+    {
+        return prop.GetMethod != default && prop.SetMethod != default;
     }
 }
 
 internal record struct MethodMetaData(Type type, string name);
 
-internal record struct MapperSet(Delegate scalarPropertiesMapper, Delegate entityPropertiesMapper, Delegate listPropertiesMapper);
+internal record struct MapperSet(Delegate keyPropertiesMapper, Delegate scalarPropertiesMapper, Delegate entityPropertiesMapper, Delegate listPropertiesMapper);
 
 internal record struct TypeProxyMetaDataSet(MethodMetaData getId, MethodMetaData identityIsEmpty, MethodMetaData timestampIsEmpty, PropertyInfo identityProperty, bool keepEntityOnMappingRemoved);
 
@@ -57,7 +59,7 @@ internal record struct TypeProxy(Delegate getId, Delegate identityIsEmpty, Deleg
 
 internal record struct EntityComparer(Delegate idsAreEqual, Delegate timestampsAreEqual);
 
-internal record struct MapperMetaDataSet(MethodMetaData scalarPropertiesMapper, MethodMetaData entityPropertiesMapper, MethodMetaData listPropertiesMapper);
+internal record struct MapperMetaDataSet(MethodMetaData keyPropertiesMapper, MethodMetaData scalarPropertiesMapper, MethodMetaData entityPropertiesMapper, MethodMetaData listPropertiesMapper);
 
 // TODO: timestamp property may not exist
 internal record struct ComparerMetaDataSet(MethodMetaData identityComparer, MethodMetaData timeStampComparer);
