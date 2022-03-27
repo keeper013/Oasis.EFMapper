@@ -1,6 +1,5 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-using System.Linq.Expressions;
 using System.Reflection;
 
 internal static class Utilities
@@ -25,14 +24,7 @@ internal static class Utilities
     public delegate bool IdIsEmpty<TEntity>(TEntity entity)
         where TEntity : class;
 
-    public delegate bool TimeStampIsEmpty<TEntity>(TEntity entity)
-        where TEntity : class;
-
     public delegate bool IdsAreEqual<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
-        where TSource : class
-        where TTarget : class;
-
-    public delegate bool TimeStampsAreEqual<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
         where TSource : class
         where TTarget : class;
 
@@ -53,13 +45,13 @@ internal record struct MethodMetaData(Type type, string name);
 
 internal record struct MapperSet(Delegate keyPropertiesMapper, Delegate scalarPropertiesMapper, Delegate entityPropertiesMapper, Delegate listPropertiesMapper);
 
-internal record struct TypeProxyMetaDataSet(MethodMetaData getId, MethodMetaData identityIsEmpty, MethodMetaData timestampIsEmpty, PropertyInfo identityProperty, bool keepEntityOnMappingRemoved);
+internal record struct TypeProxyMetaDataSet(MethodMetaData getId, MethodMetaData identityIsEmpty, PropertyInfo identityProperty, bool keepEntityOnMappingRemoved);
 
-internal record struct TypeProxy(Delegate getId, Delegate identityIsEmpty, Delegate timestampIsEmpty, PropertyInfo identityProperty);
+internal record struct TypeProxy(Delegate getId, Delegate identityIsEmpty, PropertyInfo identityProperty);
 
-internal record struct EntityComparer(Delegate idsAreEqual, Delegate timestampsAreEqual);
+internal record struct EntityComparer(Delegate idsAreEqual);
 
 internal record struct MapperMetaDataSet(MethodMetaData keyPropertiesMapper, MethodMetaData scalarPropertiesMapper, MethodMetaData entityPropertiesMapper, MethodMetaData listPropertiesMapper);
 
 // TODO: timestamp property may not exist
-internal record struct ComparerMetaDataSet(MethodMetaData identityComparer, MethodMetaData timeStampComparer);
+internal record struct ComparerMetaDataSet(MethodMetaData identityComparer);

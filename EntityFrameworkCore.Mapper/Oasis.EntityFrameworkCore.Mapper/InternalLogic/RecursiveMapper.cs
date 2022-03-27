@@ -167,11 +167,6 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
                     var t = target.SingleOrDefault(i => Equals(EntityBaseProxy.GetId(i), EntityBaseProxy.GetId(s)));
                     if (t != default)
                     {
-                        if (EntityBaseProxy.TimeStampIsEmpty(s) || !EntityBaseProxy.TimeStampEquals(s, t))
-                        {
-                            throw new StaleEntityException(typeof(TTarget), EntityBaseProxy.GetId(s));
-                        }
-
                         Map(s, t, false);
                         shadowSet.Remove(t);
                     }

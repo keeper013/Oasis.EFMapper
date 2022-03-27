@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 
 internal interface IDynamicMethodBuilder
 {
-    MethodMetaData BuildUpKeyScalarPropertiesMapperMethod(
+    MethodMetaData BuildUpKeyPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
         PropertyInfo[] allSourceProperties,
@@ -37,30 +37,20 @@ internal interface IDynamicMethodBuilder
         PropertyInfo sourceIdProperty,
         PropertyInfo targetIdProperty);
 
-    MethodMetaData BuildUpTimeStampEqualComparerMethod(
-        Type sourceType,
-        Type targetType,
-        PropertyInfo sourceTimeStampProperty,
-        PropertyInfo targetTimeStampProperty);
-
     MethodMetaData BuildUpGetIdMethod(Type type, PropertyInfo identityProperty);
 
     MethodMetaData BuildUpIdIsEmptyMethod(Type type, PropertyInfo identityProperty);
-
-    MethodMetaData BuildUpTimeStampIsEmptyMethod(Type type, PropertyInfo timeStampProperty);
 }
 
 internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
 {
     private const char MapScalarPropertiesMethod = 's';
-    private const char MapKeyScalarPropertiesMethod = 'k';
+    private const char MapKeyPropertiesMethod = 'k';
     private const char MapEntityPropertiesMethod = 'e';
     private const char MapListPropertiesMethod = 'l';
     private const char CompareIdMethod = 'c';
-    private const char CompareTimeStampMethod = 't';
     private const char GetId = 'g';
     private const char IdEmpty = 'i';
-    private const char TimeStampEmpty = 't';
 
     private static readonly MethodInfo ObjectEqual = typeof(object).GetMethod(nameof(object.Equals), new[] { typeof(object), typeof(object) })!;
 
@@ -95,13 +85,13 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         return _typeBuilder.CreateType()!;
     }
 
-    public MethodMetaData BuildUpKeyScalarPropertiesMapperMethod(
+    public MethodMetaData BuildUpKeyPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
         PropertyInfo[] allSourceProperties,
         PropertyInfo[] allTargetProperties)
     {
-        var methodName = BuildMapperMethodName(MapKeyScalarPropertiesMethod, sourceType, targetType);
+        var methodName = BuildMapperMethodName(MapKeyPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
         var generator = method.GetILGenerator();
         var sourceIdentityProperty = allSourceProperties.GetProperty(_keyPropertyNameManager.GetIdentityPropertyName(sourceType));
@@ -251,19 +241,6 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         return new MethodMetaData(typeof(Utilities.IdsAreEqual<,>).MakeGenericType(sourceType, targetType), method.Name);
     }
 
-    public MethodMetaData BuildUpTimeStampEqualComparerMethod(
-        Type sourceType,
-        Type targetType,
-        PropertyInfo sourceTimeStampProperty,
-        PropertyInfo targetTimeStampProperty)
-    {
-        var methodName = BuildPropertyCompareMethodName(CompareTimeStampMethod, sourceType, targetType);
-        var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(bool));
-        var generator = method.GetILGenerator();
-        GenerateScalarPropertyEqualIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
-        return new MethodMetaData(typeof(Utilities.TimeStampsAreEqual<,>).MakeGenericType(sourceType, targetType), method.Name);
-    }
-
     public MethodMetaData BuildUpGetIdMethod(Type type, PropertyInfo identityProperty)
     {
         var methodName = BuildMethodName(GetId, type);
@@ -290,15 +267,6 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var generator = method.GetILGenerator();
         GenerateScalarPropertyEmptyIL(generator, identityProperty);
         return new MethodMetaData(typeof(Utilities.IdIsEmpty<>).MakeGenericType(type), method.Name);
-    }
-
-    public MethodMetaData BuildUpTimeStampIsEmptyMethod(Type type, PropertyInfo timeStampProperty)
-    {
-        var methodName = BuildMethodName(TimeStampEmpty, type);
-        var method = BuildMethod(methodName, new[] { type }, typeof(bool));
-        var generator = method.GetILGenerator();
-        GenerateScalarPropertyEmptyIL(generator, timeStampProperty);
-        return new MethodMetaData(typeof(Utilities.TimeStampIsEmpty<>).MakeGenericType(type), method.Name);
     }
 
     private static string BuildMethodName(char prefix, Type entityType)

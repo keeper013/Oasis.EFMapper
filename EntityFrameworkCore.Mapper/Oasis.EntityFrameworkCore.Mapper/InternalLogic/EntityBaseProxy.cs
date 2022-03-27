@@ -35,7 +35,6 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
             var typeProxy = new TypeProxy(
                 Delegate.CreateDelegate(typeMetaDataSet.getId.type, type!.GetMethod(typeMetaDataSet.getId.name)!),
                 Delegate.CreateDelegate(typeMetaDataSet.identityIsEmpty.type, type!.GetMethod(typeMetaDataSet.identityIsEmpty.name)!),
-                Delegate.CreateDelegate(typeMetaDataSet.timestampIsEmpty.type, type!.GetMethod(typeMetaDataSet.timestampIsEmpty.name)!),
                 typeMetaDataSet.identityProperty);
             typeProxies.Add(pair.Key, typeProxy);
             if (typeMetaDataSet.keepEntityOnMappingRemoved)
@@ -60,8 +59,7 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
             {
                 var comparerMetaDataSet = innerPair.Value;
                 var comparerSet = new EntityComparer(
-                    Delegate.CreateDelegate(comparerMetaDataSet.identityComparer.type, type!.GetMethod(comparerMetaDataSet.identityComparer.name)!),
-                    Delegate.CreateDelegate(comparerMetaDataSet.timeStampComparer.type, type!.GetMethod(comparerMetaDataSet.timeStampComparer.name)!));
+                    Delegate.CreateDelegate(comparerMetaDataSet.identityComparer.type, type!.GetMethod(comparerMetaDataSet.identityComparer.name)!));
                 innerDictionary.Add(innerPair.Key, comparerSet);
             }
 
@@ -85,24 +83,11 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         return ((Utilities.IdIsEmpty<TEntity>)_proxies[typeof(TEntity)].identityIsEmpty)(entity);
     }
 
-    public bool TimeStampIsEmpty<TEntity>(TEntity entity)
-        where TEntity : class
-    {
-        return ((Utilities.TimeStampIsEmpty<TEntity>)_proxies[typeof(TEntity)].timestampIsEmpty)(entity);
-    }
-
     public bool IdEquals<TSource, TTarget>(TSource source, TTarget target)
         where TSource : class
         where TTarget : class
     {
         return ((Utilities.IdsAreEqual<TSource, TTarget>)_comparers[typeof(TSource)][typeof(TTarget)].idsAreEqual)(source, target, _scalarConverter);
-    }
-
-    public bool TimeStampEquals<TSource, TTarget>(TSource source, TTarget target)
-        where TSource : class
-        where TTarget : class
-    {
-        return ((Utilities.TimeStampsAreEqual<TSource, TTarget>)_comparers[typeof(TSource)][typeof(TTarget)].timestampsAreEqual)(source, target, _scalarConverter);
     }
 
     public void HandleRemove<TEntity>(DbContext databaseContext, TEntity entity)

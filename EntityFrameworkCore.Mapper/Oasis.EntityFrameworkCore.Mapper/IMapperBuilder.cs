@@ -28,6 +28,6 @@ public interface IMapperBuilder
 }
 
 public record struct TypeConfiguration(
-    string? identityPropertyName = null,
-    string? timestampPropertyName = null,
+    string identityPropertyName,
+    string? timestampPropertyName = default,
     bool keepEntityOnMappingRemoved = IMapperBuilder.DefaultKeepEntityOnMappingRemoved);

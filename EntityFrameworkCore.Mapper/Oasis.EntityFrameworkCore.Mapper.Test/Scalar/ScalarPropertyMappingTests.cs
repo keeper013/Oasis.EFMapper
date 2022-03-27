@@ -209,7 +209,6 @@ public sealed class ScalarPropertyMappingTests : TestBase
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
-
         var session1 = mapper.CreateMappingSession();
         var result1 = session1.Map<ScalarEntity1, ScalarEntity4>(entity!);
         result1.ByteArrayProp = new ByteArrayWrapper(new byte[] { 2, 3, 4 });

@@ -57,14 +57,6 @@ internal sealed class MappingSession : IMappingSession
 
     TTarget IMappingSession.Map<TSource, TTarget>(TSource source)
     {
-        if (!_entityBaseProxy.IdIsEmpty(source))
-        {
-            if (_entityBaseProxy.TimeStampIsEmpty(source))
-            {
-                throw new MissingTimestampException(typeof(TSource), _entityBaseProxy.GetId(source));
-            }
-        }
-
         var target = _entityFactory.Make<TTarget>();
         new ToMemoryRecursiveMapper(_newEntityTracker, _scalarConverter, _lookup, _entityBaseProxy).Map(source, target, true);
 
@@ -122,16 +114,6 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
             if (target == default)
             {
                 throw new EntityNotFoundException(typeof(TTarget), _entityBaseProxy.GetId(source));
-            }
-
-            if (_entityBaseProxy.TimeStampIsEmpty(target))
-            {
-                throw new MissingTimestampException(typeof(TTarget), _entityBaseProxy.GetId(source));
-            }
-
-            if (!_entityBaseProxy.TimeStampEquals(source, target))
-            {
-                throw new StaleEntityException(typeof(TTarget), _entityBaseProxy.GetId(source));
             }
 
             new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _entityFactory, _lookup, _entityBaseProxy, _databaseContext).Map(source, target, true);

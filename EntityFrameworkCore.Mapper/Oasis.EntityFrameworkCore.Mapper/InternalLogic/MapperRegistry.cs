@@ -106,10 +106,8 @@ internal sealed class MapperRegistry
         {
             _typesUsingCustomConfiguration[type] = configuration;
 
-            var properties = type.GetProperties(Utilities.PublicInstance);
-            var identityProperty = properties.GetProperty(configuration.identityPropertyName);
-            var timeStampProperty = properties.GetProperty(configuration.timestampPropertyName);
-            _typeProxies.Add(type, BuildTypeProxy(type, identityProperty, timeStampProperty, methodBuilder, configuration.keepEntityOnMappingRemoved));
+            var identityProperty = type.GetProperties(Utilities.PublicInstance).GetProperty(configuration.identityPropertyName);
+            _typeProxies.Add(type, BuildTypeProxy(type, identityProperty, methodBuilder, configuration.keepEntityOnMappingRemoved));
         }
     }
 
@@ -198,18 +196,15 @@ internal sealed class MapperRegistry
             if (!innerComparer.ContainsKey(targetType))
             {
                 var sourceIdProperty = sourceProperties.First(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(sourceType)));
-                var sourceTimeStampProperty = sourceProperties.First(p => string.Equals(p.Name, KeyPropertyNames.GetTimeStampPropertyName(sourceType)));
                 var targetIdProperty = sourceProperties.First(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(targetType)));
-                var targetTimeStampProperty = sourceProperties.First(p => string.Equals(p.Name, KeyPropertyNames.GetTimeStampPropertyName(targetType)));
                 innerComparer![targetType] = new ComparerMetaDataSet(
-                    methodBuilder.BuildUpIdEqualComparerMethod(sourceType, targetType, sourceIdProperty, targetIdProperty),
-                    methodBuilder.BuildUpTimeStampEqualComparerMethod(sourceType, targetType, sourceTimeStampProperty, targetTimeStampProperty));
+                    methodBuilder.BuildUpIdEqualComparerMethod(sourceType, targetType, sourceIdProperty, targetIdProperty));
             }
 
             if (!innerMapper.ContainsKey(targetType))
             {
                 innerMapper[targetType] = new MapperMetaDataSet(
-                    methodBuilder.BuildUpKeyScalarPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties),
+                    methodBuilder.BuildUpKeyPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties),
                     methodBuilder.BuildUpScalarPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties),
                     methodBuilder.BuildUpEntityPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties, context),
                     methodBuilder.BuildUpEntityListPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties, context));
@@ -225,12 +220,8 @@ internal sealed class MapperRegistry
         var targetTypeRegistered = _typesUsingCustomConfiguration.ContainsKey(targetType) || _typesUsingDefaultConfiguration.Contains(targetType);
         if (!sourceTypeRegistered || !targetTypeRegistered)
         {
-            var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance);
-            var sourceIdProperty = sourceProperties.GetProperty(KeyPropertyNames.GetIdentityPropertyName(sourceType));
-            var sourceTimeStampProperty = sourceProperties.GetProperty(KeyPropertyNames.GetTimeStampPropertyName(sourceType));
-            var targetProperties = targetType.GetProperties(Utilities.PublicInstance);
-            var targetIdProperty = targetProperties.GetProperty(KeyPropertyNames.GetIdentityPropertyName(targetType));
-            var targetTimeStampProperty = targetProperties.GetProperty(KeyPropertyNames.GetTimeStampPropertyName(targetType));
+            var sourceIdProperty = sourceType.GetProperties(Utilities.PublicInstance).GetProperty(KeyPropertyNames.GetIdentityPropertyName(sourceType));
+            var targetIdProperty = targetType.GetProperties(Utilities.PublicInstance).GetProperty(KeyPropertyNames.GetIdentityPropertyName(targetType));
 
             var sourceIdType = sourceIdProperty.PropertyType;
             var targetIdType = targetIdProperty.PropertyType;
@@ -239,23 +230,16 @@ internal sealed class MapperRegistry
                 throw new ScalarConverterMissingException(sourceIdType, targetIdType);
             }
 
-            var sourceTimeStampType = sourceTimeStampProperty.PropertyType;
-            var targetTimeStampType = targetTimeStampProperty.PropertyType;
-            if (sourceTimeStampType != targetTimeStampType && !ScalarMapperTypeValidator.CanConvert(sourceTimeStampType, targetTimeStampType))
-            {
-                throw new ScalarConverterMissingException(sourceTimeStampType, targetTimeStampType);
-            }
-
             if (!sourceTypeRegistered)
             {
                 _typesUsingDefaultConfiguration.Add(sourceType);
-                _typeProxies.Add(sourceType, BuildTypeProxy(sourceType, sourceIdProperty, sourceTimeStampProperty, methodBuilder));
+                _typeProxies.Add(sourceType, BuildTypeProxy(sourceType, sourceIdProperty, methodBuilder));
             }
 
             if (!targetTypeRegistered && sourceType != targetType)
             {
                 _typesUsingDefaultConfiguration.Add(targetType);
-                _typeProxies.Add(targetType, BuildTypeProxy(targetType, targetIdProperty, targetTimeStampProperty, methodBuilder));
+                _typeProxies.Add(targetType, BuildTypeProxy(targetType, targetIdProperty, methodBuilder));
             }
         }
     }
@@ -263,14 +247,12 @@ internal sealed class MapperRegistry
     private TypeProxyMetaDataSet BuildTypeProxy(
         Type type,
         PropertyInfo identityProperty,
-        PropertyInfo timeStampProperty,
         IDynamicMethodBuilder methodBuilder,
         bool keepEntityOnMappingRemoved = IMapperBuilder.DefaultKeepEntityOnMappingRemoved)
     {
         return new TypeProxyMetaDataSet(
             methodBuilder.BuildUpGetIdMethod(type, identityProperty),
             methodBuilder.BuildUpIdIsEmptyMethod(type, identityProperty),
-            methodBuilder.BuildUpTimeStampIsEmptyMethod(type, timeStampProperty),
             identityProperty,
             keepEntityOnMappingRemoved);
     }
