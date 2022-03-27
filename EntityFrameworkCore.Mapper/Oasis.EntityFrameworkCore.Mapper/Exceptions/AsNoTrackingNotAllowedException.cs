@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-public sealed class AsNoTrackingNotAllowedException : Exception
+public sealed class AsNoTrackingNotAllowedException : EfCoreMapperException
 {
     private readonly string _includerString;
 

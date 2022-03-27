@@ -71,31 +71,57 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         _scalarConverter = scalarConverter;
     }
 
+    public bool HasId<TEntity>()
+        where TEntity : class
+    {
+        return _proxies.ContainsKey(typeof(TEntity));
+    }
+
     public object GetId<TEntity>(TEntity entity)
         where TEntity : class
     {
-        return ((Utilities.GetId<TEntity>)_proxies[typeof(TEntity)].getId)(entity);
+        var type = typeof(TEntity);
+        if (_proxies.TryGetValue(type, out var value))
+        {
+            return ((Utilities.GetId<TEntity>)value.getId)(entity);
+        }
+
+        throw new IdentityPropertyMissingException(type);
     }
 
     public bool IdIsEmpty<TEntity>(TEntity entity)
         where TEntity : class
     {
-        return ((Utilities.IdIsEmpty<TEntity>)_proxies[typeof(TEntity)].identityIsEmpty)(entity);
+        var type = typeof(TEntity);
+        if (_proxies.TryGetValue(type, out var value))
+        {
+            return ((Utilities.IdIsEmpty<TEntity>)value.identityIsEmpty)(entity);
+        }
+
+        throw new IdentityPropertyMissingException(type);
     }
 
     public bool IdEquals<TSource, TTarget>(TSource source, TTarget target)
         where TSource : class
         where TTarget : class
     {
-        return ((Utilities.IdsAreEqual<TSource, TTarget>)_comparers[typeof(TSource)][typeof(TTarget)].idsAreEqual)(source, target, _scalarConverter);
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        if (_comparers.TryGetValue(sourceType, out var inner) && inner.TryGetValue(targetType, out var value))
+        {
+            return ((Utilities.IdsAreEqual<TSource, TTarget>)value.idsAreEqual)(source, target, _scalarConverter);
+        }
+
+        throw new IdentityPropertyMissingException(sourceType, targetType);
     }
 
     public void HandleRemove<TEntity>(DbContext databaseContext, TEntity entity)
         where TEntity : class
     {
+        var type = typeof(TEntity);
         if (_defaultKeepEntityOnMappingRemoved ?
-            _removeEntityOnMappingRemoveTypes.Contains(typeof(TEntity)) :
-            !_keepEntityOnMappingRemovedTypes.Contains(typeof(TEntity)))
+            _removeEntityOnMappingRemoveTypes.Contains(type) :
+            !_keepEntityOnMappingRemovedTypes.Contains(type))
         {
             databaseContext.Set<TEntity>().Remove(entity);
         }
@@ -103,11 +129,12 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
 
     public PropertyInfo GetIdProperty<TEntity>()
     {
-        if (_proxies.TryGetValue(typeof(TEntity), out var proxy))
+        var type = typeof(TEntity);
+        if (_proxies.TryGetValue(type, out var proxy))
         {
             return proxy.identityProperty;
         }
 
-        throw new TypeNotProperlyRegisteredException(typeof(TEntity));
+        throw new IdentityPropertyMissingException(type);
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-public sealed class TypeAlreadyRegisteredException : Exception
+public sealed class TypeAlreadyRegisteredException : EfCoreMapperException
 {
     private readonly Type _type;
 

@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-public sealed class ScalarTypeMissingException : Exception
+public sealed class ScalarTypeMissingException : EfCoreMapperException
 {
     private readonly Type _sourceType;
     private readonly Type _targetType;

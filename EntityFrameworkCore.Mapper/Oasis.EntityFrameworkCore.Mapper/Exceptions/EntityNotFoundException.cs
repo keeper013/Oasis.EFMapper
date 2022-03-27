@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-public sealed class EntityNotFoundException : Exception
+public sealed class EntityNotFoundException : EfCoreMapperException
 {
     private readonly Type _type;
     private readonly object _id;

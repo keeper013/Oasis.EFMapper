@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-public class MapperMissingException : Exception
+public class MapperMissingException : EfCoreMapperException
 {
     private readonly Type _sourceType;
     private readonly Type _targetType;

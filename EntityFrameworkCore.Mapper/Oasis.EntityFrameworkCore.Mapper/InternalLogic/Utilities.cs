@@ -53,5 +53,4 @@ internal record struct EntityComparer(Delegate idsAreEqual);
 
 internal record struct MapperMetaDataSet(MethodMetaData keyPropertiesMapper, MethodMetaData scalarPropertiesMapper, MethodMetaData entityPropertiesMapper, MethodMetaData listPropertiesMapper);
 
-// TODO: timestamp property may not exist
 internal record struct ComparerMetaDataSet(MethodMetaData identityComparer);

@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-public sealed class FactoryMethodExistsException : Exception
+public sealed class FactoryMethodExistsException : EfCoreMapperException
 {
     private readonly Type _type;
 

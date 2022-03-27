@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-public sealed class InvalidEntityTypeException : Exception
+public sealed class InvalidEntityTypeException : EfCoreMapperException
 {
     private readonly Type _type;
 

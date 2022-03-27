@@ -41,7 +41,7 @@ internal abstract class RecursiveMapper<T> : IEntityPropertyMapper, IListPropert
         var targetType = typeof(TTarget);
         var targetTypeIsTracked = _trackerDictionary.TryGetValue(targetType, out var existingTargetTracker);
 
-        if (!EntityBaseProxy.IdIsEmpty(target))
+        if (EntityBaseProxy.HasId<TTarget>() && !EntityBaseProxy.IdIsEmpty(target))
         {
             if (!targetTypeIsTracked)
             {
@@ -70,9 +70,9 @@ internal abstract class RecursiveMapper<T> : IEntityPropertyMapper, IListPropert
 
     private class ExistingTargetTracker
     {
-        private readonly ISet<int> _existingTargetIdSet = new HashSet<int>();
+        private readonly ISet<int> _existingTargetHashCodeSet = new HashSet<int>();
 
-        public bool StartTracking(int hashCode) => _existingTargetIdSet.Add(hashCode);
+        public bool StartTracking(int hashCode) => _existingTargetHashCodeSet.Add(hashCode);
     }
 }
 

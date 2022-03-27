@@ -107,7 +107,10 @@ internal sealed class MapperRegistry
             _typesUsingCustomConfiguration[type] = configuration;
 
             var identityProperty = type.GetProperties(Utilities.PublicInstance).GetProperty(configuration.identityPropertyName);
-            _typeProxies.Add(type, BuildTypeProxy(type, identityProperty, methodBuilder, configuration.keepEntityOnMappingRemoved));
+            if (identityProperty != default)
+            {
+                _typeProxies.Add(type, BuildTypeProxy(type, identityProperty, methodBuilder, configuration.keepEntityOnMappingRemoved));
+            }
         }
     }
 
@@ -223,23 +226,34 @@ internal sealed class MapperRegistry
             var sourceIdProperty = sourceType.GetProperties(Utilities.PublicInstance).GetProperty(KeyPropertyNames.GetIdentityPropertyName(sourceType));
             var targetIdProperty = targetType.GetProperties(Utilities.PublicInstance).GetProperty(KeyPropertyNames.GetIdentityPropertyName(targetType));
 
-            var sourceIdType = sourceIdProperty.PropertyType;
-            var targetIdType = targetIdProperty.PropertyType;
-            if (sourceIdType != targetIdType && !ScalarMapperTypeValidator.CanConvert(sourceIdType, targetIdType))
+            var sourceHasId = sourceIdProperty != default;
+            var targetHasId = targetIdProperty != default;
+            if (sourceHasId && targetHasId)
             {
-                throw new ScalarConverterMissingException(sourceIdType, targetIdType);
+                var sourceIdType = sourceIdProperty!.PropertyType;
+                var targetIdType = targetIdProperty!.PropertyType;
+                if (sourceIdType != targetIdType && !ScalarMapperTypeValidator.CanConvert(sourceIdType, targetIdType))
+                {
+                    throw new ScalarConverterMissingException(sourceIdType, targetIdType);
+                }
             }
 
             if (!sourceTypeRegistered)
             {
                 _typesUsingDefaultConfiguration.Add(sourceType);
-                _typeProxies.Add(sourceType, BuildTypeProxy(sourceType, sourceIdProperty, methodBuilder));
+                if (sourceHasId)
+                {
+                    _typeProxies.Add(sourceType, BuildTypeProxy(sourceType, sourceIdProperty!, methodBuilder));
+                }
             }
 
             if (!targetTypeRegistered && sourceType != targetType)
             {
                 _typesUsingDefaultConfiguration.Add(targetType);
-                _typeProxies.Add(targetType, BuildTypeProxy(targetType, targetIdProperty, methodBuilder));
+                if (targetHasId)
+                {
+                    _typeProxies.Add(targetType, BuildTypeProxy(targetType, targetIdProperty!, methodBuilder));
+                }
             }
         }
     }
