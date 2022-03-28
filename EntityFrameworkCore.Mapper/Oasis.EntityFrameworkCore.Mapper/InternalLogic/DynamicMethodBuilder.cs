@@ -199,11 +199,11 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         {
             if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty))
             {
-                var sourceItemType = sourceProperty.PropertyType.GenericTypeArguments[0];
-                var targetItemType = targetProperty.PropertyType.GenericTypeArguments[0];
+                var sourceItemType = sourceProperty.PropertyType.GetListItemType();
+                var targetItemType = targetProperty.PropertyType.GetListItemType();
 
                 // cascading mapper creation: if list item mapper doesn't exist, create it
-                trigger.RegisterIf(sourceItemType, targetItemType, !_entityListTypeValidator.CanConvert(sourceItemType, targetItemType));
+                trigger.RegisterIf(sourceItemType!, targetItemType!, !_entityListTypeValidator.CanConvert(sourceItemType!, targetItemType!));
 
                 // now it's made sure that mapper between list items exists, emit the list property mapping code
                 generator.Emit(OpCodes.Ldarg_1);
@@ -211,7 +211,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
                 var jumpLabel = generator.DefineLabel();
                 generator.Emit(OpCodes.Brtrue_S, jumpLabel);
                 generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Newobj, typeof(List<>).MakeGenericType(targetProperty.PropertyType.GetGenericArguments()).GetConstructor(Array.Empty<Type>())!);
+                generator.Emit(OpCodes.Newobj, typeof(List<>).MakeGenericType(targetItemType!).GetConstructor(Array.Empty<Type>())!);
                 generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
                 generator.MarkLabel(jumpLabel);
                 generator.Emit(OpCodes.Ldarg_2);
@@ -219,7 +219,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
                 generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
-                generator.Emit(OpCodes.Callvirt, _listPropertyMapperCache.CreateIfNotExist(sourceItemType, targetItemType));
+                generator.Emit(OpCodes.Callvirt, _listPropertyMapperCache.CreateIfNotExist(sourceItemType!, targetItemType!));
             }
         }
 
@@ -318,7 +318,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     {
         var propertyType = property.PropertyType;
         var methodInfo = _isDefaultValueCache.GetMethodFor(propertyType);
-        if (methodInfo != null)
+        if (methodInfo != default)
         {
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Callvirt, property.GetMethod!);
@@ -369,7 +369,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
             generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourcePropertyType, targetPropertyType));
-            if (equalMethod == null && targetPropertyType.IsValueType)
+            if (equalMethod == default && targetPropertyType.IsValueType)
             {
                 generator.Emit(OpCodes.Box, targetPropertyType);
             }
@@ -378,7 +378,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         {
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
-            if (equalMethod == null && sourcePropertyType.IsValueType)
+            if (equalMethod == default && sourcePropertyType.IsValueType)
             {
                 generator.Emit(OpCodes.Box, sourcePropertyType);
             }
@@ -386,12 +386,12 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
 
         generator.Emit(OpCodes.Ldarg_1);
         generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
-        if (equalMethod == null && targetPropertyType.IsValueType)
+        if (equalMethod == default && targetPropertyType.IsValueType)
         {
             generator.Emit(OpCodes.Box, targetPropertyType);
         }
 
-        if (equalMethod != null)
+        if (equalMethod != default)
         {
             generator.Emit(OpCodes.Call, equalMethod);
         }
@@ -425,7 +425,7 @@ internal class ScalarTypeMethodCache : IScalarTypeMethodCache
 
     public MethodInfo DefaultMethod => _generalMethod;
 
-    public MethodInfo? GetMethodFor(Type type) => _cache.TryGetValue(type, out var result) ? result : null;
+    public MethodInfo? GetMethodFor(Type type) => _cache.TryGetValue(type, out var result) ? result : default;
 }
 
 public static class ScalarTypeIsDefaultValueMethods

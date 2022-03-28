@@ -13,10 +13,8 @@ internal interface IMapperTypeValidator
 
 internal static class MapperTypeValidatorExtensions
 {
-    private const string ICollectionTypeName = "System.Collections.Generic.ICollection`1[[";
-    private const string IListTypeName = "System.Collections.Generic.IList`1[[";
-    private const string ListTypeName = "System.Collections.Generic.List`1[[";
-    private static readonly Type EnumerableType = typeof(IEnumerable);
+    private static readonly Type EnumerableType = typeof(IEnumerable<>);
+    private static readonly Type CollectionType = typeof(ICollection<>);
     private static readonly Type[] NonPrimitiveScalarTypes = new[]
     {
         typeof(string), typeof(byte[]), typeof(decimal), typeof(decimal?), typeof(DateTime), typeof(DateTime?),
@@ -34,20 +32,25 @@ internal static class MapperTypeValidatorExtensions
 
     public static bool IsEntityType(this Type type)
     {
-        return type.IsClass && !NonEntityClassTypes.Contains(type) && !type.GetInterfaces().Contains(EnumerableType);
+        return type.IsClass && !NonEntityClassTypes.Contains(type) && !IsOfGenericTypeDefinition(type, EnumerableType) && !type.GetInterfaces().Any(i => IsOfGenericTypeDefinition(i, EnumerableType));
     }
 
-    public static bool IsListType(this Type type)
+    public static Type? GetListType(this Type type)
     {
-        var typeFullName = type.FullName;
-        return (typeFullName!.StartsWith(ICollectionTypeName) || typeFullName.StartsWith(IListTypeName) || typeFullName.StartsWith(ListTypeName))
-            && type.GenericTypeArguments.Length == 1;
+        return type.IsArray ? default :
+            IsOfGenericTypeDefinition(type, CollectionType) ?
+                type : type.GetInterfaces().SingleOrDefault(i => IsOfGenericTypeDefinition(i, CollectionType));
     }
 
     public static bool IsNullablePrimitive(this Type type)
     {
         const string NullableTypeName = "System.Nullable`1[[";
         return type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments[0].IsPrimitive;
+    }
+
+    private static bool IsOfGenericTypeDefinition(Type source, Type target)
+    {
+        return source.IsGenericType && source.GetGenericTypeDefinition() == target;
     }
 }
 
@@ -123,23 +126,17 @@ internal sealed class EntityListMapperTypeValidator : IMapperTypeValidator
 
     public bool IsSourceType(Type type)
     {
-        if (type.IsListType())
-        {
-            var itemType = type.GenericTypeArguments[0];
-            return itemType.IsEntityType() && !_convertableToScalarSourceTypes.Contains(itemType);
-        }
-
-        return false;
+        return TryGetListItemType(type, out var itemType) && !_convertableToScalarSourceTypes.Contains(itemType!);
     }
 
     public bool IsTargetType(Type type)
     {
-        if (type.IsListType())
-        {
-            var itemType = type.GenericTypeArguments[0];
-            return itemType.IsEntityType() && !_convertableToScalarTargetTypes.Contains(itemType);
-        }
+        return TryGetListItemType(type, out var itemType) && !_convertableToScalarTargetTypes.Contains(itemType!);
+    }
 
-        return false;
+    private static bool TryGetListItemType(Type type, out Type? itemType)
+    {
+        itemType = type.GetListItemType();
+        return itemType != default;
     }
 }

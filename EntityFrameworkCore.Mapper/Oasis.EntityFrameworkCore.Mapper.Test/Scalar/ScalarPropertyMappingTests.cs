@@ -157,7 +157,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, null, "abc", new byte[] { 1, 2, 3 }));
+            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, default, "abc", new byte[] { 1, 2, 3 }));
             await databaseContext.SaveChangesAsync();
         });
 
@@ -198,7 +198,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, null, "abc", new byte[] { 1, 2, 3 }));
+            databaseContext.Set<ScalarEntity1>().Add(new ScalarEntity1(1, default, "abc", new byte[] { 1, 2, 3 }));
             await databaseContext.SaveChangesAsync();
         });
 

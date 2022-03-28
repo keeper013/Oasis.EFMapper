@@ -171,3 +171,24 @@ public sealed class SubEntity3 : EntityBase
 
     public long? ListEntityId { get; set; }
 }
+
+public sealed class CollectionEntity2WithWrapper : EntityBase
+{
+    public CollectionEntity2WithWrapper()
+    {
+    }
+
+    public CollectionEntity2WithWrapper(int intProp, ScalarEntity2ListWrapper scs)
+    {
+        IntProp = intProp;
+        Scs = scs;
+    }
+
+    public int IntProp { get; set; }
+
+    public ScalarEntity2ListWrapper? Scs { get; set; }
+}
+
+public sealed class ScalarEntity2ListWrapper : List<ScalarEntity2>
+{
+}

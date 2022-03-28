@@ -13,29 +13,32 @@ public class ListPropertyMappingTests : TestBase
     [Fact]
     public async Task MapListProperties_ICollection_MappingShouldSucceed()
     {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
-        mapperBuilder.Register<CollectionEntity1, CollectionEntity2>();
-        var mapper = mapperBuilder.Build();
-
         var sc1_1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
-        var sc1_2 = new SubScalarEntity1(2, null, "4", new byte[] { 2, 3, 4 });
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            databaseContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, new List<SubScalarEntity1> { sc1_1, sc1_2 }));
-            await databaseContext.SaveChangesAsync();
-        });
+        var sc1_2 = new SubScalarEntity1(2, default, "4", new byte[] { 2, 3, 4 });
+        var result = await MapListProperties_ICollection<CollectionEntity2>(new List<SubScalarEntity1> { sc1_1, sc1_2 });
 
-        // act
-        CollectionEntity1? entity = default;
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
-        });
+        // assert
+        Assert.Equal(1, result!.IntProp);
+        Assert.NotNull(result.Scs);
+        Assert.Equal(2, result.Scs!.Count);
+        var item0 = result.Scs.ElementAt(0);
+        Assert.Equal(1, item0.IntProp);
+        Assert.Equal(2, item0.LongNullableProp);
+        Assert.Equal("3", item0.StringProp);
+        Assert.Equal(sc1_1.ByteArrayProp, item0.ByteArrayProp);
+        var item1 = result.Scs.ElementAt(1);
+        Assert.Equal(2, item1.IntProp);
+        Assert.Null(item1.LongNullableProp);
+        Assert.Equal("4", item1.StringProp);
+        Assert.Equal(sc1_2.ByteArrayProp, item1.ByteArrayProp);
+    }
 
-        var session = mapper.CreateMappingSession();
-        var result = session.Map<CollectionEntity1, CollectionEntity2>(entity!);
+    [Fact]
+    public async Task MapListProperties_ListWrapper_MappingShouldSucceed()
+    {
+        var sc1_1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
+        var sc1_2 = new SubScalarEntity1(2, default, "4", new byte[] { 2, 3, 4 });
+        var result = await MapListProperties_ICollection<CollectionEntity2WithWrapper>(new List<SubScalarEntity1> { sc1_1, sc1_2 });
 
         // assert
         Assert.Equal(1, result!.IntProp);
@@ -388,5 +391,31 @@ public class ListPropertyMappingTests : TestBase
             await Assert.ThrowsAsync<AsNoTrackingNotAllowedException>(
                 async () => await session2.MapAsync<ListIEntity1, CollectionEntity1>(result1, c => c.AsNoTracking().Include(c => c.Scs)));
         });
+    }
+
+    private async Task<T> MapListProperties_ICollection<T>(List<SubScalarEntity1> list)
+        where T : class
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder.Register<CollectionEntity1, T>();
+        var mapper = mapperBuilder.Build();
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, list));
+            await databaseContext.SaveChangesAsync();
+        });
+
+        // act
+        CollectionEntity1? entity = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
+        });
+
+        var session = mapper.CreateMappingSession();
+        return session.Map<CollectionEntity1, T>(entity!);
     }
 }

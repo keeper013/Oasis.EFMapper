@@ -31,13 +31,25 @@ internal static class Utilities
     public static PropertyInfo? GetProperty(this IEnumerable<PropertyInfo> properties, string? propertyName)
     {
         return string.IsNullOrEmpty(propertyName) ?
-            null :
+            default :
             properties.SingleOrDefault(p => p.VerifyGetterSetter() && string.Equals(propertyName, p.Name));
     }
 
     public static bool VerifyGetterSetter(this PropertyInfo prop)
     {
         return prop.GetMethod != default && prop.SetMethod != default;
+    }
+
+    public static Type? GetListItemType(this Type type)
+    {
+        var listType = type.GetListType();
+        if (listType != default)
+        {
+            var result = listType.GenericTypeArguments[0];
+            return result.IsEntityType() ? result : default;
+        }
+
+        return default;
     }
 }
 

@@ -53,12 +53,12 @@ internal sealed class MapperRegistry
 
     public void WithFactoryMethod(Type type, Delegate factoryMethod, bool throwIfRedundant = false)
     {
-        if (factoryMethod == null)
+        if (factoryMethod == default)
         {
             throw new ArgumentNullException(nameof(factoryMethod));
         }
 
-        if (type.GetConstructor(Array.Empty<Type>()) != null)
+        if (type.GetConstructor(Array.Empty<Type>()) != default)
         {
             throw new FactoryMethodException(type, false);
         }
@@ -171,7 +171,7 @@ internal sealed class MapperRegistry
     {
         if (!context.Contains(sourceType, targetType))
         {
-            if (!_factoryMethods.ContainsKey(targetType) && targetType.GetConstructor(Array.Empty<Type>()) == null)
+            if (!_factoryMethods.ContainsKey(targetType) && targetType.GetConstructor(Array.Empty<Type>()) == default)
             {
                 throw new FactoryMethodException(targetType, true);
             }
