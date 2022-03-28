@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <None Remove="InternalLogic\EntityFactory.cs~RF23db9db0.TMP" />
+    <None Remove="InternalLogic\MapperInterfaces.cs~RF28911cce.TMP" />
   </ItemGroup>
 
   <ItemGroup>

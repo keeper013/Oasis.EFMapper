@@ -5,6 +5,8 @@ public interface IScalarTypeConverter
     TTarget? Convert<TSource, TTarget>(TSource? source)
         where TSource : notnull
         where TTarget : notnull;
+
+    object? Convert(object? value, Type targetType);
 }
 
 public interface IListPropertyMapper

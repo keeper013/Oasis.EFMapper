@@ -52,11 +52,11 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     private const char GetId = 'g';
     private const char IdEmpty = 'i';
 
-    private static readonly MethodInfo ObjectEqual = typeof(object).GetMethod(nameof(object.Equals), new[] { typeof(object), typeof(object) })!;
+    private static readonly MethodInfo ObjectEqual = typeof(object).GetMethod(nameof(object.Equals), new[] { typeof(object) })!;
 
-    private readonly GenericMapperMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethod(nameof(IScalarTypeConverter.Convert), Utilities.PublicInstance)!);
+    private readonly GenericMapperMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethods().Single(m => string.Equals(m.Name, nameof(IScalarTypeConverter.Convert)) && m.IsGenericMethod));
     private readonly GenericMapperMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper).GetMethod(nameof(IEntityPropertyMapper.MapEntityProperty), Utilities.PublicInstance)!);
-    private readonly GenericMapperMethodCache _listPropertyMapperCache = new (typeof(IListPropertyMapper).GetMethod(nameof(IListPropertyMapper.MapListProperty), Utilities.PublicInstance)!);
+    private readonly GenericMapperMethodCache _entityListPropertyMapperCache = new (typeof(IListPropertyMapper).GetMethod(nameof(IListPropertyMapper.MapListProperty), Utilities.PublicInstance)!);
     private readonly NullableTypeMethodCache _nullableTypeMethodCache = new ();
     private readonly IScalarTypeMethodCache _isDefaultValueCache = new ScalarTypeMethodCache(typeof(ScalarTypeIsDefaultValueMethods), nameof(ScalarTypeIsDefaultValueMethods.IsDefaultValue), new[] { typeof(object) });
     private readonly IScalarTypeMethodCache _areEqualCache = new ScalarTypeMethodCache(typeof(ScalarTypeEqualMethods), nameof(ScalarTypeEqualMethods.AreEqual), new[] { typeof(object), typeof(object) });
@@ -219,7 +219,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
                 generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
-                generator.Emit(OpCodes.Callvirt, _listPropertyMapperCache.CreateIfNotExist(sourceItemType!, targetItemType!));
+                generator.Emit(OpCodes.Callvirt, _entityListPropertyMapperCache.CreateIfNotExist(sourceItemType!, targetItemType!));
             }
         }
 
@@ -338,10 +338,14 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
                 else
                 {
                     generator.DeclareLocal(propertyType);
-                    generator.Emit(OpCodes.Ldarga_S, 0);
+                    generator.DeclareLocal(propertyType);
+                    generator.Emit(OpCodes.Ldarg_0);
+                    generator.Emit(OpCodes.Callvirt, property.GetMethod!);
+                    generator.Emit(OpCodes.Stloc_0);
                     generator.Emit(OpCodes.Ldloca_S, 0);
+                    generator.Emit(OpCodes.Ldloca_S, 1);
                     generator.Emit(OpCodes.Initobj, propertyType);
-                    generator.Emit(OpCodes.Ldloc_0);
+                    generator.Emit(OpCodes.Ldloc_1);
                     generator.Emit(OpCodes.Box, propertyType);
                     generator.Emit(OpCodes.Constrained, propertyType);
                     generator.Emit(OpCodes.Callvirt, ObjectEqual);
@@ -510,6 +514,16 @@ public static class ScalarTypeIsDefaultValueMethods
         return x == default || !x.Any();
     }
 
+    public static bool IsDefaultValue(Guid x)
+    {
+        return x == default;
+    }
+
+    public static bool IsDefaultValue(Guid? x)
+    {
+        return !x.HasValue;
+    }
+
     public static bool IsDefaultValue(object? x)
     {
         return x == default;
@@ -596,6 +610,16 @@ public static class ScalarTypeEqualMethods
     public static bool AreEqual(byte[]? x, byte[]? y)
     {
         return x != default && y != default && Enumerable.SequenceEqual(x, y);
+    }
+
+    public static bool AreEqual(Guid x, Guid y)
+    {
+        return x != default && y != default && x == y;
+    }
+
+    public static bool AreEqual(Guid? x, Guid? y)
+    {
+        return x.HasValue && y.HasValue && x.Value == y.Value;
     }
 
     public static bool AreEqual(object? x, object? y)

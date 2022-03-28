@@ -102,6 +102,18 @@ public class KeyPropertyTypeTests : TestBase
         await Test<byte[]>();
     }
 
+    [Fact]
+    public async Task TestGuid()
+    {
+        await Test<Guid>();
+    }
+
+    [Fact]
+    public async Task TestNGuid()
+    {
+        await Test<Guid?>();
+    }
+
     private async Task Test<T>()
     {
         // arrange

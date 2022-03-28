@@ -3,6 +3,7 @@
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Linq.Expressions;
+using System.Reflection;
 
 internal sealed class Mapper : IMapper
 {
@@ -130,13 +131,15 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         return target!;
     }
 
-    private static Expression<Func<TEntity, bool>> BuildIdEqualsExpression<TEntity>(IIdPropertyTracker identityPropertyTracker, object? value)
+    private Expression<Func<TEntity, bool>> BuildIdEqualsExpression<TEntity>(IIdPropertyTracker identityPropertyTracker, object? value)
         where TEntity : class
     {
         var parameter = Expression.Parameter(typeof(TEntity), "entity");
+        var identityProperty = identityPropertyTracker.GetIdProperty<TEntity>();
+
         var equal = Expression.Equal(
-            Expression.Property(parameter, identityPropertyTracker.GetIdProperty<TEntity>()),
-            Expression.Constant(value));
+            Expression.Property(parameter, identityProperty),
+            Expression.Constant(_scalarConverter.Convert(value, identityProperty.PropertyType)));
         return Expression.Lambda<Func<TEntity, bool>>(equal, parameter);
     }
 }

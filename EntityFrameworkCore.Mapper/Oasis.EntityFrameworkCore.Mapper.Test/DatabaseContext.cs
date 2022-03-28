@@ -53,6 +53,8 @@ internal class DatabaseContext : DbContext
         modelBuilder.Entity<SomeSourceEntity<ulong?>>().ToTable("NULongEntity");
         modelBuilder.Entity<SomeSourceEntity<string>>().ToTable("StringEntity");
         modelBuilder.Entity<SomeSourceEntity<byte[]>>().ToTable("ByteArrayEntity");
+        modelBuilder.Entity<SomeSourceEntity<Guid>>().ToTable("GuidEntity");
+        modelBuilder.Entity<SomeSourceEntity<Guid?>>().ToTable("NGuidEntity");
         modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListIEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListIEntityId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.ListEntity).WithMany(l => l.Scs).HasForeignKey(s => s.ListEntityId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.CollectionEntity).WithMany(c => c.Scs).HasForeignKey(s => s.CollectionEntityId).OnDelete(DeleteBehavior.Restrict);
