@@ -5,11 +5,27 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<CodeAnalysisRuleSet>../../StyleCop/Oasis.Default.ruleset</CodeAnalysisRuleSet>
+	<Authors>Cui Ziqiang</Authors>
+	<Version>0.1.0</Version>
+	<Description>This library is still in stablizing phrase, it's features and interface may be unstable.</Description>
+	<Copyright>MIT License Copyright (c) 2022 Cui Ziqiang Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</Copyright>
+	<PackageProjectUrl>https://github.com/keeper013/Oasis/tree/main/EntityFrameworkCore.Mapper</PackageProjectUrl>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<RepositoryUrl>https://github.com/keeper013/Oasis</RepositoryUrl>
+	<PackageTags>EntityFrameworkCore, IL weaving</PackageTags>
+	<PackageLicenseFile>D:\GitHub\Oasis\EntityFrameworkCore.Mapper\LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="InternalLogic\EntityFactory.cs~RF23db9db0.TMP" />
     <None Remove="InternalLogic\MapperInterfaces.cs~RF28911cce.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
