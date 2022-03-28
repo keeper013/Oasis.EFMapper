@@ -2,9 +2,7 @@
 
 public interface IScalarTypeConverter
 {
-    TTarget? Convert<TSource, TTarget>(TSource? source)
-        where TSource : notnull
-        where TTarget : notnull;
+    TTarget Convert<TSource, TTarget>(TSource source);
 
     object? Convert(object? value, Type targetType);
 }

@@ -89,9 +89,7 @@ internal sealed class MapperBuilder : IMapperBuilder
         return this;
     }
 
-    public IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression, bool throwIfRedundant = false)
-        where TSource : notnull
-        where TTarget : notnull
+    public IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression, bool throwIfRedundant = false)
     {
         lock (_mapperRegistry)
         {

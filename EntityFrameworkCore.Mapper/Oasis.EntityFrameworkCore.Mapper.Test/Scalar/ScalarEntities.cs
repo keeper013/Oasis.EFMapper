@@ -85,6 +85,29 @@ public class ScalarEntity4 : EntityBase
     public ByteArrayWrapper? ByteArrayProp { get; set; }
 }
 
+public sealed class ScalarEntity5 : NullableIdEntityBase
+{
+    public ScalarEntity5()
+    {
+    }
+
+    public ScalarEntity5(int? intProp, long longNullableProp, string stringProp, byte[] byteArrayProp)
+    {
+        IntProp = intProp;
+        LongNullableProp = longNullableProp;
+        StringProp = stringProp;
+        ByteArrayProp = byteArrayProp;
+    }
+
+    public int? IntProp { get; set; }
+
+    public long LongNullableProp { get; set; }
+
+    public string? StringProp { get; set; }
+
+    public byte[]? ByteArrayProp { get; set; }
+}
+
 public sealed class ScalarEntityNoBase1
 {
     public ScalarEntityNoBase1()

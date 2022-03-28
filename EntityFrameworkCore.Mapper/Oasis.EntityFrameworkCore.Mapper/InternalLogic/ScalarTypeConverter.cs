@@ -17,9 +17,7 @@ internal sealed class ScalarTypeConverter : IScalarTypeConverter
         _scalarConverterDictionary = dictionary;
     }
 
-    public TTarget? Convert<TSource, TTarget>(TSource? source)
-        where TSource : notnull
-        where TTarget : notnull
+    public TTarget Convert<TSource, TTarget>(TSource source)
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
@@ -28,7 +26,7 @@ internal sealed class ScalarTypeConverter : IScalarTypeConverter
             throw new ScalarConverterMissingException(sourceType, targetType);
         }
 
-        return ((Func<TSource?, TTarget?>)converter)(source);
+        return ((Func<TSource, TTarget>)converter)(source);
     }
 
     public object? Convert(object? value, Type targetType)

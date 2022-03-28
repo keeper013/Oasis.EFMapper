@@ -14,6 +14,17 @@ public abstract class EntityBase
     public byte[]? Timestamp { get; set; }
 }
 
+public abstract class NullableIdEntityBase
+{
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public long? Id { get; set; }
+
+    [Timestamp]
+    [ConcurrencyCheck]
+    public byte[]? Timestamp { get; set; }
+}
+
 public abstract class ReversedEntityBase
 {
     [Key]

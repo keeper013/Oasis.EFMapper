@@ -12,9 +12,7 @@ public interface IMapperBuilder
     IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration, bool throwIfRedundant = false)
         where TEntity : class;
 
-    IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression, bool throwIfRedundant = false)
-        where TSource : notnull
-        where TTarget : notnull;
+    IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression, bool throwIfRedundant = false);
 
     IMapperBuilder Register<TSource, TTarget>()
         where TSource : class
