@@ -104,7 +104,7 @@ The library exposes 4 public classes/interfaces for users:
     - IMapperBuilder Make(string assemblyName, TypeConfiguration defaultConfiguration): makes the mapper builder to be configured.
         - assemblyName: this is the dynamic assembly name the mapper uses to generate static methods in, it dosn't really matter, any valid assembly name would do.
         - TypeConfiguration: this is the default configuration that will be applied to all mapped entities, it's items are:
-            - identityPropertyName, name of identity property, so by default **Oasis.EntityFrameworkCore.Mapper** will assume any property named as value of this string is the id property (id is important for database records)
+            - identityPropertyName, name of identity property, so by default the library will assume any property named as value of this string is the id property (id is important for database records)
             - timestampPropertyName, name of timestamp property, this is supposed to be the optimistic lock column used for concurrency checking. It's OK to set it to null if most tables in the database doesn't have such concurrency check columns.
             - keepEntityOnMappingRemoved, this is a boolean item to decide when a navigation record is removed or replaced, should we keep it in database or remove it from database. By default its value is false, which represents the good database design. I'll put some more detailed information regarding this configuration item. It's highly recommended to leave it to be the default value.
 - MapperBuilderFactory: this is the implementation of IMapperBuilderFactory, nothing much to explain.
@@ -123,4 +123,37 @@ The library exposes 4 public classes/interfaces for users:
     - Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default), source is the source object to be mapped from, includer is the Include expression for eager loading by entity framework core. If the source instance is supposed to update some existing record in database, make sure to eager-load all navigation properties with the include expression. Plus, please don't call AsNoTracking method in this includer expression, it causes problems in database updation; the library will throw an exception is users do so.
 - IMappingSession: this interface provides one synchronous method to map to an entity when database is not needed:
     - TTarget Map<TSource, TTarget>(TSource source), source is the object to be mapped from, and it returns the instance of TTarget that is mapped to, nothing much to explain here.
-    
+## Highlights
+1. Id and timestamp properties are considered key properties of entities, if explicitly configurated, mapping these properties doesn't need the property names to match. For example, for the following classes:
+```C#
+public class Entity1
+{
+    public int Id { get; set; }
+    public byte[] TimeStamp { get; set; }
+}
+public class Entity2
+{
+    public int EntityId { get; set; }
+    public byte[] ConcurrencyLock { get; set; }
+}
+```
+If the following registration is done, then when mapping instances of these entities, id and timestamp properties will be correctly mapped:
+```C#
+mapperBuilder.WithConfiguration<Entity1>(new TypeConfiguration("Id", "TimeStamp")).WithConfiguration<Entity2>(new TypeConfiguration("EntityId", "ConcurrencyLock"));
+```
+2. About TypeConfiguration.keepEntityOnMappingRemoved, in the example in introduction section, if borrowing record of id 2 is removed from borrowerDTO, when mapping back to database, the same record shouldn't be removed from database because it doesn't make sense to keep it anymore. So value of it is set to false by default and it's not recommended to change it to true. The possibility to set it to true is kept in case the database is not well designed like below:
+```C#
+    public sealed class Borrower
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public ICollection<Book> BorrowRecords { get; set; }
+}
+public sealed class Book
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public Borrower Borrower { get; set; }
+}
+```
+Once a book is removed from a borrower's borrow records, we don't want to delete the book, in this case keepEntityOnMappingRemoved needs to be set to be true.
