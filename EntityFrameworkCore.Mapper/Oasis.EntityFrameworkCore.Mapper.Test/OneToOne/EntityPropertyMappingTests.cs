@@ -198,6 +198,59 @@ public sealed class EntityPropertyMappingTests : TestBase
         });
     }
 
+    [Fact]
+    public async Task AddRecursiveEntity_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder.RegisterTwoWay<RecursiveEntity1, RecursiveEntity2>();
+        var mapper = mapperBuilder.Build();
+
+        var parent = new RecursiveEntity1("parent");
+        var child1 = new RecursiveEntity1("child");
+        parent.Child = child1;
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<RecursiveEntity1>().Add(parent);
+            await databaseContext.SaveChangesAsync();
+        });
+
+        // act
+        RecursiveEntity1? entity = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<RecursiveEntity1>().AsNoTracking().Include(o => o.Parent).Include(o => o.Child).FirstAsync(r => r.StringProperty == "parent");
+        });
+
+        var session1 = mapper.CreateMappingSession();
+        var r2 = session1.Map<RecursiveEntity1, RecursiveEntity2>(entity!);
+
+        Assert.Equal("parent", r2.StringProperty);
+        Assert.Null(r2.Parent);
+        Assert.NotNull(r2.Child);
+        Assert.NotNull(r2.Child!.Parent);
+        Assert.Equal(r2.Id, r2.Child.ParentId);
+
+        r2.StringProperty = "parent 1";
+        r2.Child.StringProperty = "child 1";
+
+        RecursiveEntity1? r3 = default;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
+            r3 = await session2.MapAsync<RecursiveEntity2, RecursiveEntity1>(r2, r => r.Include(r => r.Parent).Include(r => r.Child));
+        });
+
+        Assert.Equal("parent 1", r3!.StringProperty);
+        Assert.Null(r3.Parent);
+        Assert.NotNull(r3.Child);
+        Assert.NotNull(r3.Child!.Parent);
+        Assert.Equal(r3.Id, r3.Child.ParentId);
+        Assert.Equal("child 1", r3.Child.StringProperty);
+    }
+
     private async Task ReplaceOneToOneMapping(IMapper mapper)
     {
         var outer1 = new Outer1(1);

@@ -2,12 +2,8 @@
 
 public sealed class FactoryMethodExistsException : EfCoreMapperException
 {
-    private readonly Type _type;
-
     public FactoryMethodExistsException(Type type)
+        : base($"Type {type} already has a factory method registered.")
     {
-        _type = type;
     }
-
-    public override string Message => $"Type {_type} already has a factory method registered.";
 }

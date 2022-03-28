@@ -2,14 +2,8 @@
 
 public sealed class ScalarTypeMissingException : EfCoreMapperException
 {
-    private readonly Type _sourceType;
-    private readonly Type _targetType;
-
     public ScalarTypeMissingException(Type sourceType, Type targetType)
+        : base($"At list one of {sourceType} and {targetType} should be a scalar type.")
     {
-        _sourceType = sourceType;
-        _targetType = targetType;
     }
-
-    public override string Message => $"At list one of {_sourceType} and {_targetType} should be a scalar type.";
 }

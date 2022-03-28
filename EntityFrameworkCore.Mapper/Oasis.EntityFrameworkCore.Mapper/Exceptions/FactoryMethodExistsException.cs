@@ -2,14 +2,8 @@
 
 public sealed class FactoryMethodException : EfCoreMapperException
 {
-    private readonly Type _type;
-    private readonly bool _needed;
-
     public FactoryMethodException(Type type, bool needed)
+        : base($"Type {type} {(needed ? "needs" : "doesn't need")} a factory method because it {(needed ? "doesn't have" : "has")} a parameterless constructor.")
     {
-        _type = type;
-        _needed = needed;
     }
-
-    public override string Message => $"Type {_type} {(_needed ? "needs" : "doesn't need")} a factory method because it {(_needed ? "doesn't have" : "has")} a parameterless constructor.";
 }

@@ -2,12 +2,8 @@
 
 public sealed class InvalidEntityTypeException : EfCoreMapperException
 {
-    private readonly Type _type;
-
     public InvalidEntityTypeException(Type type)
+        : base($"Type {type} is invalid to be registered as an entity type.")
     {
-        _type = type;
     }
-
-    public override string Message => $"Type {_type} is invalid to be registered as an entity type.";
 }

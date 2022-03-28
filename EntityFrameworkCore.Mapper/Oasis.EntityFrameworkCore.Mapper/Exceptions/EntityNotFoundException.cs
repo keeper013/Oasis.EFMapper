@@ -2,14 +2,8 @@
 
 public sealed class EntityNotFoundException : EfCoreMapperException
 {
-    private readonly Type _type;
-    private readonly object _id;
-
     public EntityNotFoundException(Type type, object id)
+        : base($"Entity of (type: id) ({type}: {id}) is not found.")
     {
-        _type = type;
-        _id = id;
     }
-
-    public override string Message => $"Entity of (type: id) ({_type}: {_id}) is not found.";
 }

@@ -99,3 +99,43 @@ public class Inner2_2 : EntityBase
 
     public string? StringProp { get; set; }
 }
+
+public class RecursiveEntity1 : EntityBase
+{
+    public RecursiveEntity1()
+    {
+    }
+
+    public RecursiveEntity1(string stringProperty)
+    {
+        StringProperty = stringProperty;
+    }
+
+    public string? StringProperty { get; set; }
+
+    public long? ParentId { get; set; }
+
+    public RecursiveEntity1? Parent { get; set; }
+
+    public RecursiveEntity1? Child { get; set; }
+}
+
+public class RecursiveEntity2 : EntityBase
+{
+    public RecursiveEntity2()
+    {
+    }
+
+    public RecursiveEntity2(string stringProperty)
+    {
+        StringProperty = stringProperty;
+    }
+
+    public string? StringProperty { get; set; }
+
+    public long? ParentId { get; set; }
+
+    public RecursiveEntity2? Parent { get; set; }
+
+    public RecursiveEntity2? Child { get; set; }
+}

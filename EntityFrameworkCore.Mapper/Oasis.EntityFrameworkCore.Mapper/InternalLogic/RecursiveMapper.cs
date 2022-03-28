@@ -192,7 +192,15 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
         var target = _entityFactory.Make<TTarget>();
         var mapperSet = _lookup.LookUp(typeof(TSource), typeof(TTarget));
         ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.keyPropertiesMapper)(source, target, _scalarConverter);
-        _databaseContext.Set<TTarget>().Attach(target);
+        try
+        {
+            _databaseContext.Set<TTarget>().Attach(target);
+        }
+        catch (InvalidOperationException e)
+        {
+            throw new AttachToDbSetException(e);
+        }
+
         return target;
     }
 }

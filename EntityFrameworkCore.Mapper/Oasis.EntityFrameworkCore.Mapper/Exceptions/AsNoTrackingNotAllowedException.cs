@@ -2,12 +2,8 @@
 
 public sealed class AsNoTrackingNotAllowedException : EfCoreMapperException
 {
-    private readonly string _includerString;
-
     public AsNoTrackingNotAllowedException(string includerString)
+        : base($"{includerString}: Call of AsNoTracking() method is not allowed when mapping to entities to avoid sub entity deletion failures.")
     {
-        _includerString = includerString;
     }
-
-    public override string Message => $"{_includerString}: Call of AsNoTracking() method is not allowed when mapping to entities to avoid sub entity deletion failures.";
 }

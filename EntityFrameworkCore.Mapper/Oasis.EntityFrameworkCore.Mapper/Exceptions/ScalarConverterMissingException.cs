@@ -2,14 +2,8 @@
 
 public sealed class ScalarConverterMissingException : EfCoreMapperException
 {
-    private readonly Type _sourceType;
-    private readonly Type _targetType;
-
     public ScalarConverterMissingException(Type sourceType, Type targetType)
+        : base($"Scalar converter from {sourceType} to {targetType} doesn't exist.")
     {
-        _sourceType = sourceType;
-        _targetType = targetType;
     }
-
-    public override string Message => $"Scalar converter from {_sourceType} to {_targetType} doesn't exist.";
 }
