@@ -143,7 +143,7 @@ mapperBuilder.WithConfiguration<Entity1>(new TypeConfiguration("Id", "TimeStamp"
 ```
 2. About TypeConfiguration.keepEntityOnMappingRemoved, in the example in introduction section, if borrowing record of id 2 is removed from borrowerDTO, when mapping back to database, the same record shouldn't be removed from database because it doesn't make sense to keep it anymore. So value of it is set to false by default and it's not recommended to change it to true. The possibility to set it to true is kept in case the database is not well designed like below:
 ```C#
-    public sealed class Borrower
+public sealed class Borrower
 {
     public int Id { get; set; }
     public string Name { get; set; }
