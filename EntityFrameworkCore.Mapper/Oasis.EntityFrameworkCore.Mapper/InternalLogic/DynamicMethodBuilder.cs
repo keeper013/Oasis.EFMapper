@@ -1,5 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
+using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -53,10 +54,12 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     private const char IdEmpty = 'i';
 
     private static readonly MethodInfo ObjectEqual = typeof(object).GetMethod(nameof(object.Equals), new[] { typeof(object) })!;
+    private static readonly ConstructorInfo MissingSetting = typeof(SetterMissingException).GetConstructor(Utilities.PublicInstance, new[] { typeof(string) })!;
 
     private readonly GenericMapperMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethods().Single(m => string.Equals(m.Name, nameof(IScalarTypeConverter.Convert)) && m.IsGenericMethod));
     private readonly GenericMapperMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper).GetMethod(nameof(IEntityPropertyMapper.MapEntityProperty), Utilities.PublicInstance)!);
     private readonly GenericMapperMethodCache _entityListPropertyMapperCache = new (typeof(IListPropertyMapper).GetMethod(nameof(IListPropertyMapper.MapListProperty), Utilities.PublicInstance)!);
+    private readonly GenericMapperMethodCache _listTypeConstructorCache = new (typeof(IListPropertyMapper).GetMethod(nameof(IListPropertyMapper.ConstructListType), Utilities.PublicInstance)!);
     private readonly NullableTypeMethodCache _nullableTypeMethodCache = new ();
     private readonly IScalarTypeMethodCache _isDefaultValueCache = new ScalarTypeMethodCache(typeof(ScalarTypeIsDefaultValueMethods), nameof(ScalarTypeIsDefaultValueMethods.IsDefaultValue), new[] { typeof(object) });
     private readonly IScalarTypeMethodCache _areEqualCache = new ScalarTypeMethodCache(typeof(ScalarTypeEqualMethods), nameof(ScalarTypeEqualMethods.AreEqual), new[] { typeof(object), typeof(object) });
@@ -124,9 +127,9 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
         var generator = method.GetILGenerator();
         var sourceProperties = allSourceProperties
-            .Where(p => _scalarTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter() && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, sourceType));
+            .Where(p => _scalarTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter(true) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, sourceType));
         var targetProperties = allTargetProperties
-            .Where(p => _scalarTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter() && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, targetType))
+            .Where(p => _scalarTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter(true) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, targetType))
             .ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
@@ -153,8 +156,8 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var methodName = BuildMapperMethodName(MapEntityPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IEntityPropertyMapper) }, typeof(void));
         var generator = method.GetILGenerator();
-        var sourceProperties = allSourceProperties.Where(p => _entityTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter());
-        var targetProperties = allTargetProperties.Where(p => _entityTypeValidator.IsTargetType(p.PropertyType) && p.VerifyGetterSetter()).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = allSourceProperties.Where(p => _entityTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter(true));
+        var targetProperties = allTargetProperties.Where(p => _entityTypeValidator.IsTargetType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
@@ -192,8 +195,8 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var methodName = BuildMapperMethodName(MapListPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IListPropertyMapper) }, typeof(void));
         var generator = method.GetILGenerator();
-        var sourceProperties = allSourceProperties.Where(p => _entityListTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter());
-        var targetProperties = allTargetProperties.Where(p => _entityListTypeValidator.IsTargetType(p.PropertyType) && p.VerifyGetterSetter()).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = allSourceProperties.Where(p => _entityListTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter(false));
+        var targetProperties = allTargetProperties.Where(p => _entityListTypeValidator.IsTargetType(p.PropertyType) && p.VerifyGetterSetter(false)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
@@ -210,10 +213,22 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
                 generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
                 var jumpLabel = generator.DefineLabel();
                 generator.Emit(OpCodes.Brtrue_S, jumpLabel);
-                generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Newobj, typeof(List<>).MakeGenericType(targetItemType!).GetConstructor(Array.Empty<Type>())!);
-                generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
+                if (targetProperty.SetMethod != default)
+                {
+                    generator.Emit(OpCodes.Ldarg_1);
+                    generator.Emit(OpCodes.Ldarg_2);
+                    generator.Emit(OpCodes.Callvirt, _listTypeConstructorCache.CreateIfNotExist(targetProperty.PropertyType, targetItemType!));
+                    generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
+                }
+                else
+                {
+                    generator.Emit(OpCodes.Ldstr, $"Entity type: {targetType}, property name: {targetProperty.Name}, value is empty and the property doesn't have a setter.");
+                    generator.Emit(OpCodes.Newobj, MissingSetting);
+                    generator.Emit(OpCodes.Throw);
+                }
+
                 generator.MarkLabel(jumpLabel);
+
                 generator.Emit(OpCodes.Ldarg_2);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);

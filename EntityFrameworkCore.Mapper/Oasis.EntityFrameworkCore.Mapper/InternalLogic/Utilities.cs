@@ -32,12 +32,12 @@ internal static class Utilities
     {
         return string.IsNullOrEmpty(propertyName) ?
             default :
-            properties.SingleOrDefault(p => p.VerifyGetterSetter() && string.Equals(propertyName, p.Name));
+            properties.FirstOrDefault(p => p.VerifyGetterSetter(true) && string.Equals(propertyName, p.Name));
     }
 
-    public static bool VerifyGetterSetter(this PropertyInfo prop)
+    public static bool VerifyGetterSetter(this PropertyInfo prop, bool mustHaveSetter)
     {
-        return prop.GetMethod != default && prop.SetMethod != default;
+        return prop.GetMethod != default && (!mustHaveSetter || prop.SetMethod != default);
     }
 
     public static Type? GetListItemType(this Type type)

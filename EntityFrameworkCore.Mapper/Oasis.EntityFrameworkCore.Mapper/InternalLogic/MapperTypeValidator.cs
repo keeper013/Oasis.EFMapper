@@ -39,7 +39,7 @@ internal static class MapperTypeValidatorExtensions
     {
         return type.IsArray ? default :
             IsOfGenericTypeDefinition(type, CollectionType) ?
-                type : type.GetInterfaces().SingleOrDefault(i => IsOfGenericTypeDefinition(i, CollectionType));
+                type : type.GetInterfaces().FirstOrDefault(i => IsOfGenericTypeDefinition(i, CollectionType));
     }
 
     public static bool IsNullablePrimitive(this Type type)

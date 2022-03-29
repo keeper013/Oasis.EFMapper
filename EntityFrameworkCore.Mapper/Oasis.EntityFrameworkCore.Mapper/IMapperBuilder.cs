@@ -6,6 +6,10 @@ public interface IMapperBuilder
 {
     public const bool DefaultKeepEntityOnMappingRemoved = false;
 
+    IMapperBuilder WithFactoryMethod<TList, TItem>(Expression<Func<TList>> factoryMethod, bool throwIfRedundant = false)
+        where TList : class, ICollection<TItem>
+        where TItem : class;
+
     IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod, bool throwIfRedundant = false)
         where TEntity : class;
 

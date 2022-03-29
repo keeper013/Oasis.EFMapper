@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="ProtoBuf\bin\protoc -I=. --csharp_out=.\Generated Messages.proto" />
+  </Target>
+  <ItemGroup>
+    <Folder Include="Generated\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.19.4" />
+  </ItemGroup>
+
+</Project>

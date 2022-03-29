@@ -8,16 +8,19 @@ internal abstract class RecursiveMapper<T> : IEntityPropertyMapper, IListPropert
 {
     private readonly MapperSetLookUp _lookup;
     private readonly IScalarTypeConverter _scalarConverter;
+    private readonly IListTypeConstructor _listTypeConstructor;
     private readonly IDictionary<Type, ExistingTargetTracker> _trackerDictionary = new Dictionary<Type, ExistingTargetTracker>();
 
     internal RecursiveMapper(
         NewTargetTracker<T> newTargetTracker,
         IScalarTypeConverter scalarConverter,
+        IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy)
     {
         NewTargetTracker = newTargetTracker;
         _scalarConverter = scalarConverter;
+        _listTypeConstructor = listTypeConstructor;
         _lookup = lookup;
         EntityBaseProxy = entityBaseProxy;
     }
@@ -33,6 +36,11 @@ internal abstract class RecursiveMapper<T> : IEntityPropertyMapper, IListPropert
     public abstract void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target)
         where TSource : class
         where TTarget : class;
+
+    TList IListPropertyMapper.ConstructListType<TList, TItem>()
+    {
+        return _listTypeConstructor.Construct<TList, TItem>();
+    }
 
     internal void Map<TSource, TTarget>(TSource source, TTarget target, bool mapKeyProperties)
         where TSource : class
@@ -86,11 +94,12 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
     public ToDatabaseRecursiveMapper(
         NewTargetTracker<int> newTargetTracker,
         IScalarTypeConverter scalarConverter,
+        IListTypeConstructor listTypeConstructor,
         IEntityFactory entityFactory,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy,
         DbContext databaseContext)
-        : base(newTargetTracker, scalarConverter, lookup, entityBaseProxy)
+        : base(newTargetTracker, scalarConverter, listTypeConstructor, lookup, entityBaseProxy)
     {
         _scalarConverter = scalarConverter;
         _entityFactory = entityFactory;
@@ -164,7 +173,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
                 }
                 else
                 {
-                    var t = target.SingleOrDefault(i => Equals(EntityBaseProxy.GetId(i), EntityBaseProxy.GetId(s)));
+                    var t = target.FirstOrDefault(i => Equals(EntityBaseProxy.GetId(i), EntityBaseProxy.GetId(s)));
                     if (t != default)
                     {
                         Map(s, t, false);
@@ -210,9 +219,10 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper<int>
     public ToMemoryRecursiveMapper(
         NewTargetTracker<int> newTargetTracker,
         IScalarTypeConverter scalarConverter,
+        IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy)
-        : base(newTargetTracker, scalarConverter, lookup, entityBaseProxy)
+        : base(newTargetTracker, scalarConverter, listTypeConstructor, lookup, entityBaseProxy)
     {
     }
 

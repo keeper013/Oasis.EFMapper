@@ -28,11 +28,12 @@ internal sealed class MapperBuilder : IMapperBuilder
     {
         var type = _dynamicMethodBuilder.Build();
         var scalarTypeConverter = _mapperRegistry.MakeScalarTypeConverter();
+        var listTypeConstructor = _mapperRegistry.MakeListTypeConstructor();
         var mapper = _mapperRegistry.MakeMapperSetLookUp(type);
         var proxy = _mapperRegistry.MakeEntityBaseProxy(type, scalarTypeConverter);
         var entityFactory = _mapperRegistry.MakeEntityFactory();
 
-        return new Mapper(scalarTypeConverter, entityFactory, mapper, proxy);
+        return new Mapper(scalarTypeConverter, listTypeConstructor, entityFactory, mapper, proxy);
     }
 
     public IMapperBuilder Register<TSource, TTarget>()
@@ -62,6 +63,16 @@ internal sealed class MapperBuilder : IMapperBuilder
         {
             _mapperRegistry.Register(sourceType, targetType, _dynamicMethodBuilder);
             _mapperRegistry.Register(targetType, sourceType, _dynamicMethodBuilder);
+        }
+
+        return this;
+    }
+
+    IMapperBuilder IMapperBuilder.WithFactoryMethod<TList, TItem>(Expression<Func<TList>> factoryMethod, bool throwIfRedundant)
+    {
+        lock (_mapperRegistry)
+        {
+            _mapperRegistry.WithListTypeFactoryMethod(typeof(TList), factoryMethod.Compile(), throwIfRedundant);
         }
 
         return this;

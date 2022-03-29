@@ -189,6 +189,47 @@ public sealed class CollectionEntity2WithWrapper : EntityBase
     public ScalarEntity2ListWrapper? Scs { get; set; }
 }
 
+public sealed class CollectionEntity4WithWrapper : EntityBase
+{
+    public CollectionEntity4WithWrapper()
+    {
+    }
+
+    public CollectionEntity4WithWrapper(int intProp, ScalarEntity2ListWrapper scs)
+    {
+        IntProp = intProp;
+        Scs = scs;
+    }
+
+    public int IntProp { get; set; }
+
+    public ScalarEntity2ListWrapper? Scs { get; }
+}
+
+public sealed class CollectionEntity3WithWrapper : EntityBase
+{
+    public CollectionEntity3WithWrapper()
+    {
+    }
+
+    public CollectionEntity3WithWrapper(int intProp, ScalarEntity2NoDefaultConstructorListWrapper scs)
+    {
+        IntProp = intProp;
+        Scs = scs;
+    }
+
+    public int IntProp { get; set; }
+
+    public ScalarEntity2NoDefaultConstructorListWrapper? Scs { get; set; }
+}
+
 public sealed class ScalarEntity2ListWrapper : List<ScalarEntity2>
 {
+}
+
+public sealed class ScalarEntity2NoDefaultConstructorListWrapper : List<ScalarEntity2>
+{
+    public ScalarEntity2NoDefaultConstructorListWrapper(int count)
+    {
+    }
 }

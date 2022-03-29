@@ -15,6 +15,7 @@ internal sealed class MapperRegistry
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, ComparerMetaDataSet>> _comparer = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
+    private readonly Dictionary<Type, Delegate> _typeListFactoryMethods = new ();
     private readonly bool _defaultKeepEntityOnMappingRemoved;
 
     public MapperRegistry(TypeConfiguration defaultConfiguration)
@@ -49,6 +50,26 @@ internal sealed class MapperRegistry
         }
 
         RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, methodBuilder));
+    }
+
+    public void WithListTypeFactoryMethod(Type type, Delegate factoryMethod, bool throwIfRedundant = false)
+    {
+        if (factoryMethod == default)
+        {
+            throw new ArgumentNullException(nameof(factoryMethod));
+        }
+
+        if (_typeListFactoryMethods.ContainsKey(type))
+        {
+            if (throwIfRedundant)
+            {
+                throw new FactoryMethodExistsException(type);
+            }
+        }
+        else
+        {
+            _typeListFactoryMethods.Add(type, factoryMethod);
+        }
     }
 
     public void WithFactoryMethod(Type type, Delegate factoryMethod, bool throwIfRedundant = false)
@@ -152,6 +173,11 @@ internal sealed class MapperRegistry
         return new ScalarTypeConverter(_scalarConverterDictionary);
     }
 
+    public IListTypeConstructor MakeListTypeConstructor()
+    {
+        return new ListTypeConstructor(_typeListFactoryMethods);
+    }
+
     public MapperSetLookUp MakeMapperSetLookUp(Type type)
     {
         return new MapperSetLookUp(_mapper, type);
@@ -171,7 +197,7 @@ internal sealed class MapperRegistry
     {
         if (!context.Contains(sourceType, targetType))
         {
-            if (!_factoryMethods.ContainsKey(targetType) && targetType.GetConstructor(Array.Empty<Type>()) == default)
+            if (!_factoryMethods.ContainsKey(targetType) && targetType.GetConstructor(Utilities.PublicInstance, Array.Empty<Type>()) == default)
             {
                 throw new FactoryMethodException(targetType, true);
             }

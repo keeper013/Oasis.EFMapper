@@ -13,16 +13,8 @@ using System.Linq;
 
 internal class DatabaseContext : DbContext
 {
-    public static readonly byte[] DefaultTimeStamp = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
-
-    public static readonly byte[] ChangedTimeStamp1 = new byte[] { 1, 1, 1, 1, 1, 1, 1, 1 };
-
     public DatabaseContext(DbContextOptions options)
         : base(options)
-    {
-    }
-
-    protected DatabaseContext()
     {
     }
 
@@ -77,7 +69,7 @@ internal class DatabaseContext : DbContext
             {
                 property.SetValueConverter(new SqliteTimestampConverter());
                 property.SetValueComparer(new ValueComparer<byte[]>(
-                    (a1, a2) => (a1 == default || a2 == default) ? false : a1.SequenceEqual(a2),
+                    (a1, a2) => a1 != default && a2 != default && a1.SequenceEqual(a2),
                     a => a.Aggregate(0, (v, b) => HashCode.Combine(v, b.GetHashCode())),
                     a => a));
                 property.SetDefaultValueSql("CURRENT_TIMESTAMP");
@@ -96,6 +88,6 @@ internal class DatabaseContext : DbContext
 
         private static byte[] FromDb(string v) => v.Select(c => (byte)c).ToArray();
 
-        private static string ToDb(byte[] v) => new string(v.Select(b => (char)b).ToArray());
+        private static string ToDb(byte[] v) => new (v.Select(b => (char)b).ToArray());
     }
 }

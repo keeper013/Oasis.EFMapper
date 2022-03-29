@@ -8,17 +8,20 @@ using System.Reflection;
 internal sealed class Mapper : IMapper
 {
     private readonly IScalarTypeConverter _scalarConverter;
+    private readonly IListTypeConstructor _listTypeConstructor;
     private readonly IEntityFactory _entityFactory;
     private readonly MapperSetLookUp _lookup;
     private readonly EntityBaseProxy _entityBaseProxy;
 
     public Mapper(
         IScalarTypeConverter scalarConverter,
+        IListTypeConstructor listTypeConstructor,
         IEntityFactory entityFactory,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy)
     {
         _scalarConverter = scalarConverter;
+        _listTypeConstructor = listTypeConstructor;
         _entityFactory = entityFactory;
         _lookup = lookup;
         _entityBaseProxy = entityBaseProxy;
@@ -26,18 +29,19 @@ internal sealed class Mapper : IMapper
 
     public IMappingSession CreateMappingSession()
     {
-        return new MappingSession(_scalarConverter, _entityFactory, _lookup, _entityBaseProxy);
+        return new MappingSession(_scalarConverter, _listTypeConstructor, _entityFactory, _lookup, _entityBaseProxy);
     }
 
     public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
     {
-        return new MappingToDatabaseSession(_scalarConverter, _entityFactory, _lookup, _entityBaseProxy, databaseContext);
+        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _entityFactory, _lookup, _entityBaseProxy, databaseContext);
     }
 }
 
 internal sealed class MappingSession : IMappingSession
 {
     private readonly IScalarTypeConverter _scalarConverter;
+    private readonly IListTypeConstructor _listTypeConstructor;
     private readonly IEntityFactory _entityFactory;
     private readonly MapperSetLookUp _lookup;
     private readonly EntityBaseProxy _entityBaseProxy;
@@ -45,12 +49,14 @@ internal sealed class MappingSession : IMappingSession
 
     public MappingSession(
         IScalarTypeConverter scalarConverter,
+        IListTypeConstructor listTypeConstructor,
         IEntityFactory entityFactory,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy)
     {
         _newEntityTracker = new NewTargetTracker<int>(entityFactory);
         _scalarConverter = scalarConverter;
+        _listTypeConstructor = listTypeConstructor;
         _entityFactory = entityFactory;
         _lookup = lookup;
         _entityBaseProxy = entityBaseProxy;
@@ -59,7 +65,7 @@ internal sealed class MappingSession : IMappingSession
     TTarget IMappingSession.Map<TSource, TTarget>(TSource source)
     {
         var target = _entityFactory.Make<TTarget>();
-        new ToMemoryRecursiveMapper(_newEntityTracker, _scalarConverter, _lookup, _entityBaseProxy).Map(source, target, true);
+        new ToMemoryRecursiveMapper(_newEntityTracker, _scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy).Map(source, target, true);
 
         return target;
     }
@@ -69,6 +75,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
 {
     private readonly IEntityFactory _entityFactory;
     private readonly IScalarTypeConverter _scalarConverter;
+    private readonly IListTypeConstructor _listTypeConstructor;
     private readonly MapperSetLookUp _lookup;
     private readonly DbContext _databaseContext;
     private readonly EntityBaseProxy _entityBaseProxy;
@@ -76,6 +83,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
 
     public MappingToDatabaseSession(
         IScalarTypeConverter scalarConverter,
+        IListTypeConstructor listTypeConstructor,
         IEntityFactory entityFactory,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy,
@@ -86,6 +94,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         _databaseContext = databaseContext;
         _newEntityTracker = new NewTargetTracker<int>(entityFactory);
         _scalarConverter = scalarConverter;
+        _listTypeConstructor = listTypeConstructor;
         _lookup = lookup;
     }
 
@@ -105,11 +114,11 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
                     throw new AsNoTrackingNotAllowedException(includerString);
                 }
 
-                target = await includer.Compile()(_databaseContext.Set<TTarget>()).SingleOrDefaultAsync(identityEqualsExpression);
+                target = await includer.Compile()(_databaseContext.Set<TTarget>()).FirstOrDefaultAsync(identityEqualsExpression);
             }
             else
             {
-                target = await _databaseContext.Set<TTarget>().SingleOrDefaultAsync(identityEqualsExpression);
+                target = await _databaseContext.Set<TTarget>().FirstOrDefaultAsync(identityEqualsExpression);
             }
 
             if (target == default)
@@ -117,13 +126,13 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
                 throw new EntityNotFoundException(typeof(TTarget), _entityBaseProxy.GetId(source));
             }
 
-            new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _entityFactory, _lookup, _entityBaseProxy, _databaseContext).Map(source, target, true);
+            new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _listTypeConstructor, _entityFactory, _lookup, _entityBaseProxy, _databaseContext).Map(source, target, true);
         }
         else
         {
             if (!_newEntityTracker.NewTargetIfNotExist(source.GetHashCode(), out target))
             {
-                new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _entityFactory, _lookup, _entityBaseProxy, _databaseContext).Map(source, target!, false);
+                new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _listTypeConstructor, _entityFactory, _lookup, _entityBaseProxy, _databaseContext).Map(source, target!, false);
                 _databaseContext.Set<TTarget>().Add(target!);
             }
         }
