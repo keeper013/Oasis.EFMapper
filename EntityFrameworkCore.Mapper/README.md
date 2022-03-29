@@ -15,13 +15,13 @@ public sealed class Borrower
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public ICollection<BorrowRecord> BorrowRecords { get; set; }
+    public ICollection<BorrowRecord>? BorrowRecords { get; set; }
 }
 public sealed class Book
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public BorrowRecord BorrowRecord { get; set; }
+    public BorrowRecord? BorrowRecord { get; set; }
 }
 public sealed class BorrowRecord
 {
@@ -39,7 +39,7 @@ public sealed class BorrowerDTO
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public ICollection<BorrowRecordDTO> BorrowRecords { get; set; }
+    public ICollection<BorrowRecordDTO>? BorrowRecords { get; set; }
 }
 public sealed class BookDTO
 {
