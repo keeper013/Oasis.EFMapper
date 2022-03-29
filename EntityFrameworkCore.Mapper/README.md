@@ -39,7 +39,7 @@ public sealed class BorrowerDTO
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public ICollection<BorrowRecordDTO> { get; set; }
+    public ICollection<BorrowRecordDTO> BorrowRecords { get; set; }
 }
 public sealed class BookDTO
 {
@@ -94,7 +94,7 @@ book2BorrowingRecord.BookId = 3;
 Now the DTO is read to be send back to server to be processed, and the server side should simply process it this way
 ```C#
 var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-var borrower = await session.MapAsync<BorrowerDTO, Borrower>(borrowerDTO)
+var borrower = await session.MapAsync<BorrowerDTO, Borrower>(borrowerDTO, qb => qb.Include(qb => qb.BorrowRecords))
 await databaseContext.SaveChangesAsync();
 ```
 That's it. Updating scalar properties, adding or removing entities will be automatically handled by MapAsync method of the library. Just save the changes, it will work correctly.
@@ -120,7 +120,7 @@ The library exposes 4 public classes/interfaces for users:
     - IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext): this method creates a session that handles mapping to database.
     - IMappingSession CreateMappingSession(), this method creates a session that handles mapping when database is not involved.
 - IMappingToDatabaseSession: this interface provides one asynchronous method to map to an entity that is supposed to be updated to database:
-    - Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default), source is the source object to be mapped from, includer is the Include expression for eager loading by entity framework core. If the source instance is supposed to update some existing record in database, make sure to eager-load all navigation properties with the include expression. Plus, please don't call AsNoTracking method in this includer expression, it causes problems in database updation; the library will throw an exception is users do so.
+    - Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default), source is the source object to be mapped from, includer is the Include expression for eager loading by entity framework core. If the source instance is supposed to update some existing record in database, please **make sure** to eager-load all navigation properties with the include expression. Plus, please don't call AsNoTracking method in this includer expression, it causes problems in database updation; the library will throw an exception is users do so.
 - IMappingSession: this interface provides one synchronous method to map to an entity when database is not needed:
     - TTarget Map<TSource, TTarget>(TSource source), source is the object to be mapped from, and it returns the instance of TTarget that is mapped to, nothing much to explain here.
 ## Highlights
