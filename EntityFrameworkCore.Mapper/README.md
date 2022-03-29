@@ -155,6 +155,7 @@ public sealed class Book
     public string Name { get; set; }
     public Borrower Borrower { get; set; }
 }
+3. Please not that when mapping reference type properties, a **shallow** copy will be performed.
 ```
 Once a book is removed from a borrower's borrow records, we don't want to delete the book, in this case keepEntityOnMappingRemoved needs to be set to be true.
 ## Restriction
