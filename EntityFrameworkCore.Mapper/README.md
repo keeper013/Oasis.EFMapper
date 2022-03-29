@@ -157,3 +157,10 @@ public sealed class Book
 }
 ```
 Once a book is removed from a borrower's borrow records, we don't want to delete the book, in this case keepEntityOnMappingRemoved needs to be set to be true.
+## Restriction
+1. The library assumes that any entity could only have 1 property as Id property, multiple properties combined id is not supported.
+2. The library requires any entity that will get updated into database to have an Id property, which means every table in the database, as long as it will be mapped using the library, need to have 1 and only 1 column for Id.
+3. The library requires each property to have 1 or 0 column for optimistic lock.
+## Feedback
+There there be any questions regarding the library, please send an email to keeper013@gmail.com for inquiry.
+When submitting bugs, it's preferred to submit a C# code file with a unit test to easily reproduce the bug.
