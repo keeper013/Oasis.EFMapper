@@ -98,6 +98,14 @@ var borrower = await session.MapAsync<BorrowerDTO, Borrower>(borrowerDTO, qb => 
 await databaseContext.SaveChangesAsync();
 ```
 That's it. Updating scalar properties, adding or removing entities will be automatically handled by MapAsync method of the library. Just save the changes, it will work correctly.
+## Inside View
+The way this library works can be roughly explained like this:
+When registerting mapping between 2 types A and B, the library will go though each public instance properties of types to be mapped (namely X and Y), and try to match the properties. All properties will be grouped under 3 categories: scalar property, entity property or list property.
+- Entity property refer to properties of type string, byte[] or other types that are not classes. When the library finds a property A in type X, it will try to find a property in type Y named A, the 2 properties should be of the same type, or type of X.A can be converted to type of Y.A (this conversion method must be explicitly registered to the library) so they can be mapped.
+:exclamation: Do check property names and types between the types that are to be mapped. The library will **silently** ignore unmatched properties when making matches. For example a property of name "**Test**" will not be matched to another property named "**test**", a property of type **int** will not be matched to an other property of type **int?**, and a property of type **long** will not be matched to a property of type **ulong**.
+- Entity properties refer to properties that are class types, but don't implement IEnumerable<>. When registering the mapping from type X to Y, if X.B and Y.B are matched by name and they are both categorized as entity properties, the library will try to automatically register the mapping from type of X.B to type of Y.B. So users only need to manually write the code to register the top level entities.
+- List properties refer to properties that are class types and implement ICollection<>, and the generic argument of ICollection<> is considered to be an entity property. When registering the mapping from type X to Y, if X.C and Y.C are matched by name and they are both categorized as list properties, similar to entity properties the library will try to automatically register the mapping between the generic argument of ICollection<> interface from X.C to that of Y.C.
+The library will generate a dynamic assembly and some static methods when users register mapping between the types. Those generated static methods will be used later when users build the IMapper interface and use it to map properties.
 ## User Interface
 The library exposes 4 public classes/interfaces for users:
 - IMapperBuilderFactory: this is the factory interface to generate a MapperBuilder to be configured, which later builds a mapper that does the work. It contains 1 Make method:
