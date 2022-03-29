@@ -446,6 +446,7 @@ public class ListPropertyMappingTests : TestBase
         {
             action(mapperBuilder);
         }
+
         var mapper = mapperBuilder.Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
