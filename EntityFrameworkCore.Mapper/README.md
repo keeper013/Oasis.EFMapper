@@ -15,13 +15,13 @@ public sealed class Borrower
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public ICollection<BorrowRecord> BorrowRecords { get; set; }
+    public ICollection<BorrowRecord>? BorrowRecords { get; set; }
 }
 public sealed class Book
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public BorrowRecord BorrowRecord { get; set; }
+    public BorrowRecord? BorrowRecord { get; set; }
 }
 public sealed class BorrowRecord
 {
@@ -39,7 +39,7 @@ public sealed class BorrowerDTO
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public ICollection<BorrowRecordDTO> { get; set; }
+    public ICollection<BorrowRecordDTO>? BorrowRecords { get; set; }
 }
 public sealed class BookDTO
 {
@@ -94,7 +94,7 @@ book2BorrowingRecord.BookId = 3;
 Now the DTO is read to be send back to server to be processed, and the server side should simply process it this way
 ```C#
 var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-var borrower = await session.MapAsync<BorrowerDTO, Borrower>(borrowerDTO)
+var borrower = await session.MapAsync<BorrowerDTO, Borrower>(borrowerDTO, qb => qb.Include(qb => qb.BorrowRecords))
 await databaseContext.SaveChangesAsync();
 ```
 That's it. Updating scalar properties, adding or removing entities will be automatically handled by MapAsync method of the library. Just save the changes, it will work correctly.
@@ -106,10 +106,11 @@ The library exposes 4 public classes/interfaces for users:
         - TypeConfiguration: this is the default configuration that will be applied to all mapped entities, it's items are:
             - identityPropertyName, name of identity property, so by default the library will assume any property named as value of this string is the id property (id is important for database records)
             - timestampPropertyName, name of timestamp property, this is supposed to be the optimistic lock column used for concurrency checking. It's OK to set it to null if most tables in the database doesn't have such concurrency check columns.
-            - keepEntityOnMappingRemoved, this is a boolean item to decide when a navigation record is removed or replaced, should we keep it in database or remove it from database. By default its value is false, which represents the good database design. I'll put some more detailed information regarding this configuration item. It's highly recommended to leave it to be the default value.
+            - keepEntityOnMappingRemoved, this is a boolean item to decide when a navigation record is removed or replaced, should we keep it in database or remove it from database. By default its value is false, which represents the good database design. Some more detailed information regarding this configuration item can be found in later sections. It's highly recommended to leave it to be the default value.
 - MapperBuilderFactory: this is the implementation of IMapperBuilderFactory, nothing much to explain.
 - IMapperBuilder: this is the builder interface to addin configurations for mapper, it provides several methods:
     - WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod, bool throwIfRedundant = false): the library needs to create new instances of mapped entities, for [POCO](https://en.wikipedia.org/wiki/Plain_old_CLR_object#:~:text=2%20Benefits-,Etymology,sometimes%20used%20is%20plain%20old%20.)s a default constructor (parameterless) should be there, and the library counts on most entity types to have this parameterless constructor. However, in extreme situations when parameterless constructors don't exist, this interface lets users to register a factory method to build new instances of the entity type. The library doesn't allow repeatedly registering factory methods for the same TEntity type, so the second parameter will make the library throw a relevant exception when set to true, otherwise only the first registration takes effects, later repeated registrations are simply ignored.
+    - IMapperBuilder WithFactoryMethod<TList, TItem>(Expression<Func<TList>> factoryMethod, bool throwIfRedundant = false): this method registers a factory method for user defined collection types in case they are of interface types or don't have a default constructor that the library doesn't know how to instantiate such list properties during mapping process. Like [ProtoBuf](https://developers.google.com/protocol-buffers)) uses RepeatedField class for collection properties. In case the property is not initialized (This situation doesn't really fit [ProtoBuf](https://developers.google.com/protocol-buffers) because it does initialize RepeatedField properties when the message is constructed) when some entities need to be filled in it, the library needs to initialize the customized collection type. The library will automatically initialize a List<T> for ICollection<T>, IList<T> and List<T> types, or try to call the default parameterless constructor of the collection type. If the collection type doesn't fit in the 2 situations, then user must provide a factory method for this collection type, or else a corresponding exception will be thrown at run time.
     - IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration, bool throwIfRedundant = false), the library allows users to customize configurations to specific entity classes, the configuration parameter is exactly the same as that of IMapperBuilderFactory.Make method, except that it will be applied to only one entity type, and overwrites the default setting. Usage of throwIfRedundant parameter is similar to the one of IMapperBuilder.WithFactory method.
     - IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource?, TTarget?>> expression, bool throwIfRedundant = false), sometimes user need to use class types for scalar properties (like [ProtoBuf](https://developers.google.com/protocol-buffers) doesn't support byte array, instead uses a ByteString class instead, and unfortuantely byte array is the best type for concurrency checking property in entity framework core). To be able to map a byte array property to a ByteString class, such scalar converters needs to be defined. Usage of throwIfRedundant parameter is similar to the one of IMapperBuilder.WithFactory method.
     - IMapperBuilder Register<TSource, TTarget>(), this is the method to trigger a register of mapping between 2 types: TSource and TTarget. If users want to map an instance of TSource to an instance of TTarget, they need to register it here in the builder, or else a corresponding exception will be thrown when users try to do the mapping later. Note that the registration is recursive, like in the example in introduction, users only need to expilcitly register mapping between Borrower and BorrowerDTO, registration between navigation properties are automatically done with top level entity registered. Note that to make sure all necessary properties can be successfully mapped, the following notes must be taken into consideration:
@@ -120,7 +121,7 @@ The library exposes 4 public classes/interfaces for users:
     - IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext): this method creates a session that handles mapping to database.
     - IMappingSession CreateMappingSession(), this method creates a session that handles mapping when database is not involved.
 - IMappingToDatabaseSession: this interface provides one asynchronous method to map to an entity that is supposed to be updated to database:
-    - Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default), source is the source object to be mapped from, includer is the Include expression for eager loading by entity framework core. If the source instance is supposed to update some existing record in database, make sure to eager-load all navigation properties with the include expression. Plus, please don't call AsNoTracking method in this includer expression, it causes problems in database updation; the library will throw an exception is users do so.
+    - Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default), source is the source object to be mapped from, includer is the Include expression for eager loading by entity framework core. If the source instance is supposed to update some existing record in database, please **make sure** to eager-load all navigation properties with the include expression. Plus, please don't call AsNoTracking method in this includer expression, it causes problems in database updation; the library will throw an exception is users do so.
 - IMappingSession: this interface provides one synchronous method to map to an entity when database is not needed:
     - TTarget Map<TSource, TTarget>(TSource source), source is the object to be mapped from, and it returns the instance of TTarget that is mapped to, nothing much to explain here.
 ## Highlights
@@ -155,5 +156,13 @@ public sealed class Book
     public string Name { get; set; }
     public Borrower Borrower { get; set; }
 }
+3. Please not that when mapping reference type properties, a **shallow** copy will be performed.
 ```
 Once a book is removed from a borrower's borrow records, we don't want to delete the book, in this case keepEntityOnMappingRemoved needs to be set to be true.
+## Restriction
+1. The library assumes that any entity could only have 1 property as Id property, multiple properties combined id is not supported.
+2. The library requires any entity that will get updated into database to have an Id property, which means every table in the database, as long as it will be mapped using the library, need to have 1 and only 1 column for Id.
+3. The library requires each property to have 1 or 0 column for optimistic lock.
+## Feedback
+There there be any questions regarding the library, please send an email to keeper013@gmail.com for inquiry.
+When submitting bugs, it's preferred to submit a C# code file with a unit test to easily reproduce the bug.
