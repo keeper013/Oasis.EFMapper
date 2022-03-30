@@ -1,12 +1,10 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 internal interface IMapperTypeValidator
 {
-    bool IsSourceType(Type type);
-
-    bool IsTargetType(Type type);
+    bool IsValidType(Type type);
 
     bool CanConvert(Type sourceType, Type targetType);
 }
@@ -54,87 +52,69 @@ internal static class MapperTypeValidatorExtensions
     }
 }
 
-internal sealed class ScalarMapperTypeValidator : IMapperTypeValidator
+internal abstract class MapperTypeValidator<T> : IMapperTypeValidator
 {
-    private readonly IReadOnlyDictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary;
-    private readonly IReadOnlySet<Type> _convertableToScalarTargetTypes;
+    private readonly IReadOnlyDictionary<Type, Dictionary<Type, T>> _mapperDictionary;
 
-    public ScalarMapperTypeValidator(
-        IReadOnlyDictionary<Type, Dictionary<Type, Delegate>> scalarConverterDictionary,
-        IReadOnlySet<Type> convertableToScalarTargetTypes)
-    {
-        _scalarConverterDictionary = scalarConverterDictionary;
-        _convertableToScalarTargetTypes = convertableToScalarTargetTypes;
-    }
-
-    public bool CanConvert(Type sourceType, Type targetType)
-        => _scalarConverterDictionary.TryGetValue(sourceType, out var inner) && inner.ContainsKey(targetType);
-
-    public bool IsSourceType(Type type) => type.IsScalarType() || _scalarConverterDictionary.ContainsKey(type);
-
-    public bool IsTargetType(Type type) => type.IsScalarType() || _convertableToScalarTargetTypes.Contains(type);
-}
-
-internal sealed class EntityMapperTypeValidator : IMapperTypeValidator
-{
-    private readonly IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapperDictionary;
-    private readonly IReadOnlySet<Type> _convertableToScalarSourceTypes;
-    private readonly IReadOnlySet<Type> _convertableToScalarTargetTypes;
-
-    public EntityMapperTypeValidator(
-        IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet>> mapperDictionary,
-        IReadOnlySet<Type> convertableToScalarSourceTypes,
-        IReadOnlySet<Type> convertableToScalarTargetTypes)
+    public MapperTypeValidator(IReadOnlyDictionary<Type, Dictionary<Type, T>> mapperDictionary)
     {
         _mapperDictionary = mapperDictionary;
-        _convertableToScalarSourceTypes = convertableToScalarSourceTypes;
-        _convertableToScalarTargetTypes = convertableToScalarTargetTypes;
     }
 
     public bool CanConvert(Type sourceType, Type targetType)
         => _mapperDictionary.TryGetValue(sourceType, out var inner) && inner.ContainsKey(targetType);
 
-    public bool IsSourceType(Type type) => type.IsEntityType() && !_convertableToScalarSourceTypes.Contains(type);
-
-    public bool IsTargetType(Type type) => type.IsEntityType() && !_convertableToScalarTargetTypes.Contains(type);
+    public abstract bool IsValidType(Type type);
 }
 
-internal sealed class EntityListMapperTypeValidator : IMapperTypeValidator
+internal sealed class ScalarMapperTypeValidator : MapperTypeValidator<Delegate>
 {
-    private readonly IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapperDictionary;
-    private readonly IReadOnlySet<Type> _convertableToScalarSourceTypes;
-    private readonly IReadOnlySet<Type> _convertableToScalarTargetTypes;
+    private readonly IReadOnlySet<Type> _convertableToScalarTypes;
+
+    public ScalarMapperTypeValidator(
+        IReadOnlyDictionary<Type, Dictionary<Type, Delegate>> scalarConverterDictionary,
+        IReadOnlySet<Type> convertableToScalarTypes)
+        : base(scalarConverterDictionary)
+    {
+        _convertableToScalarTypes = convertableToScalarTypes;
+    }
+
+    public override bool IsValidType(Type type) => type.IsScalarType() || _convertableToScalarTypes.Contains(type);
+}
+
+internal sealed class EntityMapperTypeValidator : MapperTypeValidator<MapperMetaDataSet>
+{
+    private readonly IReadOnlySet<Type> _convertableToScalarTypes;
+
+    public EntityMapperTypeValidator(
+        IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet>> mapperDictionary,
+        IReadOnlySet<Type> convertableToScalarTypes)
+        : base(mapperDictionary)
+    {
+        _convertableToScalarTypes = convertableToScalarTypes;
+    }
+
+    public override bool IsValidType(Type type) => type.IsEntityType() && !_convertableToScalarTypes.Contains(type);
+}
+
+internal sealed class EntityListMapperTypeValidator : MapperTypeValidator<MapperMetaDataSet>
+{
+    private readonly IReadOnlySet<Type> _convertableToScalarTypes;
 
     public EntityListMapperTypeValidator(
         IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet>> mapperDictionary,
-        IReadOnlySet<Type> convertableToScalarSourceTypes,
-        IReadOnlySet<Type> convertableToScalarTargetTypes)
+        IReadOnlySet<Type> convertableToScalarTypes)
+        : base(mapperDictionary)
     {
-        _mapperDictionary = mapperDictionary;
-        _convertableToScalarSourceTypes = convertableToScalarSourceTypes;
-        _convertableToScalarTargetTypes = convertableToScalarTargetTypes;
+        _convertableToScalarTypes = convertableToScalarTypes;
     }
 
-    /// <summary>
-    /// Note that we use item type intead of list type here for performance considerations.
-    /// </summary>
-    /// <param name="sourceItemType">Type of source list item.</param>
-    /// <param name="targetItemType">Type of target list item.</param>
-    /// <returns>True if conversion can happen, else false.</returns>
-    public bool CanConvert(Type sourceItemType, Type targetItemType)
-        => _mapperDictionary.TryGetValue(sourceItemType, out var inner) && inner.ContainsKey(targetItemType);
-
-    public bool IsSourceType(Type type)
+    public override bool IsValidType(Type type)
     {
-        return TryGetListItemType(type, out var itemType) && !_convertableToScalarSourceTypes.Contains(itemType!);
+        return TryGetListItemType(type, out var itemType) && itemType.IsEntityType() && !_convertableToScalarTypes.Contains(itemType);
     }
 
-    public bool IsTargetType(Type type)
-    {
-        return TryGetListItemType(type, out var itemType) && !_convertableToScalarTargetTypes.Contains(itemType!);
-    }
-
-    private static bool TryGetListItemType(Type type, out Type? itemType)
+    private static bool TryGetListItemType(Type type, [NotNullWhen(true)] out Type? itemType)
     {
         itemType = type.GetListItemType();
         return itemType != default;

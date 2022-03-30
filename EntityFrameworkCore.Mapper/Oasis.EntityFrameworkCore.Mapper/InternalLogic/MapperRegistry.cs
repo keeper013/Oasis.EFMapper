@@ -7,8 +7,8 @@ using System.Reflection;
 internal sealed class MapperRegistry
 {
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
-    private readonly HashSet<Type> _convertableToScalarSourceTypes = new ();
-    private readonly HashSet<Type> _convertableToScalarTargetTypes = new ();
+    private readonly HashSet<Type> _convertableToScalarTypes = new ();
+    private readonly HashSet<Type> _knownEntityTypes = new ();
     private readonly Dictionary<Type, TypeConfiguration> _typesUsingCustomConfiguration = new ();
     private readonly HashSet<Type> _typesUsingDefaultConfiguration = new ();
     private readonly Dictionary<Type, TypeProxyMetaDataSet> _typeProxies = new ();
@@ -24,9 +24,9 @@ internal sealed class MapperRegistry
         KeyPropertyNames = new KeyPropertyNameManager(
             new KeyPropertyNameConfiguration(defaultConfiguration.identityPropertyName, defaultConfiguration.timestampPropertyName),
             _typesUsingCustomConfiguration);
-        ScalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTargetTypes);
-        EntityMapperTypeValidator = new EntityMapperTypeValidator(_mapper, _convertableToScalarSourceTypes, _convertableToScalarTargetTypes);
-        EntityListMapperTypeValidator = new EntityListMapperTypeValidator(_mapper, _convertableToScalarSourceTypes, _convertableToScalarTargetTypes);
+        ScalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTypes);
+        EntityMapperTypeValidator = new EntityMapperTypeValidator(_mapper, _convertableToScalarTypes);
+        EntityListMapperTypeValidator = new EntityListMapperTypeValidator(_mapper, _convertableToScalarTypes);
     }
 
     public IMapperTypeValidator ScalarMapperTypeValidator { get; }
@@ -39,12 +39,12 @@ internal sealed class MapperRegistry
 
     public void Register(Type sourceType, Type targetType, IDynamicMethodBuilder methodBuilder)
     {
-        if (!EntityMapperTypeValidator.IsSourceType(sourceType))
+        if (!EntityMapperTypeValidator.IsValidType(sourceType))
         {
             throw new InvalidEntityTypeException(sourceType);
         }
 
-        if (!EntityMapperTypeValidator.IsTargetType(targetType))
+        if (!EntityMapperTypeValidator.IsValidType(targetType))
         {
             throw new InvalidEntityTypeException(targetType);
         }
@@ -52,11 +52,33 @@ internal sealed class MapperRegistry
         RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, methodBuilder));
     }
 
-    public void WithListTypeFactoryMethod(Type type, Delegate factoryMethod, bool throwIfRedundant = false)
+    public void RegisterTwoWay(Type sourceType, Type targetType, IDynamicMethodBuilder methodBuilder)
+    {
+        if (!EntityMapperTypeValidator.IsValidType(sourceType))
+        {
+            throw new InvalidEntityTypeException(sourceType);
+        }
+
+        if (!EntityMapperTypeValidator.IsValidType(targetType))
+        {
+            throw new InvalidEntityTypeException(targetType);
+        }
+
+        var context = new RecursiveRegisterContext(this, methodBuilder);
+        RecursivelyRegister(sourceType, targetType, context);
+        RecursivelyRegister(targetType, sourceType, context);
+    }
+
+    public void WithFactoryMethod(Type type, Type itemType, Delegate factoryMethod, bool throwIfRedundant = false)
     {
         if (factoryMethod == default)
         {
             throw new ArgumentNullException(nameof(factoryMethod));
+        }
+
+        if (!EntityMapperTypeValidator.IsValidType(itemType))
+        {
+            throw new InvalidEntityListTypeException(type);
         }
 
         if (_typeListFactoryMethods.ContainsKey(type))
@@ -69,6 +91,7 @@ internal sealed class MapperRegistry
         else
         {
             _typeListFactoryMethods.Add(type, factoryMethod);
+            _knownEntityTypes.Add(itemType);
         }
     }
 
@@ -82,6 +105,11 @@ internal sealed class MapperRegistry
         if (type.GetConstructor(Array.Empty<Type>()) != default)
         {
             throw new FactoryMethodException(type, false);
+        }
+
+        if (!EntityMapperTypeValidator.IsValidType(type))
+        {
+            throw new InvalidEntityTypeException(type);
         }
 
         if (_factoryMethods.ContainsKey(type))
@@ -99,7 +127,7 @@ internal sealed class MapperRegistry
 
     public void WithConfiguration(Type type, TypeConfiguration configuration, IDynamicMethodBuilder methodBuilder, bool throwIfRedundant = false)
     {
-        if (!EntityMapperTypeValidator.IsSourceType(type) && !EntityMapperTypeValidator.IsTargetType(type))
+        if (!EntityMapperTypeValidator.IsValidType(type))
         {
             throw new InvalidEntityTypeException(type);
         }
@@ -137,11 +165,21 @@ internal sealed class MapperRegistry
 
     public void WithScalarConverter(Type sourceType, Type targetType, Delegate @delegate, bool throwIfRedundant = false)
     {
-        var sourceIsScalarType = ScalarMapperTypeValidator.IsSourceType(sourceType);
-        var targetIsScalarType = ScalarMapperTypeValidator.IsTargetType(targetType);
+        var sourceIsScalarType = ScalarMapperTypeValidator.IsValidType(sourceType);
+        var targetIsScalarType = ScalarMapperTypeValidator.IsValidType(targetType);
         if (!sourceIsScalarType && !targetIsScalarType)
         {
             throw new ScalarTypeMissingException(sourceType, targetType);
+        }
+
+        if (IsKnownEntityType(sourceType) || EntityListMapperTypeValidator.IsValidType(sourceType))
+        {
+            throw new InvalidScalarTypeException(sourceType);
+        }
+
+        if (IsKnownEntityType(targetType) || EntityListMapperTypeValidator.IsValidType(targetType))
+        {
+            throw new InvalidScalarTypeException(targetType);
         }
 
         if (!_scalarConverterDictionary.TryGetValue(sourceType, out var innerDictionary))
@@ -155,11 +193,11 @@ internal sealed class MapperRegistry
             innerDictionary.Add(targetType, @delegate);
             if (!sourceIsScalarType)
             {
-                _convertableToScalarSourceTypes.Add(sourceType);
+                _convertableToScalarTypes.Add(sourceType);
             }
             else if (!targetIsScalarType)
             {
-                _convertableToScalarTargetTypes.Add(targetType);
+                _convertableToScalarTypes.Add(targetType);
             }
         }
         else if (throwIfRedundant)
@@ -193,6 +231,11 @@ internal sealed class MapperRegistry
         return new EntityFactory(_factoryMethods);
     }
 
+    private bool IsKnownEntityType(Type type)
+    {
+        return _knownEntityTypes.Contains(type) || _factoryMethods.ContainsKey(type) || _typeProxies.ContainsKey(type);
+    }
+
     private void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context)
     {
         if (!context.Contains(sourceType, targetType))
@@ -206,31 +249,31 @@ internal sealed class MapperRegistry
 
             RegisterTypeProxies(sourceType, targetType, context.MethodBuilder);
 
+            var methodBuilder = context.MethodBuilder;
+            var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance);
+            var targetProperties = targetType.GetProperties(Utilities.PublicInstance);
+
             if (!_comparer.TryGetValue(sourceType, out Dictionary<Type, ComparerMetaDataSet>? innerComparer))
             {
                 innerComparer = new Dictionary<Type, ComparerMetaDataSet>();
                 _comparer[sourceType] = innerComparer;
             }
 
-            if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet>? innerMapper))
-            {
-                innerMapper = new Dictionary<Type, MapperMetaDataSet>();
-                _mapper[sourceType] = innerMapper;
-            }
-
-            var methodBuilder = context.MethodBuilder;
-            var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance);
-            var targetProperties = targetType.GetProperties(Utilities.PublicInstance);
-
             if (!innerComparer.ContainsKey(targetType))
             {
                 var sourceIdProperty = sourceProperties.FirstOrDefault(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(sourceType)));
-                var targetIdProperty = sourceProperties.FirstOrDefault(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(targetType)));
+                var targetIdProperty = targetProperties.FirstOrDefault(p => string.Equals(p.Name, KeyPropertyNames.GetIdentityPropertyName(targetType)));
                 if (sourceIdProperty != default && targetIdProperty != default)
                 {
                     innerComparer![targetType] = new ComparerMetaDataSet(
                         methodBuilder.BuildUpIdEqualComparerMethod(sourceType, targetType, sourceIdProperty, targetIdProperty));
                 }
+            }
+
+            if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet>? innerMapper))
+            {
+                innerMapper = new Dictionary<Type, MapperMetaDataSet>();
+                _mapper[sourceType] = innerMapper;
             }
 
             if (!innerMapper.ContainsKey(targetType))

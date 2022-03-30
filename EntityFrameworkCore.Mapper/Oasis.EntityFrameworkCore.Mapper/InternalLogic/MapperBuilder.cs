@@ -61,8 +61,7 @@ internal sealed class MapperBuilder : IMapperBuilder
 
         lock (_mapperRegistry)
         {
-            _mapperRegistry.Register(sourceType, targetType, _dynamicMethodBuilder);
-            _mapperRegistry.Register(targetType, sourceType, _dynamicMethodBuilder);
+            _mapperRegistry.RegisterTwoWay(sourceType, targetType, _dynamicMethodBuilder);
         }
 
         return this;
@@ -72,7 +71,7 @@ internal sealed class MapperBuilder : IMapperBuilder
     {
         lock (_mapperRegistry)
         {
-            _mapperRegistry.WithListTypeFactoryMethod(typeof(TList), factoryMethod.Compile(), throwIfRedundant);
+            _mapperRegistry.WithFactoryMethod(typeof(TList), typeof(TItem), factoryMethod.Compile(), throwIfRedundant);
         }
 
         return this;
@@ -102,6 +101,13 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     public IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression, bool throwIfRedundant = false)
     {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        if (sourceType == targetType)
+        {
+            throw new SameTypeException(targetType);
+        }
+
         lock (_mapperRegistry)
         {
             _mapperRegistry.WithScalarConverter(typeof(TSource), typeof(TTarget), expression.Compile(), throwIfRedundant);

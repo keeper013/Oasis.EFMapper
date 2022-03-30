@@ -3,7 +3,7 @@
 public sealed class InvalidEntityTypeException : EfCoreMapperException
 {
     public InvalidEntityTypeException(Type type)
-        : base($"Type {type} is invalid to be registered as an entity type.")
+        : base($"Type {type} is invalid for an entity type.")
     {
     }
 }

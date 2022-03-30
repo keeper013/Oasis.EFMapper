@@ -127,9 +127,9 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
         var generator = method.GetILGenerator();
         var sourceProperties = allSourceProperties
-            .Where(p => _scalarTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter(true) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, sourceType));
+            .Where(p => _scalarTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, sourceType));
         var targetProperties = allTargetProperties
-            .Where(p => _scalarTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter(true) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, targetType))
+            .Where(p => _scalarTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, targetType))
             .ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
@@ -156,8 +156,8 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var methodName = BuildMapperMethodName(MapEntityPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IEntityPropertyMapper) }, typeof(void));
         var generator = method.GetILGenerator();
-        var sourceProperties = allSourceProperties.Where(p => _entityTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter(true));
-        var targetProperties = allTargetProperties.Where(p => _entityTypeValidator.IsTargetType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = allSourceProperties.Where(p => _entityTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true));
+        var targetProperties = allTargetProperties.Where(p => _entityTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {
@@ -195,8 +195,8 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var methodName = BuildMapperMethodName(MapListPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IListPropertyMapper) }, typeof(void));
         var generator = method.GetILGenerator();
-        var sourceProperties = allSourceProperties.Where(p => _entityListTypeValidator.IsSourceType(p.PropertyType) && p.VerifyGetterSetter(false));
-        var targetProperties = allTargetProperties.Where(p => _entityListTypeValidator.IsTargetType(p.PropertyType) && p.VerifyGetterSetter(false)).ToDictionary(p => p.Name, p => p);
+        var sourceProperties = allSourceProperties.Where(p => _entityListTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
+        var targetProperties = allTargetProperties.Where(p => _entityListTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)
         {

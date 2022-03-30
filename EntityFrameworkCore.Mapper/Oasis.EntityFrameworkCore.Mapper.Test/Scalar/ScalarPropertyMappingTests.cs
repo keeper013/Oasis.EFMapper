@@ -516,4 +516,68 @@ public sealed class ScalarPropertyMappingTests : TestBase
             await Assert.ThrowsAsync<IdentityPropertyMissingException>(async () => await session.MapAsync<ScalarEntityNoBase1, ScalarEntity1>(instance));
         });
     }
+
+    [Fact]
+    public void FactoryMethodForScalarType_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+
+        // act and assert
+        Assert.Throws<InvalidEntityTypeException>(() =>
+        {
+            mapperBuilder
+                .WithScalarConverter<EntityWithoutDefaultConstructor, int>(e => 1)
+                .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(100));
+        });
+    }
+
+    [Fact]
+    public void ScalarTypeForFactoryMethodType_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+
+        // act and assert
+        Assert.Throws<InvalidScalarTypeException>(() =>
+        {
+            mapperBuilder
+                .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(100))
+                .WithScalarConverter<EntityWithoutDefaultConstructor, int>(e => 1);
+        });
+    }
+
+    [Fact]
+    public void ConfigurationForScalarType_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+
+        // act and assert
+        Assert.Throws<InvalidEntityTypeException>(() =>
+        {
+            mapperBuilder
+                .WithScalarConverter<ScalarEntityCustomKeyProperties1, int>(s => 1)
+                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.Timestamp), nameof(EntityBase.Id)));
+        });
+    }
+
+    [Fact]
+    public void ScalarTypeForConfiguration_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+
+        // act and assert
+        Assert.Throws<InvalidScalarTypeException>(() =>
+        {
+            mapperBuilder
+                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.Timestamp), nameof(EntityBase.Id)))
+                .WithScalarConverter<ScalarEntityCustomKeyProperties1, int>(s => 1);
+        });
+    }
 }

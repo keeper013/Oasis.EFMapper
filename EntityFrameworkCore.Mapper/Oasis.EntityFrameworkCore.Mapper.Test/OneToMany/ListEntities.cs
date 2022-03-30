@@ -233,3 +233,10 @@ public sealed class ScalarEntity2NoDefaultConstructorListWrapper : List<ScalarEn
     {
     }
 }
+
+public sealed class StringListNoDefaultConstructor : List<string>
+{
+    public StringListNoDefaultConstructor(int count)
+    {
+    }
+}
