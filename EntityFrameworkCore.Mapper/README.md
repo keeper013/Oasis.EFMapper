@@ -1,4 +1,6 @@
 # EntityFrameworkCore Mapper
+[![latest version](https://img.shields.io/nuget/v/Oasis.EntityFrameworkCore.Mapper)](https://www.nuget.org/packages/Oasis.EntityFrameworkCore.Mapper)
+[![downloads](https://img.shields.io/nuget/dt/Oasis.EntityFrameworkCore.Mapper)](https://www.nuget.org/packages/Oasis.EntityFrameworkCore.Mapper)
 ## Introduction
 **Oasis.EntityFrameworkCore.Mapper** (referred to as **the library** in the following content) is a library that helps users to automatically map scalar and navigation properties between entity classes and other helper classes (e.g. DTOs generated with [ProtoBuf](https://developers.google.com/protocol-buffers)). It's specifically designed for the use case where:
 1. Server loads some data from database to entity class instances using EntityFrameworkCore.
