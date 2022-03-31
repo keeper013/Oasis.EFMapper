@@ -97,16 +97,16 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var methodName = BuildMapperMethodName(MapKeyPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
         var generator = method.GetILGenerator();
-        var sourceIdentityProperty = allSourceProperties.GetProperty(_keyPropertyNameManager.GetIdentityPropertyName(sourceType));
-        var targetIdentityProperty = allTargetProperties.GetProperty(_keyPropertyNameManager.GetIdentityPropertyName(targetType));
+        var sourceIdentityProperty = allSourceProperties.GetKeyProperty(_keyPropertyNameManager.GetIdentityPropertyName(sourceType), false);
+        var targetIdentityProperty = allTargetProperties.GetKeyProperty(_keyPropertyNameManager.GetIdentityPropertyName(targetType), true);
 
         if (sourceIdentityProperty != default && targetIdentityProperty != default)
         {
             GenerateScalarPropertyValueAssignmentIL(generator, sourceIdentityProperty, targetIdentityProperty);
         }
 
-        var sourceTimeStampProperty = allSourceProperties.GetProperty(_keyPropertyNameManager.GetTimeStampPropertyName(sourceType));
-        var targetTimeStampProperty = allTargetProperties.GetProperty(_keyPropertyNameManager.GetTimeStampPropertyName(targetType));
+        var sourceTimeStampProperty = allSourceProperties.GetKeyProperty(_keyPropertyNameManager.GetTimeStampPropertyName(sourceType), false);
+        var targetTimeStampProperty = allTargetProperties.GetKeyProperty(_keyPropertyNameManager.GetTimeStampPropertyName(targetType), true);
         if (sourceTimeStampProperty != default && targetTimeStampProperty != default)
         {
             GenerateScalarPropertyValueAssignmentIL(generator, sourceTimeStampProperty, targetTimeStampProperty);
@@ -127,7 +127,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
         var generator = method.GetILGenerator();
         var sourceProperties = allSourceProperties
-            .Where(p => _scalarTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, sourceType));
+            .Where(p => _scalarTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, sourceType));
         var targetProperties = allTargetProperties
             .Where(p => _scalarTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, targetType))
             .ToDictionary(p => p.Name, p => p);
@@ -156,7 +156,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var methodName = BuildMapperMethodName(MapEntityPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IEntityPropertyMapper) }, typeof(void));
         var generator = method.GetILGenerator();
-        var sourceProperties = allSourceProperties.Where(p => _entityTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true));
+        var sourceProperties = allSourceProperties.Where(p => _entityTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
         var targetProperties = allTargetProperties.Where(p => _entityTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
 
         foreach (var sourceProperty in sourceProperties)

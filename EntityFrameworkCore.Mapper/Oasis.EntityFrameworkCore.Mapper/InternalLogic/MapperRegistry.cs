@@ -1,7 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
-using System.Linq.Expressions;
 using System.Reflection;
 
 internal sealed class MapperRegistry
@@ -155,7 +154,7 @@ internal sealed class MapperRegistry
         {
             _typesUsingCustomConfiguration[type] = configuration;
 
-            var identityProperty = type.GetProperties(Utilities.PublicInstance).GetProperty(configuration.identityPropertyName);
+            var identityProperty = type.GetProperties(Utilities.PublicInstance).GetKeyProperty(configuration.identityPropertyName, false);
             if (identityProperty != default)
             {
                 _typeProxies.Add(type, BuildTypeProxy(type, identityProperty, methodBuilder, configuration.keepEntityOnMappingRemoved));
@@ -231,6 +230,18 @@ internal sealed class MapperRegistry
         return new EntityFactory(_factoryMethods);
     }
 
+    public void Clear()
+    {
+        _scalarConverterDictionary.Clear();
+        _convertableToScalarTypes.Clear();
+        _knownEntityTypes.Clear();
+        _typesUsingCustomConfiguration.Clear();
+        _typesUsingDefaultConfiguration.Clear();
+        _typeProxies.Clear();
+        _mapper.Clear();
+        _comparer.Clear();
+    }
+
     private bool IsKnownEntityType(Type type)
     {
         return _knownEntityTypes.Contains(type) || _factoryMethods.ContainsKey(type) || _typeProxies.ContainsKey(type);
@@ -295,8 +306,8 @@ internal sealed class MapperRegistry
         var targetTypeRegistered = _typesUsingCustomConfiguration.ContainsKey(targetType) || _typesUsingDefaultConfiguration.Contains(targetType);
         if (!sourceTypeRegistered || !targetTypeRegistered)
         {
-            var sourceIdProperty = sourceType.GetProperties(Utilities.PublicInstance).GetProperty(KeyPropertyNames.GetIdentityPropertyName(sourceType));
-            var targetIdProperty = targetType.GetProperties(Utilities.PublicInstance).GetProperty(KeyPropertyNames.GetIdentityPropertyName(targetType));
+            var sourceIdProperty = sourceType.GetProperties(Utilities.PublicInstance).GetKeyProperty(KeyPropertyNames.GetIdentityPropertyName(sourceType), false);
+            var targetIdProperty = targetType.GetProperties(Utilities.PublicInstance).GetKeyProperty(KeyPropertyNames.GetIdentityPropertyName(targetType), true);
 
             var sourceHasId = sourceIdProperty != default;
             var targetHasId = targetIdProperty != default;

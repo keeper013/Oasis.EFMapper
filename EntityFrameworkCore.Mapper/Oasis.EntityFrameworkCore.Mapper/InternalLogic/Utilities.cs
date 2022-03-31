@@ -28,11 +28,11 @@ internal static class Utilities
         where TSource : class
         where TTarget : class;
 
-    public static PropertyInfo? GetProperty(this IEnumerable<PropertyInfo> properties, string? propertyName)
+    public static PropertyInfo? GetKeyProperty(this IEnumerable<PropertyInfo> properties, string? propertyName, bool mustHaveSetter)
     {
         return string.IsNullOrEmpty(propertyName) ?
             default :
-            properties.FirstOrDefault(p => p.VerifyGetterSetter(true) && string.Equals(propertyName, p.Name));
+            properties.FirstOrDefault(p => p.VerifyGetterSetter(mustHaveSetter) && string.Equals(propertyName, p.Name));
     }
 
     public static bool VerifyGetterSetter(this PropertyInfo prop, bool mustHaveSetter)

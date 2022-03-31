@@ -33,6 +33,9 @@ internal sealed class MapperBuilder : IMapperBuilder
         var proxy = _mapperRegistry.MakeEntityBaseProxy(type, scalarTypeConverter);
         var entityFactory = _mapperRegistry.MakeEntityFactory();
 
+        // release some memory ahead
+        _mapperRegistry.Clear();
+
         return new Mapper(scalarTypeConverter, listTypeConstructor, entityFactory, mapper, proxy);
     }
 
