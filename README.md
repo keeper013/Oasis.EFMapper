@@ -1,4 +1,5 @@
 # Oasis
-This solution contains my ideas of making programming easy, I may update it from time to time
+This solution contains an AutoMapper-like tool to map scalar and navigtion properties specifically designed for EntityFramework
 ## Content
-* **EntityFrameworkCore.Mapper**: an AutoMapper-like tool to map scalar and navigtion properties specifically designed for EntityFrameworkCore.
+* **EntityFrameworkCore.Mapper**: entity framework core version library based on .net6.0.
+* **EntityFramework.Mapper**: entity framework core version library based on .net framework (to be added later).
