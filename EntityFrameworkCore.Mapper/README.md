@@ -102,9 +102,15 @@ That's it. Updating scalar properties, adding or removing entities will be autom
 The way this library works can be roughly explained like this:
 When registerting mapping between 2 types A and B, the library will go though each public instance properties of types to be mapped (namely X and Y), and try to match the properties. All properties will be grouped under 3 categories: scalar property, entity property or list property.
 - Entity property refer to properties of type string, byte[] or other types that are not classes. When the library finds a property A in type X, it will try to find a property in type Y named A, the 2 properties should be of the same type, or type of X.A can be converted to type of Y.A (this conversion method must be explicitly registered to the library) so they can be mapped.
-:exclamation: Do check property names and types between the types that are to be mapped. The library will **silently** ignore unmatched properties when making matches. For example a property of name "**Test**" will not be matched to another property named "**test**", a property of type **int** will not be matched to an other property of type **int?**, and a property of type **long** will not be matched to a property of type **ulong**.
+
+❗: Do check property names and types between the types that are to be mapped. The library will **silently** ignore unmatched properties when making matches. For example a property of name "**Test**" will not be matched to another property named "**test**", a property of type **int** will not be matched to an other property of type **int?**, and a property of type **long** will not be matched to a property of type **ulong**.
 - Entity properties refer to properties that are class types, but don't implement IEnumerable<>. When registering the mapping from type X to Y, if X.B and Y.B are matched by name and they are both categorized as entity properties, the library will try to automatically register the mapping from type of X.B to type of Y.B. So users only need to manually write the code to register the top level entities.
 - List properties refer to properties that are class types and implement ICollection<>, and the generic argument of ICollection<> is considered to be an entity property. When registering the mapping from type X to Y, if X.C and Y.C are matched by name and they are both categorized as list properties, similar to entity properties the library will try to automatically register the mapping between the generic argument of ICollection<> interface from X.C to that of Y.C.
+
+❗: Note that when mapping properties, getters and setters are important. To Map X.A to Y.A, X.A must have a getter, and Y.A must have both a getter and a setter (entity list property doesn't needs to have setters if the class guarantees that the list will be initialized upon construction, this exception is made due to implementation of RepeatedField of [ProtoBuf](https://developers.google.com/protocol-buffers)), or else the library will not consider X.A and Y.A a valid match, even if property name and type are successfully matched.
+
+❗: Note that each type can be only be registered as a scalar type, entity type or entity list type. If a type is registered to be convertable to a scalar type, then this type will not be accepted to be registered as an entity type anymore. Vice-Versa, if a type is registered to be an entity type, it can't be registered to be convertable to a scalar type. A type implements IEnumerable<> won't be accepted as an entity type, and only types implements ICollection<> may be recognized as an entity list type.
+
 The library will generate a dynamic assembly and some static methods when users register mapping between the types. Those generated static methods will be used later when users build the IMapper interface and use it to map properties.
 ## User Interface
 The library exposes 4 public classes/interfaces for users:
@@ -164,13 +170,13 @@ public sealed class Book
     public string Name { get; set; }
     public Borrower Borrower { get; set; }
 }
-3. Please not that when mapping reference type properties, a **shallow** copy will be performed.
 ```
+3. Please note that when mapping reference type properties, a **shallow** copy will be performed.
 Once a book is removed from a borrower's borrow records, we don't want to delete the book, in this case keepEntityOnMappingRemoved needs to be set to be true.
 ## Restriction
 1. The library assumes that any entity could only have 1 property as Id property, multiple properties combined id is not supported.
 2. The library requires any entity that will get updated into database to have an Id property, which means every table in the database, as long as it will be mapped using the library, need to have 1 and only 1 column for Id.
 3. The library requires each property to have 1 or 0 column for optimistic lock.
 ## Feedback
-There there be any questions regarding the library, please send an email to keeper013@gmail.com for inquiry.
+There there be any questions or suggestions regarding the library, please send an email to keeper013@gmail.com for inquiry.
 When submitting bugs, it's preferred to submit a C# code file with a unit test to easily reproduce the bug.
