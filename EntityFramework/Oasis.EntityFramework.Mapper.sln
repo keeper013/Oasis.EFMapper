@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oasis.EntityFramework.Mappe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oasis.EntityFramework.Mapper.Test", "Oasis.EntityFramework.Mapper.Test\Oasis.EntityFramework.Mapper.Test.csproj", "{3966453F-3EB8-471F-B685-EA27F63BC2F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlSurrogate", "SqlSurrogate\SqlSurrogate.csproj", "{654206D3-0F3D-4362-95D0-5728059DDA8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Oasis.EntityFramework.Mapper.Test.SqlSurrogate", "Oasis.EntityFramework.Mapper.Test.SqlSurrogate\Oasis.EntityFramework.Mapper.Test.SqlSurrogate.csproj", "{9A99CC87-B08C-4DC3-907A-D3AF8CFD0A5B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{3966453F-3EB8-471F-B685-EA27F63BC2F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3966453F-3EB8-471F-B685-EA27F63BC2F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3966453F-3EB8-471F-B685-EA27F63BC2F0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{654206D3-0F3D-4362-95D0-5728059DDA8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{654206D3-0F3D-4362-95D0-5728059DDA8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{654206D3-0F3D-4362-95D0-5728059DDA8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{654206D3-0F3D-4362-95D0-5728059DDA8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A99CC87-B08C-4DC3-907A-D3AF8CFD0A5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A99CC87-B08C-4DC3-907A-D3AF8CFD0A5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A99CC87-B08C-4DC3-907A-D3AF8CFD0A5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A99CC87-B08C-4DC3-907A-D3AF8CFD0A5B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
