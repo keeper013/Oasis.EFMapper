@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Oasis.EntityFramework.Mapper.Test\EntityBase.cs" Link="EntityBase.cs" />
+    <Compile Include="..\Oasis.EntityFramework.Mapper.Test\KeyPropertyType\KeyPropertyTypeEntities.cs" Link="Database\KeyPropertyType\KeyPropertyTypeEntities.cs" />
+    <Compile Include="..\Oasis.EntityFramework.Mapper.Test\OneToMany\BaseDerivedEntities.cs" Link="Database\OneToMany\BaseDerivedEntities.cs" />
+    <Compile Include="..\Oasis.EntityFramework.Mapper.Test\OneToMany\ListEntities.cs" Link="Database\OneToMany\ListEntities.cs" />
+    <Compile Include="..\Oasis.EntityFramework.Mapper.Test\OneToMany\ScalarEntities.cs" Link="Database\OneToMany\ScalarEntities.cs" />
+    <Compile Include="..\Oasis.EntityFramework.Mapper.Test\Scalar\ScalarEntities.cs" Link="Database\Scalar\ScalarEntities.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Database\KeyPropertyType\" />
+    <Folder Include="Database\OneToMany\" />
+    <Folder Include="Database\Scalar\" />
+  </ItemGroup>
+
+</Project>
