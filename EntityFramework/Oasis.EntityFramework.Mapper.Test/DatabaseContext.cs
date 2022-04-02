@@ -47,7 +47,6 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<SubScalarEntity1>().HasOptional(s => s.CollectionEntity).WithMany(c => c!.Scs).HasForeignKey(s => s.CollectionEntityId).WillCascadeOnDelete(false);
         modelBuilder.Entity<SubEntity2>().HasOptional(s => s.ListEntity).WithMany(l => l!.SubEntities).HasForeignKey(s => s.ListEntityId).WillCascadeOnDelete(false);
         modelBuilder.Entity<ScalarEntity1Item>().HasRequired(s => s.DerivedEntity1).WithMany(d => d!.Scs).HasForeignKey(s => s.DerivedEntity1Id).WillCascadeOnDelete(false);
-        // modelBuilder.Entity<ScalarEntity1Item>().HasRequired(s => s.DerivedEntity1_1).WithMany(d => d!.Scs).HasForeignKey(s => s.DerivedEntity1_1Id).WillCascadeOnDelete(false);
         modelBuilder.Entity<Outer1>().HasOptional(o => o.Inner1).WithOptionalPrincipal(i => i!.Outer!).WillCascadeOnDelete(true);
         modelBuilder.Entity<Outer1>().HasOptional(o => o.Inner2).WithOptionalPrincipal(i => i!.Outer!).WillCascadeOnDelete(true);
         modelBuilder.Entity<RecursiveEntity1>().HasOptional(r => r.Child).WithOptionalPrincipal(r => r!.Parent!).WillCascadeOnDelete(false);

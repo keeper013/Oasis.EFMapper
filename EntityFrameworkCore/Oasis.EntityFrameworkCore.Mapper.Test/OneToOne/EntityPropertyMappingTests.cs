@@ -106,36 +106,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         mapperBuilder.RegisterTwoWay<Outer1, Outer2>();
         var mapper = mapperBuilder.Build();
 
-        var outer1 = new Outer1(1);
-        var inner1 = new Inner1_1(1);
-        var inner2 = new Inner1_2("1");
-        outer1.Inner1 = inner1;
-        outer1.Inner2 = inner2;
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            databaseContext.Set<Inner1_1>().Add(new Inner1_1(2));
-            databaseContext.Set<Inner1_2>().Add(new Inner1_2("2"));
-            databaseContext.Set<Outer1>().Add(outer1);
-            await databaseContext.SaveChangesAsync();
-        });
-
-        // act
-        Outer2? outer2 = default;
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            var entity = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
-            var session1 = mapper.CreateMappingSession();
-            outer2 = session1.Map<Outer1, Outer2>(entity);
-            outer2.Inner1 = session1.Map<Inner1_1, Inner2_1>(await databaseContext.Set<Inner1_1>().FirstAsync(i => i.LongProp == 2));
-            outer2.Inner2 = session1.Map<Inner1_2, Inner2_2>(await databaseContext.Set<Inner1_2>().FirstAsync(i => i.StringProp == "2"));
-        });
-
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
-            var result1 = await session2.MapAsync<Outer2, Outer1>(outer2!, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
-            await databaseContext.SaveChangesAsync();
-        });
+        await ReplaceOneToOneMapping(mapper);
 
         Outer1? result2 = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>

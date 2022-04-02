@@ -64,7 +64,7 @@ public class ListPropertyMappingTests : TestBase
         var sc1_2 = new SubScalarEntity1(2, default, "4", new byte[] { 2, 3, 4 });
         var result = await MapListProperties_ICollection<CollectionEntity3WithWrapper>(
             new List<SubScalarEntity1> { sc1_1, sc1_2 },
-            (builder) => builder.WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2>(() => new ScalarEntity2NoDefaultConstructorListWrapper(0)));
+            (builder) => builder.WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2Item>(() => new ScalarEntity2NoDefaultConstructorListWrapper(0)));
 
         // assert
         Assert.Equal(1, result!.IntProp);
@@ -91,9 +91,9 @@ public class ListPropertyMappingTests : TestBase
         mapperBuilder.Register<CollectionEntity2, CollectionEntity1>();
         var mapper = mapperBuilder.Build();
 
-        var sc1_1 = new ScalarEntity2(1, 2, "3", new byte[] { 1 });
-        var sc1_2 = new ScalarEntity2(2, null, "4", new byte[] { 2, 3, 4 });
-        var collectionEntity2 = new CollectionEntity2(1, new List<ScalarEntity2> { sc1_1, sc1_2 });
+        var sc1_1 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
+        var sc1_2 = new ScalarEntity2Item(2, null, "4", new byte[] { 2, 3, 4 });
+        var collectionEntity2 = new CollectionEntity2(1, new List<ScalarEntity2Item> { sc1_1, sc1_2 });
 
         // act
         CollectionEntity1? result = default;
@@ -233,7 +233,7 @@ public class ListPropertyMappingTests : TestBase
 
         var mapper = mapperBuilder.Build();
 
-        var instance = new DerivedEntity2("str2", 2, new List<ScalarEntity2> { new ScalarEntity2(1, 2, "3", new byte[] { 1 }) });
+        var instance = new DerivedEntity2("str2", 2, new List<ScalarEntity2Item> { new ScalarEntity2Item(1, 2, "3", new byte[] { 1 }) });
 
         // act
         DerivedEntity1? result = default;
@@ -266,7 +266,7 @@ public class ListPropertyMappingTests : TestBase
 
         var mapper = mapperBuilder.Build();
 
-        var instance = new DerivedEntity2_2(2, 2, new List<ScalarEntity2> { new ScalarEntity2(1, 2, "3", new byte[] { 1 }) });
+        var instance = new DerivedEntity2_2(2, 2, new List<ScalarEntity2Item> { new ScalarEntity2Item(1, 2, "3", new byte[] { 1 }) });
 
         // act
         DerivedEntity1_1? result = default;
@@ -508,8 +508,8 @@ public class ListPropertyMappingTests : TestBase
         Assert.Throws<InvalidEntityListTypeException>(() =>
         {
             mapperBuilder
-                .WithScalarConverter<ScalarEntity2, int>(s => 1)
-                .WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2>(() => new ScalarEntity2NoDefaultConstructorListWrapper(1));
+                .WithScalarConverter<ScalarEntity2Item, int>(s => 1)
+                .WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2Item>(() => new ScalarEntity2NoDefaultConstructorListWrapper(1));
         });
     }
 
@@ -524,8 +524,8 @@ public class ListPropertyMappingTests : TestBase
         Assert.Throws<InvalidScalarTypeException>(() =>
         {
             mapperBuilder
-                .WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2>(() => new ScalarEntity2NoDefaultConstructorListWrapper(1))
-                .WithScalarConverter<ScalarEntity2, int>(s => 1);
+                .WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2Item>(() => new ScalarEntity2NoDefaultConstructorListWrapper(1))
+                .WithScalarConverter<ScalarEntity2Item, int>(s => 1);
         });
     }
 

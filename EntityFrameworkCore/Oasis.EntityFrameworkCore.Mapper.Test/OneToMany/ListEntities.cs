@@ -1,6 +1,5 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Test.OneToMany;
 
-using Oasis.EntityFrameworkCore.Mapper.Test.Scalar;
 using System.Collections.Generic;
 
 public sealed class CollectionEntity1 : EntityBase
@@ -26,7 +25,7 @@ public sealed class CollectionEntity2 : EntityBase
     {
     }
 
-    public CollectionEntity2(int intProp, ICollection<ScalarEntity2> scs)
+    public CollectionEntity2(int intProp, ICollection<ScalarEntity2Item> scs)
     {
         IntProp = intProp;
         Scs = scs;
@@ -34,7 +33,7 @@ public sealed class CollectionEntity2 : EntityBase
 
     public int IntProp { get; set; }
 
-    public ICollection<ScalarEntity2>? Scs { get; set; }
+    public ICollection<ScalarEntity2Item>? Scs { get; set; }
 }
 
 public sealed class ListIEntity1 : EntityBase
@@ -223,11 +222,11 @@ public sealed class CollectionEntity3WithWrapper : EntityBase
     public ScalarEntity2NoDefaultConstructorListWrapper? Scs { get; set; }
 }
 
-public sealed class ScalarEntity2ListWrapper : List<ScalarEntity2>
+public sealed class ScalarEntity2ListWrapper : List<ScalarEntity2Item>
 {
 }
 
-public sealed class ScalarEntity2NoDefaultConstructorListWrapper : List<ScalarEntity2>
+public sealed class ScalarEntity2NoDefaultConstructorListWrapper : List<ScalarEntity2Item>
 {
     public ScalarEntity2NoDefaultConstructorListWrapper(int count)
     {
