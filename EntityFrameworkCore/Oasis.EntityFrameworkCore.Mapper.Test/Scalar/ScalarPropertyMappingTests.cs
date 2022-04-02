@@ -27,7 +27,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1? entity = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
         var session1 = mapper.CreateMappingSession();
@@ -78,7 +78,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1? entity = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
         var session1 = mapper.CreateMappingSession();
         var instance = session1.Map<ScalarEntity1, EntityWithoutDefaultConstructor>(entity!);
@@ -106,7 +106,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1? entity = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
         var session = mapper.CreateMappingSession();
@@ -253,7 +253,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1? entity = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
         var session = mapper.CreateMappingSession();
@@ -298,7 +298,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1? entity = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
         var session1 = mapper.CreateMappingSession();
@@ -346,7 +346,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1? entity = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
         var session1 = mapper.CreateMappingSession();
@@ -404,7 +404,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1? entity = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
+            entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
         var session1 = mapper.CreateMappingSession();

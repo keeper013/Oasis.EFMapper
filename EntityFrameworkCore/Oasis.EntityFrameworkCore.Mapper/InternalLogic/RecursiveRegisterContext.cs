@@ -1,7 +1,5 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-using System.Reflection;
-
 internal interface IRecursiveRegisterTrigger
 {
     void RegisterIf(Type sourceType, Type targetType, bool condition);

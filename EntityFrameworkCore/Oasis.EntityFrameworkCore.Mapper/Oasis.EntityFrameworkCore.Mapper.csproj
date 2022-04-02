@@ -16,6 +16,13 @@
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
+	<ItemGroup>
+		<Using Remove="System.Net.Http" />
+		<Using Remove="System.IO" />
+		<Using Remove="System.Threading" />
+		<Using Include="System.Reflection" />
+	</ItemGroup>
+
   <ItemGroup>
     <None Include="..\README.md">
       <Pack>True</Pack>

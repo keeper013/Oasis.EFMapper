@@ -132,7 +132,7 @@ public class KeyPropertyTypeTests : TestBase
         SomeSourceEntity<T>? entity = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            entity = await databaseContext.Set<SomeSourceEntity<T>>().AsNoTracking().SingleAsync();
+            entity = await databaseContext.Set<SomeSourceEntity<T>>().AsNoTracking().FirstAsync();
         });
 
         var session1 = mapper.CreateMappingSession();

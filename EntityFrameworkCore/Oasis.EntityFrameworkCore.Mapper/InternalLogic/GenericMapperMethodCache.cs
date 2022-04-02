@@ -1,7 +1,5 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-using System.Reflection;
-
 internal sealed class GenericMapperMethodCache
 {
     private readonly IDictionary<Type, IDictionary<Type, MethodInfo>> _dict = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
