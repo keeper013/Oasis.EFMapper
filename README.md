@@ -97,6 +97,7 @@ var session = mapper.CreateMappingToDatabaseSession(databaseContext);
 var borrower = await session.MapAsync<BorrowerDTO, Borrower>(borrowerDTO, qb => qb.Include(qb => qb.BorrowRecords))
 await databaseContext.SaveChangesAsync();
 ```
+The borrower returned is the borrower entity that will be updated into the database, it's not useful in this example, but returning it to user allows the user to make further updates to it (and view its content when debugging).
 That's it. Updating scalar properties, adding or removing entities will be automatically handled by MapAsync method of the library. Just save the changes, it will work correctly.
 ## Inside View
 The way this library works can be roughly explained like this:
@@ -162,17 +163,62 @@ public sealed class Borrower
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public ICollection<Book> BorrowRecords { get; set; }
+    public ICollection<Book> BorrowedBooks { get; set; }
 }
 public sealed class Book
 {
     public int Id { get; set; }
     public string Name { get; set; }
+    public int BorrowerId { get; set; }
     public Borrower Borrower { get; set; }
 }
 ```
+Once a book is removed from a borrower's borrowed books, we don't want to delete the book, in this case keepEntityOnMappingRemoved needs to be set to be true.
 3. Please note that when mapping reference type properties, a **shallow** copy will be performed.
-Once a book is removed from a borrower's borrow records, we don't want to delete the book, in this case keepEntityOnMappingRemoved needs to be set to be true.
+4. What are sessions used for? Why can't mapping be carried out directy by IMapper interface?
+    In a nutshell, sessions keep track of newly added entities (entities with empty ids will be considered entities that will be inserted as new data record into database) avoid them gets duplicated. To use the example in introduction section to explain: let's say the library now requires book borrowing records to be monitored by some book keeper (maybe the book keepers will call the borrowers to remind them a few days earlier before the books' due date), and the book keeper is optional to borrow record (to allow the system to assign a borrow record to a book keeper after the book is borrowed), then BorrowRecord needs to be redefined:
+```C#
+public sealed class BorrowRecord
+{
+    public int Id { get; set; }
+    public int BorrowerId { get; set; }
+    public int BookId { get; set; }
+    public int BookKeeperId { get; set; }
+    
+    public Borrower? Borrower { get; set; }
+    public BookKeeper? BookKeeper { get; set; }
+    public Book? Book { get; set; }
+}
+public sealed class BookKeeper
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public ICollection<BorrowRecord>? BorrowRecords { get; set; }
+}
+```
+When a borrower borrows a book, if we want to assign the borrow record to a book keeper at the same time, the following code will work correctly.
+```C#
+var borrowRecord = new BorrowRecordDTO { BookId = borrowedBookId };
+
+// to make it short and clear, assume the all DTOs have been preloaded and mapped from database.
+borrowerDTO.BorrowRecords.Add(borrowRecord);
+bookKeeperDTO.BorrowRecords.Add(borrowRecord);
+    
+var session = mapper.CreateMappingToDatabaseSession(databaseContext);
+await session.MapAsync<BorrowerDTO, borrower>(borrowerDTO, qb => qb.Include(qb => qb.BorrowRecords));
+await session.MapAsync<BookKeeperDTO, BookKeeper>(bookKeeperDTO, qb => qb.Include(qb => qb.BorrowRecords));
+await databaseContext.SaveChanges();
+```
+In the code, the new record borrowRecord was supposed to be added to both a book keeper's and a borrower's borrow records. Mapping the book keeper and the borrower using the same session guarantees that this new borrow record doesn't get inserted into database twice, that when mapping borrowerDTO and bookKeeperDTO, the same borrow record entity will be used by databaseContext to assign borrower id and book keeper id.
+If it is done the other way around as demonstrated below then the result will be incorrect, 2 different borrow records will be inserted into database (if borrower id is compulsory to borrow record then an exception will be thrown).
+```C#
+var session1 = mapper.CreateMappingToDatabaseSession(databaseContext);
+await session1.MapAsync<BorrowerDTO, borrower>(borrowerDTO, qb => qb.Include(qb => qb.BorrowRecords));
+var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
+await session2.MapAsync<BookKeeperDTO, BookKeeper>(bookKeeperDTO, qb => qb.Include(qb => qb.BorrowRecords));
+await databaseContext.SaveChanges();
+```
+Of course the best way to do in this case is to simply set borrower id and book keeper id to the borrow record dto and only map the borrow record dto back to database to be saved. This example does it the stupid way to demonstrate the difference of using a single mapping session and different mapping sessions. In a rare case if users want to re-use the same DTO to inject multiple records to the database, they may consider using multiple mapping sessions to achieve it.
 ## Restriction
 1. The library assumes that any entity could only have 1 property as Id property, multiple properties combined id is not supported.
 2. The library requires any entity that will get updated into database to have an Id property, which means every table in the database, as long as it will be mapped using the library, need to have 1 and only 1 column for Id.
