@@ -116,6 +116,18 @@ CREATE TABLE "ScalarEntity1" (
 );
 
 
+CREATE TABLE "SessionTestingList1_1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_SessionTestingList1_1" PRIMARY KEY AUTOINCREMENT,
+    "Timestamp" INTEGER NULL
+);
+
+
+CREATE TABLE "SessionTestingList1_2" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_SessionTestingList1_2" PRIMARY KEY AUTOINCREMENT,
+    "Timestamp" INTEGER NULL
+);
+
+
 CREATE TABLE "ShortSourceEntity" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_ShortSourceEntity" PRIMARY KEY AUTOINCREMENT,
     "Timestamp" INTEGER NULL,
@@ -180,6 +192,17 @@ CREATE TABLE "Inner1_2" (
 );
 
 
+CREATE TABLE "ScalarItem1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_ScalarItem1" PRIMARY KEY AUTOINCREMENT,
+    "StringProp" TEXT NULL,
+    "List1Id" INTEGER NULL,
+    "List2Id" INTEGER NULL,
+    "Timestamp" INTEGER NULL,
+    CONSTRAINT "FK_ScalarItem1_SessionTestingList1_1_List1Id" FOREIGN KEY ("List1Id") REFERENCES "SessionTestingList1_1" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_ScalarItem1_SessionTestingList1_2_List2Id" FOREIGN KEY ("List2Id") REFERENCES "SessionTestingList1_2" ("Id") ON DELETE RESTRICT
+);
+
+
 CREATE UNIQUE INDEX "IX_Inner1_1_Outer_Id" ON "Inner1_1" ("Outer_Id");
 
 
@@ -193,6 +216,12 @@ CREATE INDEX "IX_ScalarEntity1Item_DerivedEntity1_1Id" ON "ScalarEntity1Item" ("
 
 
 CREATE INDEX "IX_ScalarEntity1Item_DerivedEntity1Id" ON "ScalarEntity1Item" ("DerivedEntity1Id");
+
+
+CREATE INDEX "IX_ScalarItem1_List1Id" ON "ScalarItem1" ("List1Id");
+
+
+CREATE INDEX "IX_ScalarItem1_List2Id" ON "ScalarItem1" ("List2Id");
 
 
 CREATE INDEX "IX_SubEntity2_ListEntityId" ON "SubEntity2" ("ListEntityId");

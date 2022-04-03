@@ -24,6 +24,9 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<SubEntity2>().ToTable(nameof(SubEntity2));
         modelBuilder.Entity<Inner1_1>().ToTable(nameof(Inner1_1));
         modelBuilder.Entity<Outer1>().ToTable(nameof(Outer1));
+        modelBuilder.Entity<SessionTestingList1_1>().ToTable(nameof(SessionTestingList1_1));
+        modelBuilder.Entity<SessionTestingList1_2>().ToTable(nameof(SessionTestingList1_2));
+        modelBuilder.Entity<ScalarItem1>().ToTable(nameof(ScalarItem1));
         modelBuilder.Entity<ByteSourceEntity>().ToTable(nameof(ByteSourceEntity));
         modelBuilder.Entity<NByteSourceEntity>().ToTable(nameof(NByteSourceEntity));
         modelBuilder.Entity<ShortSourceEntity>().ToTable(nameof(ShortSourceEntity));
@@ -43,5 +46,7 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<Inner1_1>().HasOne(i => i.Outer).WithOne(o => o.Inner1).HasForeignKey<Inner1_1>(i => i.OuterId).OnDelete(DeleteBehavior.SetNull);
         modelBuilder.Entity<Inner1_2>().HasOne(i => i.Outer).WithOne(o => o.Inner2).HasForeignKey<Inner1_2>(i => i.OuterId).OnDelete(DeleteBehavior.SetNull);
         modelBuilder.Entity<RecursiveEntity1>().HasOne(r => r.Parent).WithOne(r => r.Child).HasForeignKey<RecursiveEntity1>(r => r.ParentId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<ScalarItem1>().HasOne(s => s.List1).WithMany(l => l.Items).HasForeignKey(s => s.List1Id).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<ScalarItem1>().HasOne(s => s.List2).WithMany(l => l.Items).HasForeignKey(s => s.List2Id).OnDelete(DeleteBehavior.Restrict);
     }
 }

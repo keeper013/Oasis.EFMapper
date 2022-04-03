@@ -30,6 +30,9 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<SubEntity2>().ToTable(nameof(SubEntity2));
         modelBuilder.Entity<Inner1_1>().ToTable(nameof(Inner1_1));
         modelBuilder.Entity<Outer1>().ToTable(nameof(Outer1));
+        modelBuilder.Entity<SessionTestingList1_1>().ToTable(nameof(SessionTestingList1_1));
+        modelBuilder.Entity<SessionTestingList1_2>().ToTable(nameof(SessionTestingList1_2));
+        modelBuilder.Entity<ScalarItem1>().ToTable(nameof(ScalarItem1));
         modelBuilder.Entity<ByteSourceEntity>().ToTable(nameof(ByteSourceEntity));
         modelBuilder.Entity<NByteSourceEntity>().ToTable(nameof(NByteSourceEntity));
         modelBuilder.Entity<ShortSourceEntity>().ToTable(nameof(ShortSourceEntity));
@@ -47,6 +50,8 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<Outer1>().HasOptional(o => o.Inner1).WithOptionalPrincipal(i => i!.Outer!).WillCascadeOnDelete(true);
         modelBuilder.Entity<Outer1>().HasOptional(o => o.Inner2).WithOptionalPrincipal(i => i!.Outer!).WillCascadeOnDelete(true);
         modelBuilder.Entity<RecursiveEntity1>().HasOptional(r => r.Child).WithOptionalPrincipal(r => r!.Parent!).WillCascadeOnDelete(false);
+        modelBuilder.Entity<ScalarItem1>().HasRequired(s => s.List1).WithMany(l => l!.Items).HasForeignKey(s => s.List1Id).WillCascadeOnDelete(true);
+        modelBuilder.Entity<ScalarItem1>().HasRequired(s => s.List2).WithMany(l => l!.Items).HasForeignKey(s => s.List2Id).WillCascadeOnDelete(true);
     }
 }
 
