@@ -408,15 +408,10 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
-            await databaseContext.SaveChangesAsync();
-        });
-
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2);
+            var session1 = mapper.CreateMappingToDatabaseSession(databaseContext);
+            await session1.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
+            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
+            await session2.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -442,15 +437,10 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
-            await databaseContext.SaveChangesAsync();
-        });
-
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
+            var session1 = mapper.CreateMappingToDatabaseSession(databaseContext);
+            await session1.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
+            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
+            await session2.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
             await databaseContext.SaveChangesAsync();
         });
 
