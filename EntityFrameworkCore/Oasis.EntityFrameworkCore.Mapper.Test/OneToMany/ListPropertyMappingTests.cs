@@ -337,7 +337,7 @@ public class ListPropertyMappingTests : TestBase
     }
 
     [Fact]
-    public async Task SessionTest_SameSessionAvoidDuplicatedNewEntity()
+    public async Task SessionTest_SameSessionAvoidDuplicatedNewEntity1()
     {
         // arrange
         var factory = new MapperBuilderFactory();
@@ -365,7 +365,35 @@ public class ListPropertyMappingTests : TestBase
     }
 
     [Fact]
-    public async Task SessionTest_DifferentSessionCreatesDuplicatedNewEntity()
+    public async Task SessionTest_SameSessionAvoidDuplicatedNewEntity2()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder.Register<SessionTestingList2, SessionTestingList1_1>();
+        var mapper = mapperBuilder.Build();
+
+        var item = new ScalarItem2("abc");
+        var l2_1 = new SessionTestingList2(new List<ScalarItem2> { item });
+        var l2_2 = new SessionTestingList2(new List<ScalarItem2> { item });
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
+            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_1);
+            await databaseContext.SaveChangesAsync();
+            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_2);
+            await databaseContext.SaveChangesAsync();
+        });
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            Assert.Equal(2, await databaseContext.Set<SessionTestingList1_1>().CountAsync());
+            Assert.Equal(1, await databaseContext.Set<ScalarItem1>().CountAsync());
+        });
+    }
+
+    [Fact]
+    public async Task SessionTest_DifferentSessionCreatesDuplicatedNewEntity1()
     {
         // arrange
         var factory = new MapperBuilderFactory();
@@ -394,6 +422,41 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
+            Assert.Equal(2, await databaseContext.Set<ScalarItem1>().CountAsync());
+        });
+    }
+
+    [Fact]
+    public async Task SessionTest_DifferentSessionCreatesDuplicatedNewEntity2()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder
+            .Register<SessionTestingList2, SessionTestingList1_1>()
+            .Register<SessionTestingList2, SessionTestingList1_2>();
+        var mapper = mapperBuilder.Build();
+
+        var item = new ScalarItem2("abc");
+        var l2 = new SessionTestingList2(new List<ScalarItem2> { item });
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
+            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
+            await databaseContext.SaveChangesAsync();
+        });
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
+            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
+            await databaseContext.SaveChangesAsync();
+        });
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            Assert.Equal(2, await databaseContext.Set<SessionTestingList1_1>().CountAsync());
             Assert.Equal(2, await databaseContext.Set<ScalarItem1>().CountAsync());
         });
     }
