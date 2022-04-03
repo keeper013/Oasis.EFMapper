@@ -1,0 +1,1 @@
+dotnet ef dbcontext script --output "..\LibrarySample\script.sql" --context Oasis.EntityFramework.Mapper.Test.SqlSurrogate.DatabaseContext

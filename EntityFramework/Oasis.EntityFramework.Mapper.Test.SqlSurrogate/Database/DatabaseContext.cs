@@ -1,14 +1,10 @@
-﻿namespace Oasis.EntityFramework.Mapper.Test;
+﻿namespace Oasis.EntityFramework.Mapper.Test.SqlSurrogate;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Oasis.EntityFramework.Mapper.Test.KeyPropertyType;
 using Oasis.EntityFramework.Mapper.Test.OneToMany;
 using Oasis.EntityFramework.Mapper.Test.OneToOne;
 using Oasis.EntityFramework.Mapper.Test.Scalar;
-using System;
 
 public class DatabaseContext : DbContext
 {

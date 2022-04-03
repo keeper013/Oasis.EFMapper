@@ -1,0 +1,24 @@
+﻿syntax = "proto3";
+package Oasis.EntityFramework.Mapper.Sample;
+option csharp_namespace = "Oasis.EntityFramework.Mapper.Sample";
+
+message BorrowerDTO {
+	int32 Id = 1;
+	string Name = 2;
+	repeated BorrowRecordDTO BorrowRecords = 3;
+}
+
+message BookDTO {
+	int32 Id = 1;
+	string Name = 2;
+}
+
+message BorrowRecordDTO {
+    int32 Id = 1;
+	int32 BorrowerId = 2;
+	BookDTO Book = 3;
+}
+
+message AllBooksDTO {
+	repeated BookDTO Books = 1;
+}
