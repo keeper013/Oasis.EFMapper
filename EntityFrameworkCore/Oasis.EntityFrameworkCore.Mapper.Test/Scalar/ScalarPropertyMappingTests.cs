@@ -9,6 +9,39 @@ using Xunit;
 public sealed class ScalarPropertyMappingTests : TestBase
 {
     [Fact]
+    public async Task MapNew_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder.RegisterTwoWay<ScalarEntity2, ScalarEntity1>();
+        var mapper = mapperBuilder.Build();
+        var byteArray = new byte[] { 2, 3, 4 };
+        var instance = new ScalarEntity2(2, 3, "4", byteArray);
+
+        // act
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
+            var entity = await session.MapAsync<ScalarEntity2, ScalarEntity1>(instance);
+            await databaseContext.SaveChangesAsync();
+        });
+
+        ScalarEntity1? entity = null;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = (await databaseContext.Set<ScalarEntity1>().FirstOrDefaultAsync())!;
+        });
+
+        // assert
+        Assert.NotNull(entity);
+        Assert.Equal(2, entity!.IntProp);
+        Assert.Equal(3, entity.LongNullableProp);
+        Assert.Equal("4", entity.StringProp);
+        Assert.Equal(byteArray, entity.ByteArrayProp);
+    }
+
+    [Fact]
     public async Task MapScalarProperties_ValidProperties_ShouldSucceed()
     {
         // arrange

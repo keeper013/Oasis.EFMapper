@@ -10,6 +10,40 @@ using System.Data.Entity;
 public sealed class ScalarPropertyMappingTests : TestBase
 {
     [Test]
+    public async Task MapNew_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder.RegisterTwoWay<ScalarEntity2, ScalarEntity1>();
+        var mapper = mapperBuilder.Build();
+        var byteArray = new byte[] { 2, 3, 4 };
+        var instance = new ScalarEntity2(2, 3, "4", byteArray);
+
+        // act
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
+            var entity = await session.MapAsync<ScalarEntity2, ScalarEntity1>(instance);
+            await databaseContext.SaveChangesAsync();
+        });
+
+        ScalarEntity1? entity = null;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = (await databaseContext.Set<ScalarEntity1>().FirstOrDefaultAsync())!;
+        });
+
+        // assert
+        Assert.NotNull(entity);
+        Assert.AreEqual(2, entity!.IntProp);
+        Assert.AreEqual(3, entity.LongNullableProp);
+        Assert.AreEqual("4", entity.StringProp);
+        Assert.AreEqual(byteArray, entity.ByteArrayProp);
+    }
+
+
+    [Test]
     public async Task MapScalarProperties_ValidProperties_ShouldSucceed()
     {
         // arrange
