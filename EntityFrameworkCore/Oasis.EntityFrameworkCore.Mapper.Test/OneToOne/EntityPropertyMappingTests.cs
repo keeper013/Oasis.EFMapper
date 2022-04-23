@@ -34,8 +34,7 @@ public sealed class EntityPropertyMappingTests : TestBase
             entity = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
         });
 
-        var session = mapper.CreateMappingSession();
-        var outer2 = session.Map<Outer1, Outer2>(entity!);
+        var outer2 = mapper.Map<Outer1, Outer2>(entity!);
 
         // assert
         Assert.Equal(1, outer2.IntProp);
@@ -72,14 +71,12 @@ public sealed class EntityPropertyMappingTests : TestBase
             entity = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
         });
 
-        var session1 = mapper.CreateMappingSession();
-        var outer2 = session1.Map<Outer1, Outer2>(entity!);
+        var outer2 = mapper.Map<Outer1, Outer2>(entity!);
         outer2.Inner1 = new Inner2_1(2);
         outer2.Inner2 = new Inner2_2("2");
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
-            var result1 = await session2.MapAsync<Outer2, Outer1>(outer2, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
+            var result1 = await mapper.MapAsync<Outer2, Outer1>(outer2, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
             await databaseContext.SaveChangesAsync();
         });
 
@@ -195,8 +192,7 @@ public sealed class EntityPropertyMappingTests : TestBase
             entity = await databaseContext.Set<RecursiveEntity1>().AsNoTracking().Include(o => o.Parent).Include(o => o.Child).FirstAsync(r => r.StringProperty == "parent");
         });
 
-        var session1 = mapper.CreateMappingSession();
-        var r2 = session1.Map<RecursiveEntity1, RecursiveEntity2>(entity!);
+        var r2 = mapper.Map<RecursiveEntity1, RecursiveEntity2>(entity!);
 
         Assert.Equal("parent", r2.StringProperty);
         Assert.Null(r2.Parent);
@@ -210,8 +206,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         RecursiveEntity1? r3 = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
-            r3 = await session2.MapAsync<RecursiveEntity2, RecursiveEntity1>(r2, r => r.Include(r => r.Parent).Include(r => r.Child));
+            r3 = await mapper.MapAsync<RecursiveEntity2, RecursiveEntity1>(r2, databaseContext, r => r.Include(r => r.Parent).Include(r => r.Child));
         });
 
         Assert.Equal("parent 1", r3!.StringProperty);
@@ -250,8 +245,7 @@ public sealed class EntityPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
-            var result1 = await session2.MapAsync<Outer2, Outer1>(outer2!, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
+            var result1 = await mapper.MapAsync<Outer2, Outer1>(outer2!, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
             await databaseContext.SaveChangesAsync();
         });
     }

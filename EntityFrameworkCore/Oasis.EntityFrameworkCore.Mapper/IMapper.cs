@@ -7,7 +7,15 @@ public interface IMapper
 {
     IMappingSession CreateMappingSession();
 
+    TTarget Map<TSource, TTarget>(TSource source)
+        where TSource : class
+        where TTarget : class;
+
     IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext);
+
+    Task<TTarget> MapAsync<TSource, TTarget>(TSource source, DbContext databaseContext, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default)
+        where TSource : class
+        where TTarget : class;
 }
 
 public interface IMappingToDatabaseSession

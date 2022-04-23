@@ -35,6 +35,22 @@ internal sealed class Mapper : IMapper
     {
         return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _entityFactory, _lookup, _entityBaseProxy, databaseContext);
     }
+
+    public TTarget Map<TSource, TTarget>(TSource source)
+        where TSource : class
+        where TTarget : class
+    {
+        var newEntityTracker = new NewTargetTracker<int>(_entityFactory);
+        return MapperStaticMethods.Map<TSource, TTarget>(_entityFactory, newEntityTracker, _scalarConverter, _listTypeConstructor, _entityBaseProxy, _lookup, source);
+    }
+
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, DbContext databaseContext, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = null)
+        where TSource : class
+        where TTarget : class
+    {
+        var newEntityTracker = new NewTargetTracker<int>(_entityFactory);
+        return await MapperStaticMethods.MapAsync(databaseContext, includer, _entityBaseProxy, newEntityTracker, _scalarConverter, _listTypeConstructor, _entityFactory, _lookup, source);
+    }
 }
 
 internal sealed class MappingSession : IMappingSession
@@ -63,10 +79,7 @@ internal sealed class MappingSession : IMappingSession
 
     TTarget IMappingSession.Map<TSource, TTarget>(TSource source)
     {
-        var target = _entityFactory.Make<TTarget>();
-        new ToMemoryRecursiveMapper(_newEntityTracker, _scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy).Map(source, target, true);
-
-        return target;
+        return MapperStaticMethods.Map<TSource, TTarget>(_entityFactory, _newEntityTracker, _scalarConverter, _listTypeConstructor, _entityBaseProxy, _lookup, source);
     }
 }
 
@@ -99,12 +112,48 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
 
     async Task<TTarget> IMappingToDatabaseSession.MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
     {
+        return await MapperStaticMethods.MapAsync(_databaseContext, includer, _entityBaseProxy, _newEntityTracker, _scalarConverter, _listTypeConstructor, _entityFactory, _lookup, source);
+    }
+}
+
+internal static class MapperStaticMethods
+{
+    public static TTarget Map<TSource, TTarget>(
+        IEntityFactory entityFactory,
+        NewTargetTracker<int> newEntityTracker,
+        IScalarTypeConverter scalarConverter,
+        IListTypeConstructor listTypeConstructor,
+        EntityBaseProxy entityBaseProxy,
+        MapperSetLookUp lookup,
+        TSource source)
+        where TSource : class
+        where TTarget : class
+    {
+        var target = entityFactory.Make<TTarget>();
+        new ToMemoryRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, lookup, entityBaseProxy).Map(source, target, true);
+
+        return target;
+    }
+
+    public static async Task<TTarget> MapAsync<TSource, TTarget>(
+        DbContext databaseContext,
+        Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer,
+        EntityBaseProxy entityBaseProxy,
+        NewTargetTracker<int> newEntityTracker,
+        IScalarTypeConverter scalarConverter,
+        IListTypeConstructor listTypeConstructor,
+        IEntityFactory entityFactory,
+        MapperSetLookUp lookup,
+        TSource source)
+        where TSource : class
+        where TTarget : class
+    {
         const string AsNoTrackingMethodCall = ".AsNoTracking";
 
         TTarget? target;
-        if (!_entityBaseProxy.IdIsEmpty(source))
+        if (!entityBaseProxy.IdIsEmpty(source))
         {
-            var identityEqualsExpression = BuildIdEqualsExpression<TTarget>(_entityBaseProxy, _entityBaseProxy.GetId(source));
+            var identityEqualsExpression = BuildIdEqualsExpression<TTarget>(entityBaseProxy, scalarConverter, entityBaseProxy.GetId(source));
             if (includer != default)
             {
                 var includerString = includer.ToString();
@@ -113,41 +162,44 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
                     throw new AsNoTrackingNotAllowedException(includerString);
                 }
 
-                target = await includer.Compile()(_databaseContext.Set<TTarget>()).FirstOrDefaultAsync(identityEqualsExpression);
+                target = await includer.Compile()(databaseContext.Set<TTarget>()).FirstOrDefaultAsync(identityEqualsExpression);
             }
             else
             {
-                target = await _databaseContext.Set<TTarget>().FirstOrDefaultAsync(identityEqualsExpression);
+                target = await databaseContext.Set<TTarget>().FirstOrDefaultAsync(identityEqualsExpression);
             }
 
             if (target == default)
             {
-                throw new EntityNotFoundException(typeof(TTarget), _entityBaseProxy.GetId(source));
+                throw new EntityNotFoundException(typeof(TTarget), entityBaseProxy.GetId(source));
             }
 
-            new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _listTypeConstructor, _entityFactory, _lookup, _entityBaseProxy, _databaseContext).Map(source, target, true);
+            new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target, true);
         }
         else
         {
-            if (!_newEntityTracker.NewTargetIfNotExist(source.GetHashCode(), out target))
+            if (!newEntityTracker.NewTargetIfNotExist(source.GetHashCode(), out target))
             {
-                new ToDatabaseRecursiveMapper(_newEntityTracker, _scalarConverter, _listTypeConstructor, _entityFactory, _lookup, _entityBaseProxy, _databaseContext).Map(source, target!, false);
-                _databaseContext.Set<TTarget>().Add(target!);
+                new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target!, false);
+                databaseContext.Set<TTarget>().Add(target!);
             }
         }
 
         return target!;
     }
 
-    private Expression<Func<TEntity, bool>> BuildIdEqualsExpression<TEntity>(IIdPropertyTracker identityPropertyTracker, object? value)
-        where TEntity : class
+    private static Expression<Func<TEntity, bool>> BuildIdEqualsExpression<TEntity>(
+        IIdPropertyTracker identityPropertyTracker,
+        IScalarTypeConverter scalarConverter,
+        object? value)
+       where TEntity : class
     {
         var parameter = Expression.Parameter(typeof(TEntity), "entity");
         var identityProperty = identityPropertyTracker.GetIdProperty<TEntity>();
 
         var equal = Expression.Equal(
             Expression.Property(parameter, identityProperty),
-            Expression.Constant(_scalarConverter.Convert(value, identityProperty.PropertyType)));
+            Expression.Constant(scalarConverter.Convert(value, identityProperty.PropertyType)));
         return Expression.Lambda<Func<TEntity, bool>>(equal, parameter);
     }
 }

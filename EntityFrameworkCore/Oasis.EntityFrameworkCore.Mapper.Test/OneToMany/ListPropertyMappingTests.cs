@@ -99,8 +99,7 @@ public class ListPropertyMappingTests : TestBase
         CollectionEntity1? result = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-            result = await session.MapAsync<CollectionEntity2, CollectionEntity1>(collectionEntity2, c => c.Include(c => c.Scs));
+            result = await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(collectionEntity2, databaseContext, c => c.Include(c => c.Scs));
         });
 
         // assert
@@ -142,8 +141,7 @@ public class ListPropertyMappingTests : TestBase
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
         });
 
-        var session1 = mapper.CreateMappingSession();
-        var result1 = session1.Map<CollectionEntity1, ListIEntity1>(entity!);
+        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity!);
 
         result1!.IntProp = 2;
         var item0 = result1.Scs![0];
@@ -154,8 +152,7 @@ public class ListPropertyMappingTests : TestBase
         CollectionEntity1? result2 = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
-            result2 = await session2.MapAsync<ListIEntity1, CollectionEntity1>(result1, c => c.Include(c => c.Scs));
+            result2 = await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, databaseContext, c => c.Include(c => c.Scs));
         });
 
         // assert
@@ -193,8 +190,7 @@ public class ListPropertyMappingTests : TestBase
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
         });
 
-        var session1 = mapper.CreateMappingSession();
-        var result1 = session1.Map<CollectionEntity1, ListEntity1>(entity!);
+        var result1 = mapper.Map<CollectionEntity1, ListEntity1>(entity!);
 
         result1!.IntProp = 2;
         result1.Scs!.Remove(result1.Scs.ElementAt(1));
@@ -207,8 +203,7 @@ public class ListPropertyMappingTests : TestBase
         CollectionEntity1? result2 = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-            result2 = await session.MapAsync<ListEntity1, CollectionEntity1>(result1, x => x.Include(x => x.Scs));
+            result2 = await mapper.MapAsync<ListEntity1, CollectionEntity1>(result1, databaseContext, x => x.Include(x => x.Scs));
         });
 
         // assert
@@ -239,8 +234,7 @@ public class ListPropertyMappingTests : TestBase
         DerivedEntity1? result = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-            result = await session.MapAsync<DerivedEntity2, DerivedEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
+            result = await mapper.MapAsync<DerivedEntity2, DerivedEntity1>(instance, databaseContext, x => x.AsNoTracking().Include(x => x.Scs));
         });
 
         // assert
@@ -272,8 +266,7 @@ public class ListPropertyMappingTests : TestBase
         DerivedEntity1_1? result = default;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session = mapper.CreateMappingToDatabaseSession(CreateDatabaseContext());
-            result = await session.MapAsync<DerivedEntity2_2, DerivedEntity1_1>(instance, x => x.AsNoTracking().Include(x => x.Scs));
+            result = await mapper.MapAsync<DerivedEntity2_2, DerivedEntity1_1>(instance, databaseContext, x => x.AsNoTracking().Include(x => x.Scs));
         });
 
         // assert
@@ -313,16 +306,14 @@ public class ListPropertyMappingTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var entity = await databaseContext.Set<SubEntity2>().AsNoTracking().Include(s => s.ListEntity).FirstAsync();
-            var session1 = mapper.CreateMappingSession();
-            result1 = session1.Map<SubEntity2, SubEntity3>(entity);
+            result1 = mapper.Map<SubEntity2, SubEntity3>(entity);
             var listEntity2 = await databaseContext.Set<ListEntity2>().AsNoTracking().FirstAsync(l => l.IntProp == 2);
             result1.ListEntityId = listEntity2.Id;
         });
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
-            var result2 = await session2.MapAsync<SubEntity3, SubEntity2>(result1!);
+            var result2 = await mapper.MapAsync<SubEntity3, SubEntity2>(result1!, databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -408,10 +399,8 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session1 = mapper.CreateMappingToDatabaseSession(databaseContext);
-            await session1.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
-            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
-            await session2.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, databaseContext);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2, databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -437,10 +426,8 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session1 = mapper.CreateMappingToDatabaseSession(databaseContext);
-            await session1.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
-            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
-            await session2.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, databaseContext);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -476,8 +463,7 @@ public class ListPropertyMappingTests : TestBase
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
         });
 
-        var session1 = mapper.CreateMappingSession();
-        var result1 = session1.Map<CollectionEntity1, ListIEntity1>(entity!);
+        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity!);
         var item0 = result1.Scs![0];
         item0.Id++;
         item0.IntProp = 3;
@@ -487,8 +473,7 @@ public class ListPropertyMappingTests : TestBase
         {
             await ExecuteWithNewDatabaseContext(async (databaseContext) =>
             {
-                var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
-                await session2.MapAsync<ListIEntity1, CollectionEntity1>(result1, x => x.Include(x => x.Scs));
+                await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, databaseContext, x => x.Include(x => x.Scs));
             });
         });
     }
@@ -518,8 +503,7 @@ public class ListPropertyMappingTests : TestBase
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
         });
 
-        var session1 = mapper.CreateMappingSession();
-        var result1 = session1.Map<CollectionEntity1, ListIEntity1>(entity!);
+        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity!);
         result1.IntProp = 2;
         var item0 = result1.Scs![0];
         item0.IntProp = 2;
@@ -528,9 +512,8 @@ public class ListPropertyMappingTests : TestBase
         item0.ByteArrayProp = new byte[] { 2 };
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
             await Assert.ThrowsAsync<AsNoTrackingNotAllowedException>(
-                async () => await session2.MapAsync<ListIEntity1, CollectionEntity1>(result1, c => c.AsNoTracking().Include(c => c.Scs)));
+                async () => await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, databaseContext, c => c.AsNoTracking().Include(c => c.Scs)));
         });
     }
 
@@ -685,7 +668,6 @@ public class ListPropertyMappingTests : TestBase
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
         });
 
-        var session = mapper.CreateMappingSession();
-        return session.Map<CollectionEntity1, T>(entity!);
+        return mapper.Map<CollectionEntity1, T>(entity!);
     }
 }

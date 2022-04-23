@@ -135,8 +135,7 @@ public class KeyPropertyTypeTests : TestBase
             entity = await databaseContext.Set<SomeSourceEntity<T>>().AsNoTracking().FirstAsync();
         });
 
-        var session1 = mapper.CreateMappingSession();
-        var instance = session1.Map<SomeSourceEntity<T>, SomeTargetEntity<T>>(entity!);
+        var instance = mapper.Map<SomeSourceEntity<T>, SomeTargetEntity<T>>(entity!);
         Assert.NotEqual(default, instance.Id);
         Assert.NotEqual(default, instance.Timestamp);
         Assert.Equal(2, instance.SomeProperty);

@@ -79,8 +79,7 @@ public class KeyPropertyTypeTests : TestBase
             entity = await databaseContext.Set<TSourceEntity>().AsNoTracking().FirstAsync();
         });
 
-        var session1 = mapper.CreateMappingSession();
-        var instance = session1.Map<TSourceEntity, SomeTargetEntity<T>>(entity!);
+        var instance = mapper.Map<TSourceEntity, SomeTargetEntity<T>>(entity!);
         Assert.AreNotEqual(default, instance.Id);
         
         // sqlite doesn't handle timestamp, so we ignore checking for timestamp.
