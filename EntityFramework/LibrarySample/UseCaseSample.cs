@@ -144,8 +144,7 @@ public class UseCaseSample
             borrower = await databaseContext.Set<Borrower>().Include(b => b.BorrowRecords.Select(r => r.Book)).FirstAsync(b => b.Name == name);
         });
 
-        var session = Mapper!.CreateMappingSession();
-        var dto = session.Map<Borrower, BorrowerDTO>(borrower!);
+        var dto = Mapper!.Map<Borrower, BorrowerDTO>(borrower!);
         return Convert.ToBase64String(dto.ToByteArray());
     }
 
@@ -172,8 +171,7 @@ public class UseCaseSample
         var dto = BorrowerDTO.Parser.ParseFrom(Convert.FromBase64String(updatedBorrowerString));
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            var session = Mapper!.CreateMappingToDatabaseSession(databaseContext);
-            await session.MapAsync<BorrowerDTO, Borrower>(dto, qb => qb.Include(qb => qb.BorrowRecords));
+            await Mapper.MapAsync<BorrowerDTO, Borrower>(dto, databaseContext, qb => qb.Include(qb => qb.BorrowRecords));
             await databaseContext.SaveChangesAsync();
         });
     }
