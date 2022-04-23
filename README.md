@@ -73,8 +73,7 @@ var mapper = mapperBuilder.Build();
 ```
 We can ignore the details of RegisterTwoWay, "SomeName" or defaultCongfiguration for now, meaning of the relevant code is simply, we create a mapper builder, do some configuration (like registering mapping between Borrower and BorrowerDTO), then in our server, we can start to use the mapper to map an instance of Borrower to BorrowerDTO with 2 statements:
 ```C#
-var session = mapper.CreateMappingSession();
-var borrowerDTO = session.Map<Borrower, BorrowerDTO>(entity);
+var borrowerDTO = mapper.Map<Borrower, BorrowerDTO>(entity);
 ```
 Then the DTO instance is ready to be sent to client/browser.
 So far the library works like nothing but a weakened version of AutoMapper, it's advantage will be demonstrated in later part of this example.
@@ -93,8 +92,7 @@ book2BorrowingRecord.BookId = 3;
 ```
 Now the DTO is read to be send back to server to be processed, and the server side should simply process it this way
 ```C#
-var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-var borrower = await session.MapAsync<BorrowerDTO, Borrower>(borrowerDTO, qb => qb.Include(qb => qb.BorrowRecords))
+var borrower = await mapper.MapAsync<BorrowerDTO, Borrower>(borrowerDTO, databaseContext qb => qb.Include(qb => qb.BorrowRecords))
 await databaseContext.SaveChangesAsync();
 ```
 The borrower returned is the borrower entity that will be updated into the database, it's not useful in this example, but returning it to user allows the user to make further updates to it (and view its content when debugging).
@@ -132,7 +130,9 @@ The library exposes 4 public classes/interfaces for users:
         - For mapping scalar properties between 2 entities, like int, long, string, byte[], names of the property must be the same for source and target (e.g. X.A and Y.A, A property will be mapped, X.a and Y.A, property a and A will be considered to have different names so not mapped); Also the two properties must either be of the same type (e.g. int X.A can be mapped to int Y.A, but int X.A will not be mapped to int? Y.A), or have a scalar converter that converts from the source property type to the target property type (e.g. int X.A can be mapped to string Y.A if WithScalarConverter<int, string>(<parameters>) has been called before this registration.
     - IMapperBuilder RegisterTwoWay<TSource, TTarget>(): this is a short cut method for calling Register<A, B>(), then calling Register<B, A>(), nothing much to explain.
     - IMapper Build(): this method builds the mapper to be used. Please note that for every mapper builder instance, this method is only supposed to be called once only.
-- IMapper: this is the interface for mapper, it creates 2 kinds of sessions:
+- IMapper: this is the interface for mapper, it can be directly used for mapping, or creates 2 kinds of sessions:
+    - TTarget Map<TSource, TTarget>(TSource source): this method directly maps one entity type to the other, no database is involved in this mapping, it's a short cut for IMappingSession.Map method if there is only 1 entity to map.
+    - Task<TTarget> MapAsync<TSource, TTarget>(TSource source, DbContext databaseContext, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default), this method directly maps one entity to the other in database, it will try to load the entity first from the database if the entity already exists (if id is not empty), it's a short cut for IMappingToDatabaseSession.MapAsync methode if there is only 1 entity to map.
     - IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext): this method creates a session that handles mapping to database.
     - IMappingSession CreateMappingSession(), this method creates a session that handles mapping when database is not involved.
 - IMappingToDatabaseSession: this interface provides one asynchronous method to map to an entity that is supposed to be updated to database:
@@ -212,10 +212,9 @@ await databaseContext.SaveChanges();
 In the code, the new record borrowRecord was supposed to be added to both a book keeper's and a borrower's borrow records. Mapping the book keeper and the borrower using the same session guarantees that this new borrow record doesn't get inserted into database twice, that when mapping borrowerDTO and bookKeeperDTO, the same borrow record entity will be used by databaseContext to assign borrower id and book keeper id.
 If it is done the other way around as demonstrated below then the result will be incorrect, 2 different borrow records will be inserted into database (if borrower id is compulsory to borrow record then an exception will be thrown).
 ```C#
-var session1 = mapper.CreateMappingToDatabaseSession(databaseContext);
-await session1.MapAsync<BorrowerDTO, borrower>(borrowerDTO, qb => qb.Include(qb => qb.BorrowRecords));
-var session2 = mapper.CreateMappingToDatabaseSession(databaseContext);
-await session2.MapAsync<BookKeeperDTO, BookKeeper>(bookKeeperDTO, qb => qb.Include(qb => qb.BorrowRecords));
+// without creating sessions, each MapAsync call is defaulted to have its own session.
+await mapper.MapAsync<BorrowerDTO, borrower>(borrowerDTO, databaseContext, qb => qb.Include(qb => qb.BorrowRecords));
+await mapper.MapAsync<BookKeeperDTO, BookKeeper>(bookKeeperDTO, databaseContext, qb => qb.Include(qb => qb.BorrowRecords));
 await databaseContext.SaveChanges();
 ```
 Of course the best way to do in this case is to simply set borrower id and book keeper id to the borrow record dto and only map the borrow record dto back to database to be saved. This example does it the stupid way to demonstrate the difference of using a single mapping session and different mapping sessions. In a rare case if users want to re-use the same DTO to inject multiple records to the database, they may consider using multiple mapping sessions to achieve it.
