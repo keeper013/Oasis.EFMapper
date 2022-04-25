@@ -150,9 +150,10 @@ internal static class MapperStaticMethods
     {
         const string AsNoTrackingMethodCall = ".AsNoTracking";
 
-        TTarget? target;
-        if (!entityBaseProxy.IdIsEmpty(source))
+        var sourceHasId = entityBaseProxy.HasId<TSource>() && !entityBaseProxy.IdIsEmpty(source);
+        if (sourceHasId)
         {
+            TTarget? target;
             var identityEqualsExpression = BuildIdEqualsExpression<TTarget>(entityBaseProxy, scalarConverter, entityBaseProxy.GetId(source));
             if (includer != default)
             {
@@ -169,23 +170,20 @@ internal static class MapperStaticMethods
                 target = await databaseContext.Set<TTarget>().FirstOrDefaultAsync(identityEqualsExpression);
             }
 
-            if (target == default)
+            if (target != default)
             {
-                throw new EntityNotFoundException(typeof(TTarget), entityBaseProxy.GetId(source));
+                new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target, true);
+                return target;
             }
-
-            new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target, true);
         }
-        else
+
+        if (!newEntityTracker.NewTargetIfNotExist(source.GetHashCode(), out TTarget newTarget))
         {
-            if (!newEntityTracker.NewTargetIfNotExist(source.GetHashCode(), out target))
-            {
-                new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target!, false);
-                databaseContext.Set<TTarget>().Add(target!);
-            }
+            new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, newTarget, sourceHasId);
+            databaseContext.Set<TTarget>().Add(newTarget);
         }
 
-        return target!;
+        return newTarget;
     }
 
     private static Expression<Func<TEntity, bool>> BuildIdEqualsExpression<TEntity>(
@@ -207,7 +205,7 @@ internal static class MapperStaticMethods
 internal sealed class NewTargetTracker<TKeyType>
     where TKeyType : struct
 {
-    private readonly IDictionary<TKeyType, object> _newTargetDictionary = new Dictionary<TKeyType, object>();
+    private readonly IDictionary<TKeyType, IDictionary<Type, object>> _newTargetDictionary = new Dictionary<TKeyType, IDictionary<Type, object>>();
     private readonly IEntityFactory _entityFactory;
 
     public NewTargetTracker(IEntityFactory entityFactory)
@@ -215,30 +213,30 @@ internal sealed class NewTargetTracker<TKeyType>
         _entityFactory = entityFactory;
     }
 
-    public bool NewTargetIfNotExist<TTarget>(TKeyType key, out TTarget? target)
+    public bool NewTargetIfNotExist<TTarget>(TKeyType key, out TTarget target)
         where TTarget : class
     {
-        bool result = false;
-        object? obj;
-        target = default;
+        IDictionary<Type, object>? innerDictionary;
         lock (_newTargetDictionary)
         {
-            result = _newTargetDictionary.TryGetValue(key, out obj);
-            if (!result)
+            var targetType = typeof(TTarget);
+            if (_newTargetDictionary.TryGetValue(key, out innerDictionary) && innerDictionary.TryGetValue(targetType, out var obj))
             {
+                target = (TTarget)obj!;
+                return true;
+            }
+            else
+            {
+                if (innerDictionary == default)
+                {
+                    innerDictionary = new Dictionary<Type, object>();
+                    _newTargetDictionary.Add(key, innerDictionary);
+                }
+
                 target = _entityFactory.Make<TTarget>();
-                _newTargetDictionary.Add(key, target);
+                innerDictionary.Add(targetType, target);
+                return false;
             }
         }
-
-        if (result)
-        {
-            if (obj is TTarget)
-            {
-                target = obj as TTarget;
-            }
-        }
-
-        return result;
     }
 }

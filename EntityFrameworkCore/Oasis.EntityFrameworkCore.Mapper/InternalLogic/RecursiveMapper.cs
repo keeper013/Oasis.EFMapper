@@ -130,8 +130,8 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
 
             if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(source.GetHashCode(), out var n))
             {
-                Map(source, n!, false);
-                _databaseContext.Set<TTarget>().Add(n!);
+                Map(source, n, false);
+                _databaseContext.Set<TTarget>().Add(n);
             }
 
             return n;
@@ -165,11 +165,11 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper<int>
                 {
                     if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
                     {
-                        Map(s, n!, false);
-                        _databaseContext.Set<TTarget>().Add(n!);
+                        Map(s, n, false);
+                        _databaseContext.Set<TTarget>().Add(n);
                     }
 
-                    target.Add(n!);
+                    target.Add(n);
                 }
                 else
                 {
@@ -234,7 +234,7 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper<int>
         {
             if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(source.GetHashCode(), out var n))
             {
-                Map(source, n!, true);
+                Map(source, n, true);
             }
 
             return n;
@@ -251,10 +251,10 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper<int>
             {
                 if (!NewTargetTracker.NewTargetIfNotExist<TTarget>(s.GetHashCode(), out var n))
                 {
-                    Map(s, n!, true);
+                    Map(s, n, true);
                 }
 
-                target.Add(n!);
+                target.Add(n);
             }
         }
     }
