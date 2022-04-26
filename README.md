@@ -140,7 +140,12 @@ The library exposes 4 public classes/interfaces for users:
 - IMappingSession: this interface provides one synchronous method to map to an entity when database is not needed:
     - TTarget Map<TSource, TTarget>(TSource source), source is the object to be mapped from, and it returns the instance of TTarget that is mapped to, nothing much to explain here.
 ## Highlights
-1. Id and timestamp properties are considered key properties of entities, if explicitly configurated, mapping these properties doesn't need the property names to match. For example, for the following classes:
+1. When calling MapAsync to map entities to database:
+    - If the entity doesn't have an Id property, the entity will always be mapped as a new entity to be inserted into database.
+    - If the entity has an Id property, but the value is default value (e.g. 0 for int, null for int?), the entity will always be mapped as new entity to be inserted into database.
+    - If the entity has an Id property, and the Id property's value is not default value, but record of that id value doesn't exist in the correponding database table, the entity will be mapped as new entity to be inserted into database, and id of the target entity will be set to the same value of source entity. The target entity will be successfully inserted into database, but inserted id value may differ. With entity framework core, the inserted id value will be the same as source entity id value. With entity framework 6.0, id value will be automatically generated if stated for the id value, instead of following what was set for source entity.
+    - If the entity has an Id property, and the Id property's value is not default value, and the record of tha tid can be found in the corresponding database table, the entity will be mapped as existing entity to update the existing data record.
+2. Id and timestamp properties are considered key properties of entities, if explicitly configurated, mapping these properties doesn't need the property names to match. For example, for the following classes:
 ```C#
 public class Entity1
 {
@@ -157,7 +162,7 @@ If the following registration is done, then when mapping instances of these enti
 ```C#
 mapperBuilder.WithConfiguration<Entity1>(new TypeConfiguration("Id", "TimeStamp")).WithConfiguration<Entity2>(new TypeConfiguration("EntityId", "ConcurrencyLock"));
 ```
-2. About TypeConfiguration.keepEntityOnMappingRemoved, in the example in introduction section, if borrowing record of id 2 is removed from borrowerDTO, when mapping back to database, the same record shouldn't be removed from database because it doesn't make sense to keep it anymore. So value of it is set to false by default and it's not recommended to change it to true. The possibility to set it to true is kept in case the database is not well designed like below:
+3. About TypeConfiguration.keepEntityOnMappingRemoved, in the example in introduction section, if borrowing record of id 2 is removed from borrowerDTO, when mapping back to database, the same record shouldn't be removed from database because it doesn't make sense to keep it anymore. So value of it is set to false by default and it's not recommended to change it to true. The possibility to set it to true is kept in case the database is not well designed like below:
 ```C#
 public sealed class Borrower
 {
@@ -174,8 +179,8 @@ public sealed class Book
 }
 ```
 Once a book is removed from a borrower's borrowed books, we don't want to delete the book, in this case keepEntityOnMappingRemoved needs to be set to be true.
-3. Please note that when mapping reference type properties, a **shallow** copy will be performed.
-4. What are sessions used for? Why can't mapping be carried out directy by IMapper interface?
+4. Please note that when mapping reference type properties, a **shallow** copy will be performed.
+5. What are sessions used for? Why can't mapping be carried out directy by IMapper interface?
     In a nutshell, sessions keep track of newly added entities (entities with empty ids will be considered entities that will be inserted as new data record into database) avoid them gets duplicated. To use the example in introduction section to explain: let's say the library now requires book borrowing records to be monitored by some book keeper (maybe the book keepers will call the borrowers to remind them a few days earlier before the books' due date), and the book keeper is optional to borrow record (to allow the system to assign a borrow record to a book keeper after the book is borrowed), then BorrowRecord needs to be redefined:
 ```C#
 public sealed class BorrowRecord
