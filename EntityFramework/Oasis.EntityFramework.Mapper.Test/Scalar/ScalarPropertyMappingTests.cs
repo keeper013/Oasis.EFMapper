@@ -41,7 +41,6 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.AreEqual(byteArray, entity.ByteArrayProp);
     }
 
-
     [Test]
     public async Task MapScalarProperties_ValidProperties_ShouldSucceed()
     {
@@ -87,6 +86,127 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.AreEqual(2, result.LongNullableProp);
         Assert.AreEqual("3", result.StringProp);
         Assert.AreEqual(result.ByteArrayProp, instance.ByteArrayProp);
+    }
+
+    [Test]
+    public async Task MapNewWithoutIdToDatabase_ShouldInsert()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder
+            .Register<ScalarEntityNoBase1, ScalarEntity1>();
+        var mapper = mapperBuilder.Build();
+        var instance = new ScalarEntityNoBase1(2, 3, "4", new byte[] { 2, 3, 4 });
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            _ = await mapper.MapAsync<ScalarEntityNoBase1, ScalarEntity1>(instance, databaseContext);
+            _ = await databaseContext.SaveChangesAsync();
+        });
+
+        int count = 0;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            count = await databaseContext.Set<ScalarEntity1>().CountAsync();
+        });
+
+        Assert.AreEqual(1, count);
+    }
+
+    [Test]
+    public async Task MapNewWithIdToDatabase_ShouldInsert()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder.RegisterTwoWay<ScalarEntity2, ScalarEntity1>();
+        var mapper = mapperBuilder.Build();
+        var byteArray = new byte[] { 2, 3, 4 };
+        var instance = new ScalarEntity2(2, 3, "4", byteArray)
+        {
+            Id = 100,
+        };
+
+        // act
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var entity = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, databaseContext);
+            await databaseContext.SaveChangesAsync();
+        });
+
+        ScalarEntity1? entity = null;
+        int count = 0;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            count = await databaseContext.Set<ScalarEntity1>().CountAsync();
+            entity = (await databaseContext.Set<ScalarEntity1>().FirstOrDefaultAsync())!;
+        });
+
+        // assert
+        Assert.AreEqual(1, count);
+        Assert.NotNull(entity);
+
+        // here entity framework 6.0 behaves differently than entity framework core.
+        Assert.AreNotEqual(0, entity!.Id);
+        Assert.AreEqual(2, entity.IntProp);
+        Assert.AreEqual(3, entity.LongNullableProp);
+        Assert.AreEqual("4", entity.StringProp);
+        Assert.AreEqual(byteArray, entity.ByteArrayProp);
+    }
+
+    [Test]
+    public async Task MapExistingWithIdToDatabase_ShouldUpdate()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        mapperBuilder.RegisterTwoWay<ScalarEntity2, ScalarEntity1>();
+        var mapper = mapperBuilder.Build();
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var entity = new ScalarEntity1(1, 2, "3", new byte[] { 1, 2, 3 });
+            _ = databaseContext.Set<ScalarEntity1>().Add(entity);
+            _ = await databaseContext.SaveChangesAsync();
+        });
+
+        long id = 0;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var entity = await databaseContext.Set<ScalarEntity1>().FirstOrDefaultAsync();
+            id = entity!.Id;
+        });
+
+        var byteArray = new byte[] { 2, 3, 4 };
+        var instance = new ScalarEntity2(2, 3, "4", byteArray)
+        {
+            Id = id,
+        };
+
+        // act
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var entity = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, databaseContext);
+            await databaseContext.SaveChangesAsync();
+        });
+
+        ScalarEntity1? entity = null;
+        int count = 0;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            count = await databaseContext.Set<ScalarEntity1>().CountAsync();
+            entity = (await databaseContext.Set<ScalarEntity1>().FirstOrDefaultAsync())!;
+        });
+
+        // assert
+        Assert.NotNull(entity);
+        Assert.AreEqual(1, count);
+        Assert.AreEqual(id, entity!.Id);
+        Assert.AreEqual(2, entity.IntProp);
+        Assert.AreEqual(3, entity.LongNullableProp);
+        Assert.AreEqual("4", entity.StringProp);
+        Assert.AreEqual(byteArray, entity.ByteArrayProp);
     }
 
     [Test]
@@ -521,23 +641,6 @@ public sealed class ScalarPropertyMappingTests : TestBase
             .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp)))
             .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp)), true)
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
-    }
-
-    [Test]
-    public void MapScalarProperties_ToEntityNoIdToDatabase_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
-        mapperBuilder
-            .Register<ScalarEntityNoBase1, ScalarEntity1>();
-        var mapper = mapperBuilder.Build();
-        var instance = new ScalarEntityNoBase1(2, 3, "4", new byte[] { 2, 3, 4 });
-
-        using (var databaseContext = CreateDatabaseContext())
-        {
-            Assert.ThrowsAsync<IdentityPropertyMissingException>(async () => await mapper.MapAsync<ScalarEntityNoBase1, ScalarEntity1>(instance, databaseContext));
-        }
     }
 
     [Test]
