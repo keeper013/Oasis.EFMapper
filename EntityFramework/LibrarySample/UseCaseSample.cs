@@ -34,7 +34,8 @@ public class UseCaseSample
         var mapperBuilder = factory.Make(GetType().Name, new TypeConfiguration(nameof(EntityBase.Id)));
         mapperBuilder
             .RegisterTwoWay<Borrower, BorrowerDTO>()
-            .Register<Book, BookDTO>();
+            .RegisterTwoWay<Book, BookDTO>()
+            .Register<NewBookDTO, Book>();
         Mapper = mapperBuilder.Build();
     }
 
@@ -55,6 +56,7 @@ public class UseCaseSample
     public async Task UpdateBorrower_RemovingAndAdding_Test()
     {
         await InitializeDatabaseContent();
+        await AddBook(new BookDTO { Name = Book3Name });
 
         // simulate retrieve information from server side
         var books = await LoadAllBookData();
@@ -74,6 +76,7 @@ public class UseCaseSample
     public async Task UpdateBorrower_Updating_Test()
     {
         await InitializeDatabaseContent();
+        await AddBook(new NewBookDTO { Name = Book3Name });
 
         // simulate retrieve information from server side
         var books = await LoadAllBookData();
@@ -120,19 +123,27 @@ public class UseCaseSample
         {
             var book1 = new Book { Name = Book1Name };
             var book2 = new Book { Name = Book2Name };
-            var book3 = new Book { Name = Book3Name };
             var borrower = new Borrower { Name = OldBorrowerName };
             var borrowRecord1 = new BorrowRecord { Borrower = borrower, Book = book1 };
             var borrowRecord2 = new BorrowRecord { Borrower = borrower, Book = book2 };
             borrower.BorrowRecords = new List<BorrowRecord> { borrowRecord1, borrowRecord2 };
             databaseContext.Set<Book>().Add(book1);
             databaseContext.Set<Book>().Add(book2);
-            databaseContext.Set<Book>().Add(book3);
             databaseContext.Set<Borrower>().Add(borrower);
             databaseContext.Set<BorrowRecord>().Add(borrowRecord1);
             databaseContext.Set<BorrowRecord>().Add(borrowRecord2);
 
             await databaseContext.SaveChangesAsync();
+        });
+    }
+
+    private async Task AddBook<TBookDto>(TBookDto dto)
+        where TBookDto : class
+    {
+        await ExecuteWithNewDatabaseContext(async databaseContext =>
+        {
+            _ = await Mapper!.MapAsync<TBookDto, Book>(dto, databaseContext);
+            _ = await databaseContext.SaveChangesAsync();
         });
     }
 
@@ -171,7 +182,7 @@ public class UseCaseSample
         var dto = BorrowerDTO.Parser.ParseFrom(Convert.FromBase64String(updatedBorrowerString));
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            await Mapper.MapAsync<BorrowerDTO, Borrower>(dto, databaseContext, qb => qb.Include(qb => qb.BorrowRecords));
+            await Mapper!.MapAsync<BorrowerDTO, Borrower>(dto, databaseContext, qb => qb.Include(qb => qb.BorrowRecords));
             await databaseContext.SaveChangesAsync();
         });
     }

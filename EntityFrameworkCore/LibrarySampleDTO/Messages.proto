@@ -15,6 +15,10 @@ message BookDTO {
 	string Name = 3;
 }
 
+message NewBookDTO {
+	string Name = 1;
+}
+
 message BorrowRecordDTO {
     int32 Id = 1;
 	bytes TimeStamp = 2;

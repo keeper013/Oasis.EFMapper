@@ -13,6 +13,10 @@ message BookDTO {
 	string Name = 2;
 }
 
+message NewBookDTO {
+	string Name = 1;
+}
+
 message BorrowRecordDTO {
     int32 Id = 1;
 	int32 BorrowerId = 2;
