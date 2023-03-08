@@ -10,9 +10,9 @@
 	<Version>0.2.1</Version>
 	<Description>This library is still in stablizing phase, it's features and interface may be unstable.</Description>
 	<Copyright>Copyright (c) 2022 Cui Ziqiang</Copyright>
-	<PackageProjectUrl>https://github.com/keeper013/Oasis/tree/main/EntityFrameworkCore.Mapper</PackageProjectUrl>
+	<PackageProjectUrl>https://github.com/keeper013/Oasis.EFMapper</PackageProjectUrl>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
-	<RepositoryUrl>https://github.com/keeper013/Oasis.EFMapper</RepositoryUrl>
+	<RepositoryUrl>https://github.com/keeper013/Oasis.EFMapper.git</RepositoryUrl>
 	<PackageTags>EntityFramework, IL weaving</PackageTags>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
