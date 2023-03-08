@@ -3,7 +3,7 @@
   <PropertyGroup>
 	<LangVersion>10.0</LangVersion>
 	<Nullable>enable</Nullable>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net481</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

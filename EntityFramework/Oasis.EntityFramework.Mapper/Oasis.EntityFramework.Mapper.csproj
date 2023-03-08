@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 	<LangVersion>10.0</LangVersion>
-    <TargetFrameworks>netstandard2.1;net45;</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;net481;</TargetFrameworks>
 	<ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<CodeAnalysisRuleSet>../../StyleCop/Oasis.Default.ruleset</CodeAnalysisRuleSet>
