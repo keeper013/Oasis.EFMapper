@@ -12,7 +12,7 @@
 	<Copyright>Copyright (c) 2022 Cui Ziqiang</Copyright>
 	<PackageProjectUrl>https://github.com/keeper013/Oasis/tree/main/EntityFrameworkCore.Mapper</PackageProjectUrl>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
-	<RepositoryUrl>https://github.com/keeper013/Oasis</RepositoryUrl>
+	<RepositoryUrl>https://github.com/keeper013/Oasis.EFMapper</RepositoryUrl>
 	<PackageTags>EntityFramework, IL weaving</PackageTags>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
