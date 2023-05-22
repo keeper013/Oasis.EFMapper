@@ -66,6 +66,11 @@ internal abstract class RecursiveMapper<T> : IEntityPropertyMapper, IListPropert
         }
 
         var mapperSet = _lookup.LookUp(typeof(TSource), typeof(TTarget));
+        if (mapperSet.customPropertiesMapper != null)
+        {
+            ((Utilities.MapCustomProperties<TSource, TTarget>)mapperSet.customPropertiesMapper)(source, target);
+        }
+
         if (mapKeyProperties)
         {
             ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.keyPropertiesMapper)(source, target, _scalarConverter);

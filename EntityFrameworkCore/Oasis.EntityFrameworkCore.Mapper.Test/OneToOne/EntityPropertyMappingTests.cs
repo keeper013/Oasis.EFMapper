@@ -11,7 +11,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder.Register<Outer1, Outer2>();
         var mapper = mapperBuilder.Build();
 
@@ -49,7 +49,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<Outer1, Outer2>();
         var mapper = mapperBuilder.Build();
 
@@ -99,7 +99,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<Outer1, Outer2>();
         var mapper = mapperBuilder.Build();
 
@@ -127,7 +127,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder
             .WithConfiguration<Inner1_1>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp), true))
             .WithConfiguration<Inner1_2>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp), true))
@@ -149,7 +149,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name, new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp), true));
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp), true));
         mapperBuilder
             .WithConfiguration<Inner1_1>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp), false))
             .WithConfiguration<Inner1_2>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp), true))
@@ -171,7 +171,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<RecursiveEntity1, RecursiveEntity2>();
         var mapper = mapperBuilder.Build();
 

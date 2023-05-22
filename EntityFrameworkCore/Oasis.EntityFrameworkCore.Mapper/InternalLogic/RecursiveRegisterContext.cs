@@ -32,7 +32,7 @@ internal sealed class RecursiveRegisterContext : IRecursiveRegisterTrigger
             // there is no way to get generic arguments that user defined for the source and target,
             // so though reflection is slow, it's the only way that works here.
             // considering registering is a one-time-job, it's acceptable.
-            RecursivelyRegisterMethod.Invoke(_mapperRegistry, new object[] { sourceType, targetType, this });
+            RecursivelyRegisterMethod.Invoke(_mapperRegistry, new object?[] { sourceType, targetType, this, null });
         }
     }
 }

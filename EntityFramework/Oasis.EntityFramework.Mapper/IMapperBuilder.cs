@@ -16,11 +16,13 @@ public interface IMapperBuilder
 
     IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression, bool throwIfRedundant = false);
 
-    IMapperBuilder Register<TSource, TTarget>()
+    IMapperBuilder Register<TSource, TTarget>(ICustomPropertyMapper<TSource, TTarget>? customPropertyMapper = null)
         where TSource : class
         where TTarget : class;
 
-    IMapperBuilder RegisterTwoWay<TSource, TTarget>()
+    IMapperBuilder RegisterTwoWay<TSource, TTarget>(
+        ICustomPropertyMapper<TSource, TTarget>? customPropertyMapperSourceToTarget = null,
+        ICustomPropertyMapper<TSource, TTarget>? customPropertyMapperTargetToSource = null)
         where TSource : class
         where TTarget : class;
 

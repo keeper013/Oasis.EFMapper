@@ -35,7 +35,7 @@ internal sealed class MapperRegistry
 
     public IKeyPropertyNameManager KeyPropertyNames { get; }
 
-    public void Register(Type sourceType, Type targetType, IDynamicMethodBuilder methodBuilder)
+    public void Register(Type sourceType, Type targetType, IDynamicMethodBuilder methodBuilder, ICustomPropertyMapperInternal? customPropertyMapper)
     {
         if (!EntityMapperTypeValidator.IsValidType(sourceType))
         {
@@ -47,10 +47,15 @@ internal sealed class MapperRegistry
             throw new InvalidEntityTypeException(targetType);
         }
 
-        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, methodBuilder));
+        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, methodBuilder), customPropertyMapper);
     }
 
-    public void RegisterTwoWay(Type sourceType, Type targetType, IDynamicMethodBuilder methodBuilder)
+    public void RegisterTwoWay(
+        Type sourceType,
+        Type targetType,
+        IDynamicMethodBuilder methodBuilder,
+        ICustomPropertyMapperInternal? customPropertyMapperSourceToTarget,
+        ICustomPropertyMapperInternal? customPropertyMapperTargetToSource)
     {
         if (!EntityMapperTypeValidator.IsValidType(sourceType))
         {
@@ -63,8 +68,8 @@ internal sealed class MapperRegistry
         }
 
         var context = new RecursiveRegisterContext(this, methodBuilder);
-        RecursivelyRegister(sourceType, targetType, context);
-        RecursivelyRegister(targetType, sourceType, context);
+        RecursivelyRegister(sourceType, targetType, context, customPropertyMapperSourceToTarget);
+        RecursivelyRegister(targetType, sourceType, context, customPropertyMapperTargetToSource);
     }
 
     public void WithFactoryMethod(Type type, Type itemType, Delegate factoryMethod, bool throwIfRedundant = false)
@@ -100,7 +105,7 @@ internal sealed class MapperRegistry
             throw new ArgumentNullException(nameof(factoryMethod));
         }
 
-        if (type.GetConstructor(new Type[0]) != default)
+        if (type.GetConstructor(Array.Empty<Type>()) != default)
         {
             throw new FactoryMethodException(type, false);
         }
@@ -246,7 +251,7 @@ internal sealed class MapperRegistry
         return _knownEntityTypes.Contains(type) || _factoryMethods.ContainsKey(type) || _typeProxies.ContainsKey(type);
     }
 
-    private void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context)
+    private void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context, ICustomPropertyMapperInternal? customPropertyMapper)
     {
         if (!context.Contains(sourceType, targetType))
         {
@@ -262,6 +267,10 @@ internal sealed class MapperRegistry
             var methodBuilder = context.MethodBuilder;
             var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance);
             var targetProperties = targetType.GetProperties(Utilities.PublicInstance);
+            if (customPropertyMapper != null)
+            {
+                targetProperties = targetProperties.Except(customPropertyMapper.MappedTargetProperties).ToArray();
+            }
 
             if (!_comparer.TryGetValue(sourceType, out Dictionary<Type, ComparerMetaDataSet>? innerComparer))
             {
@@ -289,6 +298,7 @@ internal sealed class MapperRegistry
             if (!innerMapper.ContainsKey(targetType))
             {
                 innerMapper[targetType] = new MapperMetaDataSet(
+                    customPropertyMapper?.MapProperties,
                     methodBuilder.BuildUpKeyPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties),
                     methodBuilder.BuildUpScalarPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties),
                     methodBuilder.BuildUpEntityPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties, context),

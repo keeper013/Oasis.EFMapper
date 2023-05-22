@@ -118,7 +118,7 @@ public class KeyPropertyTypeTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder.Register<SomeSourceEntity<T>, SomeTargetEntity<T>>();
         var mapper = mapperBuilder.Build();
 

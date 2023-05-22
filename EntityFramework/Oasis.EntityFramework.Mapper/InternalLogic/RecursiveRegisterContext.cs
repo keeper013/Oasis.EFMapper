@@ -8,7 +8,7 @@ internal interface IRecursiveRegisterTrigger
 internal sealed class RecursiveRegisterContext : IRecursiveRegisterTrigger
 {
     private static readonly MethodInfo RecursivelyRegisterMethod = typeof(MapperRegistry).GetMethod("RecursivelyRegister", BindingFlags.NonPublic | BindingFlags.Instance)!;
-    private readonly Stack<Tuple<Type, Type>> _stack = new ();
+    private readonly Stack<(Type, Type)> _stack = new ();
     private readonly MapperRegistry _mapperRegistry;
 
     public RecursiveRegisterContext(MapperRegistry mapperRegistry, IDynamicMethodBuilder methodBuilder)
@@ -19,7 +19,7 @@ internal sealed class RecursiveRegisterContext : IRecursiveRegisterTrigger
 
     public IDynamicMethodBuilder MethodBuilder { get; }
 
-    public void Push(Type sourceType, Type targetType) => _stack.Push(new Tuple<Type, Type>(sourceType, targetType));
+    public void Push(Type sourceType, Type targetType) => _stack.Push((sourceType, targetType));
 
     public void Pop() => _stack.Pop();
 
@@ -32,7 +32,7 @@ internal sealed class RecursiveRegisterContext : IRecursiveRegisterTrigger
             // there is no way to get generic arguments that user defined for the source and target,
             // so though reflection is slow, it's the only way that works here.
             // considering registering is a one-time-job, it's acceptable.
-            RecursivelyRegisterMethod.Invoke(_mapperRegistry, new object[] { sourceType, targetType, this });
+            RecursivelyRegisterMethod.Invoke(_mapperRegistry, new object?[] { sourceType, targetType, this, null });
         }
     }
 }

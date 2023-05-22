@@ -16,6 +16,7 @@ internal sealed class MapperSetLookUp
             {
                 var mapperMetaDataSet = innerPair.Value;
                 var mapperSet = new MapperSet(
+                    mapperMetaDataSet.customPropertiesMapper,
                     Delegate.CreateDelegate(mapperMetaDataSet.keyPropertiesMapper.type, type!.GetMethod(mapperMetaDataSet.keyPropertiesMapper.name)!),
                     Delegate.CreateDelegate(mapperMetaDataSet.scalarPropertiesMapper.type, type!.GetMethod(mapperMetaDataSet.scalarPropertiesMapper.name)!),
                     Delegate.CreateDelegate(mapperMetaDataSet.entityPropertiesMapper.type, type!.GetMethod(mapperMetaDataSet.entityPropertiesMapper.name)!),

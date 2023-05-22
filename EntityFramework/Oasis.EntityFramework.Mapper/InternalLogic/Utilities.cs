@@ -4,6 +4,10 @@ internal static class Utilities
 {
     public const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
 
+    public delegate void MapCustomProperties<TSource, TTarget>(TSource source, TTarget target)
+        where TSource : class
+        where TTarget : class;
+
     public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
         where TSource : class
         where TTarget : class;
@@ -53,7 +57,7 @@ internal static class Utilities
 
 internal record struct MethodMetaData(Type type, string name);
 
-internal record struct MapperSet(Delegate keyPropertiesMapper, Delegate scalarPropertiesMapper, Delegate entityPropertiesMapper, Delegate listPropertiesMapper);
+internal record struct MapperSet(Delegate? customPropertiesMapper, Delegate keyPropertiesMapper, Delegate scalarPropertiesMapper, Delegate entityPropertiesMapper, Delegate listPropertiesMapper);
 
 internal record struct TypeProxyMetaDataSet(MethodMetaData getId, MethodMetaData identityIsEmpty, PropertyInfo identityProperty, bool keepEntityOnMappingRemoved);
 
@@ -61,6 +65,6 @@ internal record struct TypeProxy(Delegate getId, Delegate identityIsEmpty, Prope
 
 internal record struct EntityComparer(Delegate idsAreEqual);
 
-internal record struct MapperMetaDataSet(MethodMetaData keyPropertiesMapper, MethodMetaData scalarPropertiesMapper, MethodMetaData entityPropertiesMapper, MethodMetaData listPropertiesMapper);
+internal record struct MapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData keyPropertiesMapper, MethodMetaData scalarPropertiesMapper, MethodMetaData entityPropertiesMapper, MethodMetaData listPropertiesMapper);
 
 internal record struct ComparerMetaDataSet(MethodMetaData identityComparer);
