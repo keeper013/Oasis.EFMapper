@@ -4,10 +4,6 @@ internal static class Utilities
 {
     public const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
 
-    public delegate void MapCustomProperties<TSource, TTarget>(TSource source, TTarget target)
-        where TSource : class
-        where TTarget : class;
-
     public delegate void MapScalarProperties<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
         where TSource : class
         where TTarget : class;

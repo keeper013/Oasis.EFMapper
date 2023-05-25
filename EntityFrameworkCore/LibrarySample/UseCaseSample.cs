@@ -27,12 +27,15 @@ public class UseCaseSample
             .Options;
 
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.Make(GetType().Name, new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.TimeStamp)));
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.TimeStamp)));
+        var bookCustomMapper = factory.MakeCustomPropertyMapperBuilder<Book, BookDTO>()
+            .MapProperty(dto => dto.CurrentBorrower, book => book.BorrowRecord != null && book.BorrowRecord.Borrower != null ? book.BorrowRecord.Borrower.Name : string.Empty)
+            .Build();
         mapperBuilder
             .WithScalarConverter<byte[], ByteString>(array => ByteString.CopyFrom(array))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
             .RegisterTwoWay<Borrower, BorrowerDTO>()
-            .RegisterTwoWay<Book, BookDTO>()
+            .RegisterTwoWay(bookCustomMapper)
             .Register<NewBookDTO, Book>();
         Mapper = mapperBuilder.Build();
     }
@@ -61,6 +64,14 @@ public class UseCaseSample
 
         // verify upddated result;
         await VerifyUpdatedBorrower();
+    }
+
+    [Fact]
+    public async Task CustomMapper_Test()
+    {
+        await InitializeDatabaseContent();
+        await AddBook(new NewBookDTO { Name = Book3Name });
+        await VerifyCurrentBorrower();
     }
 
     [Fact]
@@ -155,7 +166,7 @@ public class UseCaseSample
         List<Book>? books = default;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            books = await databaseContext.Set<Book>().ToListAsync();
+            books = await databaseContext.Set<Book>().Include(b => b.BorrowRecord).ThenInclude(r => r.Borrower).ToListAsync();
         });
 
         var session = Mapper.CreateMappingSession();
@@ -176,6 +187,15 @@ public class UseCaseSample
             await Mapper.MapAsync<BorrowerDTO, Borrower>(dto, databaseContext, qb => qb.Include(qb => qb.BorrowRecords));
             await databaseContext.SaveChangesAsync();
         });
+    }
+
+    private async Task VerifyCurrentBorrower()
+    {
+        var books = await LoadAllBookData();
+        var allBooks = AllBooksDTO.Parser.ParseFrom(Convert.FromBase64String(books));
+        Assert.Equal(OldBorrowerName, allBooks.Books.Single(b => string.Equals(b.Name, Book1Name)).CurrentBorrower);
+        Assert.Equal(OldBorrowerName, allBooks.Books.Single(b => string.Equals(b.Name, Book2Name)).CurrentBorrower);
+        Assert.Equal(string.Empty, allBooks.Books.Single(b => string.Equals(b.Name, Book3Name)).CurrentBorrower);
     }
 
     private async Task VerifyUpdatedBorrower()

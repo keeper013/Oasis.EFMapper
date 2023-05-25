@@ -3,14 +3,14 @@
 /// <summary>
 /// Just in case user want to easily catch all exceptions thrown from this assembly.
 /// </summary>
-public abstract class EfCoreMapperException : Exception
+public abstract class EfMapperException : Exception
 {
-    protected EfCoreMapperException(string message)
+    protected EfMapperException(string message)
         : base(message)
     {
     }
 
-    protected EfCoreMapperException(string message, Exception innerException)
+    protected EfMapperException(string message, Exception innerException)
         : base(message, innerException)
     {
     }

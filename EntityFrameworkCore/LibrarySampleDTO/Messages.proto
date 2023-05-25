@@ -13,6 +13,7 @@ message BookDTO {
 	int32 Id = 1;
 	bytes TimeStamp = 2;
 	string Name = 3;
+	optional string CurrentBorrower = 4;
 }
 
 message NewBookDTO {

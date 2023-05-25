@@ -304,6 +304,10 @@ internal sealed class MapperRegistry
                     methodBuilder.BuildUpEntityPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties, context),
                     methodBuilder.BuildUpEntityListPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties, context));
             }
+            else if (customPropertyMapper != null)
+            {
+                throw new MapperExistsException(sourceType.Name, targetType.Name);
+            }
 
             context.Pop();
         }

@@ -44,7 +44,7 @@ internal sealed class MapperBuilder : IMapperBuilder
     {
         lock (_mapperRegistry)
         {
-            var customPropertyMapperInternal = customPropertyMapper == null ? null : customPropertyMapper.ToInternal();
+            var customPropertyMapperInternal = customPropertyMapper?.ToInternal();
             _mapperRegistry.Register(typeof(TSource), typeof(TTarget), _dynamicMethodBuilder, customPropertyMapperInternal);
         }
 
@@ -53,7 +53,7 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     public IMapperBuilder RegisterTwoWay<TSource, TTarget>(
         ICustomPropertyMapper<TSource, TTarget>? customPropertyMapperSourceToTarget = null,
-        ICustomPropertyMapper<TSource, TTarget>? customPropertyMapperTargetToSource = null)
+        ICustomPropertyMapper<TTarget, TSource>? customPropertyMapperTargetToSource = null)
         where TSource : class
         where TTarget : class
     {
@@ -66,8 +66,8 @@ internal sealed class MapperBuilder : IMapperBuilder
 
         lock (_mapperRegistry)
         {
-            var customPropertyMapperSourceToTargetInternal = customPropertyMapperSourceToTarget == null ? null : customPropertyMapperSourceToTarget.ToInternal();
-            var customPropertyMapperTargetToSourceInternal = customPropertyMapperTargetToSource == null ? null : customPropertyMapperTargetToSource.ToInternal();
+            var customPropertyMapperSourceToTargetInternal = customPropertyMapperSourceToTarget?.ToInternal();
+            var customPropertyMapperTargetToSourceInternal = customPropertyMapperTargetToSource?.ToInternal();
             _mapperRegistry.RegisterTwoWay(sourceType, targetType, _dynamicMethodBuilder, customPropertyMapperSourceToTargetInternal, customPropertyMapperTargetToSourceInternal);
         }
 

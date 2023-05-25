@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LibrarySampleDTO\LibrarySampleDTO.csproj" />
+    <ProjectReference Include="..\Oasis.EntityFrameworkCore.Mapper\Oasis.EntityFrameworkCore.Mapper.csproj" />
   </ItemGroup>
 
 </Project>

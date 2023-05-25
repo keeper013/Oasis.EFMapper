@@ -22,7 +22,7 @@ public interface IMapperBuilder
 
     IMapperBuilder RegisterTwoWay<TSource, TTarget>(
         ICustomPropertyMapper<TSource, TTarget>? customPropertyMapperSourceToTarget = null,
-        ICustomPropertyMapper<TSource, TTarget>? customPropertyMapperTargetToSource = null)
+        ICustomPropertyMapper<TTarget, TSource>? customPropertyMapperTargetToSource = null)
         where TSource : class
         where TTarget : class;
 

@@ -1,4 +1,5 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Test.KeyPropertyType;
+
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;

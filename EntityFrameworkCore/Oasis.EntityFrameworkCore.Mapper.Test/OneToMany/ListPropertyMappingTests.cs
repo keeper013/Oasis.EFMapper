@@ -2,7 +2,6 @@
 
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
-using Oasis.EntityFrameworkCore.Mapper.Test.Scalar;
 using System;
 using System.Collections.Generic;
 using System.Linq;

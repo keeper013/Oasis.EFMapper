@@ -28,19 +28,20 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             "YXBwZXIuU2FtcGxlIosBCgtCb3Jyb3dlckRUTxIKCgJJZBgBIAEoBRIRCglU",
             "aW1lU3RhbXAYAiABKAwSDAoETmFtZRgDIAEoCRJPCg1Cb3Jyb3dSZWNvcmRz",
             "GAQgAygLMjguT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2Ft",
-            "cGxlLkJvcnJvd1JlY29yZERUTyI2CgdCb29rRFRPEgoKAklkGAEgASgFEhEK",
-            "CVRpbWVTdGFtcBgCIAEoDBIMCgROYW1lGAMgASgJIhoKCk5ld0Jvb2tEVE8S",
-            "DAoETmFtZRgBIAEoCSJUCg9Cb3Jyb3dSZWNvcmREVE8SCgoCSWQYASABKAUS",
-            "EQoJVGltZVN0YW1wGAIgASgMEhIKCkJvcnJvd2VySWQYAyABKAUSDgoGQm9v",
-            "a0lkGAQgASgFIk4KC0FsbEJvb2tzRFRPEj8KBUJvb2tzGAEgAygLMjAuT2Fz",
-            "aXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkJvb2tEVE9C",
-            "KqoCJ09hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZWIG",
-            "cHJvdG8z"));
+            "cGxlLkJvcnJvd1JlY29yZERUTyJoCgdCb29rRFRPEgoKAklkGAEgASgFEhEK",
+            "CVRpbWVTdGFtcBgCIAEoDBIMCgROYW1lGAMgASgJEhwKD0N1cnJlbnRCb3Jy",
+            "b3dlchgEIAEoCUgAiAEBQhIKEF9DdXJyZW50Qm9ycm93ZXIiGgoKTmV3Qm9v",
+            "a0RUTxIMCgROYW1lGAEgASgJIlQKD0JvcnJvd1JlY29yZERUTxIKCgJJZBgB",
+            "IAEoBRIRCglUaW1lU3RhbXAYAiABKAwSEgoKQm9ycm93ZXJJZBgDIAEoBRIO",
+            "CgZCb29rSWQYBCABKAUiTgoLQWxsQm9va3NEVE8SPwoFQm9va3MYASADKAsy",
+            "MC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQm9v",
+            "a0RUT0IqqgInT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2Ft",
+            "cGxlYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO.Parser, new[]{ "Id", "TimeStamp", "Name", "BorrowRecords" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser, new[]{ "Id", "TimeStamp", "Name" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser, new[]{ "Id", "TimeStamp", "Name", "CurrentBorrower" }, new[]{ "CurrentBorrower" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO.Parser, new[]{ "Name" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO.Parser, new[]{ "Id", "TimeStamp", "BorrowerId", "BookId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.AllBooksDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.AllBooksDTO.Parser, new[]{ "Books" }, null, null, null, null)
@@ -376,6 +377,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       id_ = other.id_;
       timeStamp_ = other.timeStamp_;
       name_ = other.name_;
+      currentBorrower_ = other.currentBorrower_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -421,6 +423,30 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
     }
 
+    /// <summary>Field number for the "CurrentBorrower" field.</summary>
+    public const int CurrentBorrowerFieldNumber = 4;
+    private string currentBorrower_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string CurrentBorrower {
+      get { return currentBorrower_ ?? ""; }
+      set {
+        currentBorrower_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "CurrentBorrower" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCurrentBorrower {
+      get { return currentBorrower_ != null; }
+    }
+    /// <summary>Clears the value of the "CurrentBorrower" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCurrentBorrower() {
+      currentBorrower_ = null;
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -439,6 +465,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Id != other.Id) return false;
       if (TimeStamp != other.TimeStamp) return false;
       if (Name != other.Name) return false;
+      if (CurrentBorrower != other.CurrentBorrower) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -449,6 +476,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Id != 0) hash ^= Id.GetHashCode();
       if (TimeStamp.Length != 0) hash ^= TimeStamp.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (HasCurrentBorrower) hash ^= CurrentBorrower.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -479,6 +507,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(26);
         output.WriteString(Name);
       }
+      if (HasCurrentBorrower) {
+        output.WriteRawTag(34);
+        output.WriteString(CurrentBorrower);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -501,6 +533,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(26);
         output.WriteString(Name);
       }
+      if (HasCurrentBorrower) {
+        output.WriteRawTag(34);
+        output.WriteString(CurrentBorrower);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -519,6 +555,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (HasCurrentBorrower) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(CurrentBorrower);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -540,6 +579,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
       if (other.Name.Length != 0) {
         Name = other.Name;
+      }
+      if (other.HasCurrentBorrower) {
+        CurrentBorrower = other.CurrentBorrower;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -568,6 +610,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             Name = input.ReadString();
             break;
           }
+          case 34: {
+            CurrentBorrower = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -593,6 +639,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
           }
           case 26: {
             Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            CurrentBorrower = input.ReadString();
             break;
           }
         }

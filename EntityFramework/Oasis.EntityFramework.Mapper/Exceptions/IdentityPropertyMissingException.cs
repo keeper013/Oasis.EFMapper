@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFramework.Mapper.Exceptions;
 
-public sealed class IdentityPropertyMissingException : EfCoreMapperException
+public sealed class IdentityPropertyMissingException : EfMapperException
 {
     public IdentityPropertyMissingException(Type type)
         : base($"Type {type} doesn't have a proper property for identity.")
