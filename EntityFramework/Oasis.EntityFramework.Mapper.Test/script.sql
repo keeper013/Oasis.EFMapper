@@ -135,6 +135,13 @@ CREATE TABLE "ShortSourceEntity" (
 );
 
 
+CREATE TABLE "ToDatabaseEntity1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_ToDatabaseEntity1" PRIMARY KEY AUTOINCREMENT,
+    "IntProperty" INTEGER NOT NULL,
+    "Timestamp" INTEGER NULL
+);
+
+
 CREATE TABLE "ScalarEntity1Item" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_ScalarEntity1Item" PRIMARY KEY AUTOINCREMENT,
     "IntProp" INTEGER NOT NULL,

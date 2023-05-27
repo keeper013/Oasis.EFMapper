@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Oasis.EntityFramework.Mapper.Test.OneToOne;
+﻿namespace Oasis.EntityFramework.Mapper.Test.OneToOne;
 
 public sealed class Outer1 : EntityBase
 {

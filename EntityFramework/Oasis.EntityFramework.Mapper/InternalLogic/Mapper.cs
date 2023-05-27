@@ -44,12 +44,12 @@ internal sealed class Mapper : IMapper
         return MapperStaticMethods.Map<TSource, TTarget>(_entityFactory, newEntityTracker, _scalarConverter, _listTypeConstructor, _entityBaseProxy, _lookup, source);
     }
 
-    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, DbContext databaseContext, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = null)
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, DbContext databaseContext, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = null, MapToDatabaseType mappingType = MapToDatabaseType.Upsert)
         where TSource : class
         where TTarget : class
     {
         var newEntityTracker = new NewTargetTracker<int>(_entityFactory);
-        return await MapperStaticMethods.MapAsync(databaseContext, includer, _entityBaseProxy, newEntityTracker, _scalarConverter, _listTypeConstructor, _entityFactory, _lookup, source);
+        return await MapperStaticMethods.MapAsync(databaseContext, includer, mappingType, _entityBaseProxy, newEntityTracker, _scalarConverter, _listTypeConstructor, _entityFactory, _lookup, source);
     }
 }
 
@@ -77,7 +77,9 @@ internal sealed class MappingSession : IMappingSession
         _entityBaseProxy = entityBaseProxy;
     }
 
-    TTarget IMappingSession.Map<TSource, TTarget>(TSource source)
+    public TTarget Map<TSource, TTarget>(TSource source)
+        where TSource : class
+        where TTarget : class
     {
         return MapperStaticMethods.Map<TSource, TTarget>(_entityFactory, _newEntityTracker, _scalarConverter, _listTypeConstructor, _entityBaseProxy, _lookup, source);
     }
@@ -110,9 +112,11 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         _lookup = lookup;
     }
 
-    async Task<TTarget> IMappingToDatabaseSession.MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, MapToDatabaseType mappingType = MapToDatabaseType.Upsert)
+        where TSource : class
+        where TTarget : class
     {
-        return await MapperStaticMethods.MapAsync(_databaseContext, includer, _entityBaseProxy, _newEntityTracker, _scalarConverter, _listTypeConstructor, _entityFactory, _lookup, source);
+        return await MapperStaticMethods.MapAsync(_databaseContext, includer, mappingType, _entityBaseProxy, _newEntityTracker, _scalarConverter, _listTypeConstructor, _entityFactory, _lookup, source);
     }
 }
 
@@ -138,6 +142,7 @@ internal static class MapperStaticMethods
     public static async Task<TTarget> MapAsync<TSource, TTarget>(
         DbContext databaseContext,
         Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer,
+        MapToDatabaseType mappingType,
         EntityBaseProxy entityBaseProxy,
         NewTargetTracker<int> newEntityTracker,
         IScalarTypeConverter scalarConverter,
@@ -172,8 +177,27 @@ internal static class MapperStaticMethods
 
             if (target != default)
             {
-                new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target, true);
-                return target;
+                if (mappingType == MapToDatabaseType.Insert)
+                {
+                    throw new InsertToDatabaseWithExistingException();
+                }
+                else
+                {
+                    new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target, true);
+                    return target;
+                }
+            }
+        }
+
+        if (mappingType == MapToDatabaseType.Update)
+        {
+            if (!sourceHasId)
+            {
+                throw new UpdateToDatabaseWithoutIdException();
+            }
+            else
+            {
+                throw new UpdateToDatabaseWithoutRecordException();
             }
         }
 
@@ -195,9 +219,13 @@ internal static class MapperStaticMethods
         var parameter = Expression.Parameter(typeof(TEntity), "entity");
         var identityProperty = identityPropertyTracker.GetIdProperty<TEntity>();
 
-        var equal = Expression.Equal(
-            Expression.Property(parameter, identityProperty),
-            Expression.Constant(scalarConverter.Convert(value, identityProperty.PropertyType)));
+        var equal = identityProperty.PropertyType.IsInstanceOfType(value) ?
+            Expression.Equal(
+                Expression.Property(parameter, identityProperty),
+                Expression.Convert(Expression.Constant(value), identityProperty.PropertyType))
+            : Expression.Equal(
+                Expression.Property(parameter, identityProperty),
+                Expression.Constant(scalarConverter.Convert(value, identityProperty.PropertyType)));
         return Expression.Lambda<Func<TEntity, bool>>(equal, parameter);
     }
 }

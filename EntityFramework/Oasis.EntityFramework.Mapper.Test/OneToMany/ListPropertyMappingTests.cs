@@ -1,7 +1,6 @@
 ﻿namespace Oasis.EntityFramework.Mapper.Test.OneToMany;
 
 using Oasis.EntityFramework.Mapper.Exceptions;
-using Oasis.EntityFramework.Mapper.Test.Scalar;
 using System;
 using System.Collections.Generic;
 using System.Linq;

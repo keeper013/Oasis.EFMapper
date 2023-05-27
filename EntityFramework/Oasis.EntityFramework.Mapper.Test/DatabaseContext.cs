@@ -4,6 +4,7 @@ using Oasis.EntityFramework.Mapper.Test.KeyPropertyType;
 using Oasis.EntityFramework.Mapper.Test.OneToMany;
 using Oasis.EntityFramework.Mapper.Test.OneToOne;
 using Oasis.EntityFramework.Mapper.Test.Scalar;
+using Oasis.EntityFramework.Mapper.Test.ToDatabase;
 using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Core.Common;
@@ -52,6 +53,7 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<RecursiveEntity1>().HasOptional(r => r.Child).WithOptionalPrincipal(r => r!.Parent!).WillCascadeOnDelete(false);
         modelBuilder.Entity<ScalarItem1>().HasRequired(s => s.List1).WithMany(l => l!.Items).HasForeignKey(s => s.List1Id).WillCascadeOnDelete(true);
         modelBuilder.Entity<ScalarItem1>().HasRequired(s => s.List2).WithMany(l => l!.Items).HasForeignKey(s => s.List2Id).WillCascadeOnDelete(true);
+        modelBuilder.Entity<ToDatabaseEntity1>().ToTable(nameof(ToDatabaseEntity1));
     }
 }
 

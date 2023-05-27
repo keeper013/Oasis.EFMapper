@@ -13,6 +13,7 @@
     <Compile Include="..\Oasis.EntityFramework.Mapper.Test\OneToMany\ListEntities.cs" Link="Database\OneToMany\ListEntities.cs" />
     <Compile Include="..\Oasis.EntityFramework.Mapper.Test\OneToMany\ScalarEntities.cs" Link="Database\OneToMany\ScalarEntities.cs" />
     <Compile Include="..\Oasis.EntityFramework.Mapper.Test\Scalar\ScalarEntities.cs" Link="Database\Scalar\ScalarEntities.cs" />
+    <Compile Include="..\Oasis.EntityFramework.Mapper.Test\ToDatabase\ToDatabaseEntities.cs" Link="Database\ToDatabase\ToDatabaseEntities.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,12 +23,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Database\KeyPropertyType\" />
-    <Folder Include="Database\OneToMany\" />
-    <Folder Include="Database\Scalar\" />
   </ItemGroup>
 
 </Project>

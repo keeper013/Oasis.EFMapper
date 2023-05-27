@@ -175,7 +175,7 @@ public class UseCaseSample
         List<Book>? books = default;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            books = await databaseContext.Set<Book>().Include(b => b.BorrowRecord.Borrower).ToListAsync();
+            books = await databaseContext.Set<Book>().Include(b => b.BorrowRecord!.Borrower).ToListAsync();
         });
 
         var session = Mapper!.CreateMappingSession();
