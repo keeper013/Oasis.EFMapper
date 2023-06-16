@@ -25,7 +25,7 @@ public class ToDatabaseTests : TestBase
         }));
     }
 
-    [Test]
+    [Ignore("Sqlite doesn't support concurrenty token, ignored here")]
     [TestCase(MapToDatabaseType.Update)]
     [TestCase(MapToDatabaseType.Upsert)]
     public async Task UpdateDifferentConcurrencyToken_ShouldFail(MapToDatabaseType mapToDatabaseType)

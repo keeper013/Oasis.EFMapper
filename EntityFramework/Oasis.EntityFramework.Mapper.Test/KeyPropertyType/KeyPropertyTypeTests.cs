@@ -82,7 +82,7 @@ public class KeyPropertyTypeTests : TestBase
         var instance = mapper.Map<TSourceEntity, SomeTargetEntity<T>>(entity!);
         Assert.AreNotEqual(default, instance.Id);
         
-        // sqlite doesn't handle timestamp, so we ignore checking for timestamp.
+        // sqlite doesn't handle concurrenty token, so we ignore checking for concurrency token.
         Assert.AreEqual(2, instance.SomeProperty);
     }
 }

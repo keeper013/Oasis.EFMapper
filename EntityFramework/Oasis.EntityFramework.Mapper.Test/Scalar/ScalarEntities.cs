@@ -177,13 +177,13 @@ public sealed class ScalarEntityCustomKeyProperties1 : ReversedEntityBase
     public byte[]? ByteArrayProp { get; set; }
 }
 
-public sealed class ScalarEntityNoTimeStamp1 : EntityBaseNoTimeStamp
+public sealed class ScalarEntityNoConcurrencyToken1 : EntityBaseNoConcurrencyToken
 {
-    public ScalarEntityNoTimeStamp1()
+    public ScalarEntityNoConcurrencyToken1()
     {
     }
 
-    public ScalarEntityNoTimeStamp1(int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
+    public ScalarEntityNoConcurrencyToken1(int intProp, long? longNullableProp, string stringProp, byte[] byteArrayProp)
     {
         IntProp = intProp;
         LongNullableProp = longNullableProp;
@@ -216,7 +216,7 @@ public sealed class WrappedScalarEntity2
 
     public LongWrapper? WrappedId { get; set; }
 
-    public NullableLongWrapper? WrappedTimeStamp { get; set; }
+    public NullableLongWrapper? WrappedConcurrencyToken { get; set; }
 
     public int IntProp { get; set; }
 

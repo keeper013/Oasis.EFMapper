@@ -36,7 +36,7 @@ public abstract class ReversedEntityBase
     public long? Id { get; set; }
 }
 
-public abstract class EntityBaseNoTimeStamp
+public abstract class EntityBaseNoConcurrencyToken
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

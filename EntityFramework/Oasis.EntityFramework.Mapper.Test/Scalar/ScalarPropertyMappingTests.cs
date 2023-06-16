@@ -428,9 +428,9 @@ public sealed class ScalarPropertyMappingTests : TestBase
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder
             .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)))
-            .WithConfiguration<ScalarEntityNoTimeStamp1>(new TypeConfiguration(nameof(EntityBaseNoTimeStamp.AnotherId)))
+            .WithConfiguration<ScalarEntityNoConcurrencyToken1>(new TypeConfiguration(nameof(EntityBaseNoConcurrencyToken.AnotherId)))
             .Register<ScalarEntity1, ScalarEntityCustomKeyProperties1>()
-            .Register<ScalarEntity1, ScalarEntityNoTimeStamp1>();
+            .Register<ScalarEntity1, ScalarEntityNoConcurrencyToken1>();
         var mapper = mapperBuilder.Build();
 
         var byteArray = new byte[] { 2, 3, 4 };
@@ -453,13 +453,13 @@ public sealed class ScalarPropertyMappingTests : TestBase
         // assert
         Assert.AreNotEqual(default, instance1.ConcurrencyToken);
         
-        // timestamp doesn't work for sqlite, so verification for timestamp (in this case Id property) is ignored
+        // concurrency token doesn't work for sqlite, so verification for concurrency token (in this case Id property) is ignored
         Assert.AreEqual(2, instance1.IntProp);
         Assert.AreEqual(3, instance1.LongNullableProp);
         Assert.AreEqual("4", instance1.StringProp);
         Assert.AreEqual(byteArray, instance1.ByteArrayProp);
 
-        var instance2 = session1.Map<ScalarEntity1, ScalarEntityNoTimeStamp1>(entity!);
+        var instance2 = session1.Map<ScalarEntity1, ScalarEntityNoConcurrencyToken1>(entity!);
         Assert.AreNotEqual(default, instance2.AnotherId);
         Assert.AreEqual(2, instance2.IntProp);
         Assert.AreEqual(3, instance2.LongNullableProp);
@@ -480,7 +480,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
             .WithScalarConverter<NullableLongWrapper, long?>(w => w.Value)
             .WithScalarConverter<long, LongWrapper>(l => new LongWrapper(l))
             .WithScalarConverter<LongWrapper, long>(wrapper => wrapper!.Value)
-            .WithConfiguration<WrappedScalarEntity2>(new TypeConfiguration(nameof(WrappedScalarEntity2.WrappedId), nameof(WrappedScalarEntity2.WrappedTimeStamp)))
+            .WithConfiguration<WrappedScalarEntity2>(new TypeConfiguration(nameof(WrappedScalarEntity2.WrappedId), nameof(WrappedScalarEntity2.WrappedConcurrencyToken)))
             .RegisterTwoWay<ScalarEntity1, WrappedScalarEntity2>()
             .Register<WrappedScalarEntity2, WrappedScalarEntity2>();
         var mapper = mapperBuilder.Build();
