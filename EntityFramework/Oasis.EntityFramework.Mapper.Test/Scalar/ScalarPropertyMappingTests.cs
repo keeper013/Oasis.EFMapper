@@ -57,13 +57,13 @@ public sealed class ScalarPropertyMappingTests : TestBase
         });
 
         // act
-        ScalarEntity1? entity = default;
+        ScalarEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
-        var instance = mapper.Map<ScalarEntity1, ScalarEntity2>(entity!);
+        var instance = mapper.Map<ScalarEntity1, ScalarEntity2>(entity);
 
         // assert
         Assert.AreEqual(2, instance.IntProp);
@@ -75,14 +75,14 @@ public sealed class ScalarPropertyMappingTests : TestBase
         instance.LongNullableProp = 2;
         instance.StringProp = "3";
         instance.ByteArrayProp = new byte[] { 1, 2, 3 };
-        ScalarEntity1? result = default;
+        ScalarEntity1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, databaseContext);
         });
 
         // assert
-        Assert.AreEqual(1, result!.IntProp);
+        Assert.AreEqual(1, result.IntProp);
         Assert.AreEqual(2, result.LongNullableProp);
         Assert.AreEqual("3", result.StringProp);
         Assert.AreEqual(result.ByteArrayProp, instance.ByteArrayProp);
@@ -227,13 +227,13 @@ public sealed class ScalarPropertyMappingTests : TestBase
         });
 
         // act
-        ScalarEntity1? entity = default;
+        ScalarEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
         });
 
-        var instance = mapper.Map<ScalarEntity1, EntityWithoutDefaultConstructor>(entity!);
+        var instance = mapper.Map<ScalarEntity1, EntityWithoutDefaultConstructor>(entity);
 
         // assert
         Assert.AreEqual(2, instance.IntProp);
@@ -255,13 +255,13 @@ public sealed class ScalarPropertyMappingTests : TestBase
         });
 
         // act
-        ScalarEntity1? entity = default;
+        ScalarEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
         });
 
-        var result = mapper.Map<ScalarEntity1, ScalarEntity3>(entity!);
+        var result = mapper.Map<ScalarEntity1, ScalarEntity3>(entity);
 
         // assert
         Assert.Null(result.IntProp);
@@ -287,13 +287,13 @@ public sealed class ScalarPropertyMappingTests : TestBase
         });
 
         // act
-        ScalarEntity1? entity = default;
+        ScalarEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<ScalarEntity1>().FirstAsync();
         });
 
-        var result = mapper.Map<ScalarEntity1, ScalarEntity4>(entity!);
+        var result = mapper.Map<ScalarEntity1, ScalarEntity4>(entity);
 
         // assert
         Assert.Null(result.ByteArrayProp);
@@ -319,23 +319,23 @@ public sealed class ScalarPropertyMappingTests : TestBase
         });
 
         // act
-        ScalarEntity1? entity = default;
+        ScalarEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
-        var result1 = mapper.Map<ScalarEntity1, ScalarEntity4>(entity!);
+        var result1 = mapper.Map<ScalarEntity1, ScalarEntity4>(entity);
         result1.ByteArrayProp = new ByteArrayWrapper(new byte[] { 2, 3, 4 });
 
-        ScalarEntity1? result2 = default;
+        ScalarEntity1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result2 = await mapper.MapAsync<ScalarEntity4, ScalarEntity1>(result1, databaseContext);
         });
 
         // assert
-        Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes!, result2!.ByteArrayProp!));
+        Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes!, result2.ByteArrayProp!));
     }
 
     [Test]
@@ -358,23 +358,23 @@ public sealed class ScalarPropertyMappingTests : TestBase
         });
 
         // act
-        ScalarEntity1? entity = default;
+        ScalarEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
-        var result1 = mapper.Map<ScalarEntity1, ScalarEntity4>(entity!);
+        var result1 = mapper.Map<ScalarEntity1, ScalarEntity4>(entity);
         result1.ByteArrayProp = new ByteArrayWrapper(new byte[] { 2, 3, 4 });
 
-        ScalarEntity1? result2 = default;
+        ScalarEntity1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result2 = await mapper.MapAsync<ScalarEntity4, ScalarEntity1>(result1, databaseContext);
         });
 
         // assert
-        Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes!, result2!.ByteArrayProp!));
+        Assert.True(Enumerable.SequenceEqual(result1.ByteArrayProp!.Bytes!, result2.ByteArrayProp!));
     }
 
     [Test]
@@ -396,14 +396,14 @@ public sealed class ScalarPropertyMappingTests : TestBase
         });
 
         // act
-        ScalarEntity1? entity = default;
+        ScalarEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
         });
 
         var session = mapper.CreateMappingSession();
-        var instance1 = session.Map<ScalarEntity1, ScalarEntityNoBase1>(entity!);
+        var instance1 = session.Map<ScalarEntity1, ScalarEntityNoBase1>(entity);
 
         // assert
         Assert.AreEqual(2, instance1!.IntProp);
@@ -441,14 +441,14 @@ public sealed class ScalarPropertyMappingTests : TestBase
         });
 
         // act
-        ScalarEntity1? entity = default;
+        ScalarEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
         });
 
         var session1 = mapper.CreateMappingSession();
-        var instance1 = session1.Map<ScalarEntity1, ScalarEntityCustomKeyProperties1>(entity!);
+        var instance1 = session1.Map<ScalarEntity1, ScalarEntityCustomKeyProperties1>(entity);
 
         // assert
         Assert.AreNotEqual(default, instance1.ConcurrencyToken);
@@ -492,13 +492,13 @@ public sealed class ScalarPropertyMappingTests : TestBase
         });
 
         // act
-        ScalarEntity1? entity = default;
+        ScalarEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
         });
 
-        var instance1 = mapper.Map<ScalarEntity1, WrappedScalarEntity2>(entity!);
+        var instance1 = mapper.Map<ScalarEntity1, WrappedScalarEntity2>(entity);
 
         instance1.IntProp = 1;
         instance1.LongNullableProp = 2;
@@ -513,14 +513,14 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.AreEqual("3", instance2.StringProp);
         Assert.AreEqual(instance1.ByteArrayProp, instance2.ByteArrayProp);
 
-        ScalarEntity1? result = default;
+        ScalarEntity1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result = await mapper.MapAsync<WrappedScalarEntity2, ScalarEntity1>(instance2, databaseContext);
         });
 
         // assert
-        Assert.AreEqual(1, result!.IntProp);
+        Assert.AreEqual(1, result.IntProp);
         Assert.AreEqual(2, result.LongNullableProp);
         Assert.AreEqual("3", result.StringProp);
         Assert.AreEqual(instance2.ByteArrayProp, result.ByteArrayProp);
@@ -547,13 +547,13 @@ public sealed class ScalarPropertyMappingTests : TestBase
         });
 
         // act
-        ScalarEntity1? entity = default;
+        ScalarEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().SingleAsync();
         });
 
-        var instance = mapper.Map<ScalarEntity1, ScalarEntity5>(entity!);
+        var instance = mapper.Map<ScalarEntity1, ScalarEntity5>(entity);
 
         // assert
         Assert.AreEqual(2, instance.IntProp);
@@ -565,14 +565,14 @@ public sealed class ScalarPropertyMappingTests : TestBase
         instance.LongNullableProp = 2;
         instance.StringProp = "3";
         instance.ByteArrayProp = new byte[] { 1, 2, 3 };
-        ScalarEntity1? result = default;
+        ScalarEntity1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result = await mapper.MapAsync<ScalarEntity5, ScalarEntity1>(instance, databaseContext);
         });
 
         // assert
-        Assert.AreEqual(1, result!.IntProp);
+        Assert.AreEqual(1, result.IntProp);
         Assert.AreEqual(2, result.LongNullableProp);
         Assert.AreEqual("3", result.StringProp);
         Assert.AreEqual(result.ByteArrayProp, instance.ByteArrayProp);

@@ -160,19 +160,19 @@ public class UseCaseSample
 
     private async Task<string> LoadBorrowerData(string name)
     {
-        Borrower? borrower = default;
+        Borrower borrower = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
             borrower = await databaseContext.Set<Borrower>().Include(b => b.BorrowRecords.Select(r => r.Book)).FirstAsync(b => b.Name == name);
         });
 
-        var dto = Mapper!.Map<Borrower, BorrowerDTO>(borrower!);
+        var dto = Mapper!.Map<Borrower, BorrowerDTO>(borrower);
         return Convert.ToBase64String(dto.ToByteArray());
     }
 
     private async Task<string> LoadAllBookData()
     {
-        List<Book>? books = default;
+        List<Book> books = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
             books = await databaseContext.Set<Book>().Include(b => b.BorrowRecord!.Borrower).ToListAsync();
@@ -180,7 +180,7 @@ public class UseCaseSample
 
         var session = Mapper!.CreateMappingSession();
         var allbooks = new AllBooksDTO();
-        foreach (var book in books!)
+        foreach (var book in books)
         {
             allbooks.Books.Add(session.Map<Book, BookDTO>(book));
         }
@@ -209,7 +209,7 @@ public class UseCaseSample
 
     private async Task VerifyUpdatedBorrower()
     {
-        Borrower? borrower = default;
+        Borrower borrower = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
             borrower = await databaseContext.Set<Borrower>().FirstOrDefaultAsync(b => b.Name == OldBorrowerName);
@@ -218,7 +218,7 @@ public class UseCaseSample
         });
 
         Assert.NotNull(borrower);
-        Assert.AreEqual(2, borrower!.BorrowRecords!.Count);
+        Assert.AreEqual(2, borrower.BorrowRecords!.Count);
         Assert.NotNull(borrower.BorrowRecords.FirstOrDefault(b => b.Book!.Name == Book1Name));
         Assert.NotNull(borrower.BorrowRecords.FirstOrDefault(b => b.Book!.Name == Book3Name));
     }

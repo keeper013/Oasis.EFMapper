@@ -73,13 +73,13 @@ public class KeyPropertyTypeTests : TestBase
         });
 
         // act
-        TSourceEntity? entity = default;
+        TSourceEntity entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<TSourceEntity>().AsNoTracking().FirstAsync();
         });
 
-        var instance = mapper.Map<TSourceEntity, SomeTargetEntity<T>>(entity!);
+        var instance = mapper.Map<TSourceEntity, SomeTargetEntity<T>>(entity);
         Assert.AreNotEqual(default, instance.Id);
         
         // sqlite doesn't handle concurrenty token, so we ignore checking for concurrency token.

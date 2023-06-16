@@ -96,14 +96,14 @@ public class ListPropertyMappingTests : TestBase
         var collectionEntity2 = new CollectionEntity2(1, new List<ScalarEntity2Item> { sc1_1, sc1_2 });
 
         // act
-        CollectionEntity1? result = default;
+        CollectionEntity1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result = await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(collectionEntity2, databaseContext, c => c.Include(c => c.Scs));
         });
 
         // assert
-        Assert.AreEqual(1, result!.IntProp);
+        Assert.AreEqual(1, result.IntProp);
         Assert.NotNull(result.Scs);
         Assert.AreEqual(2, result.Scs!.Count);
         var item0 = result.Scs.ElementAt(0);
@@ -135,28 +135,28 @@ public class ListPropertyMappingTests : TestBase
         });
 
         // act
-        CollectionEntity1? entity = default;
+        CollectionEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
         });
 
-        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity!);
+        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity);
 
-        result1!.IntProp = 2;
+        result1.IntProp = 2;
         var item0 = result1.Scs![0];
         item0.IntProp = 2;
         item0.LongNullableProp = 3;
         item0.StringProp = "4";
         item0.ByteArrayProp = new byte[] { 2 };
-        CollectionEntity1? result2 = default;
+        CollectionEntity1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result2 = await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, databaseContext, c => c.Include(c => c.Scs));
         });
 
         // assert
-        Assert.AreEqual(2, result2!.IntProp);
+        Assert.AreEqual(2, result2.IntProp);
         Assert.NotNull(result2.Scs);
         Assert.AreEqual(1, result2.Scs!.Count);
         var item1 = result2.Scs.ElementAt(0);
@@ -184,15 +184,15 @@ public class ListPropertyMappingTests : TestBase
         });
 
         // act
-        CollectionEntity1? entity = default;
+        CollectionEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
         });
 
-        var result1 = mapper.Map<CollectionEntity1, ListEntity1>(entity!);
+        var result1 = mapper.Map<CollectionEntity1, ListEntity1>(entity);
 
-        result1!.IntProp = 2;
+        result1.IntProp = 2;
         result1.Scs!.Remove(result1.Scs.ElementAt(1));
         var item0 = result1.Scs!.ElementAt(0);
         item0.IntProp = 2;
@@ -200,14 +200,14 @@ public class ListPropertyMappingTests : TestBase
         item0.StringProp = "4";
         item0.ByteArrayProp = new byte[] { 2 };
 
-        CollectionEntity1? result2 = default;
+        CollectionEntity1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result2 = await mapper.MapAsync<ListEntity1, CollectionEntity1>(result1, databaseContext, x => x.Include(x => x.Scs));
         });
 
         // assert
-        Assert.AreEqual(2, result2!.IntProp);
+        Assert.AreEqual(2, result2.IntProp);
         Assert.NotNull(result2.Scs);
         Assert.AreEqual(1, result2.Scs!.Count);
         var item1 = result2.Scs.ElementAt(0);
@@ -231,14 +231,14 @@ public class ListPropertyMappingTests : TestBase
         var instance = new DerivedEntity2("str2", 2, new List<ScalarEntity2Item> { new ScalarEntity2Item(1, 2, "3", new byte[] { 1 }) });
 
         // act
-        DerivedEntity1? result = default;
+        DerivedEntity1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result = await mapper.MapAsync<DerivedEntity2, DerivedEntity1>(instance, databaseContext, x => x.AsNoTracking().Include(x => x.Scs));
         });
 
         // assert
-        Assert.AreEqual("str2", result!.StringProp);
+        Assert.AreEqual("str2", result.StringProp);
         Assert.AreEqual(2, result.IntProp);
         Assert.NotNull(result.Scs);
         Assert.AreEqual(1, result.Scs!.Count);
@@ -263,14 +263,14 @@ public class ListPropertyMappingTests : TestBase
         var instance = new DerivedEntity2_2(2, 2, new List<ScalarEntity2Item> { new ScalarEntity2Item(1, 2, "3", new byte[] { 1 }) });
 
         // act
-        DerivedEntity1_1? result = default;
+        DerivedEntity1_1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result = await mapper.MapAsync<DerivedEntity2_2, DerivedEntity1_1>(instance, databaseContext, x => x.AsNoTracking().Include(x => x.Scs));
         });
 
         // assert
-        Assert.AreEqual(2, result!.IntProp);
+        Assert.AreEqual(2, result.IntProp);
         Assert.AreEqual(0, ((BaseEntity1)result).IntProp);
         Assert.NotNull(result.Scs);
         Assert.AreEqual(1, result.Scs!.Count);
@@ -302,7 +302,7 @@ public class ListPropertyMappingTests : TestBase
         });
 
         // act
-        SubEntity3? result1 = default;
+        SubEntity3 result1 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var entity = await databaseContext.Set<SubEntity2>().AsNoTracking().Include(s => s.ListEntity).FirstAsync();
@@ -313,7 +313,7 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result2 = await mapper.MapAsync<SubEntity3, SubEntity2>(result1!, databaseContext);
+            var result2 = await mapper.MapAsync<SubEntity3, SubEntity2>(result1, databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -458,13 +458,13 @@ public class ListPropertyMappingTests : TestBase
         });
 
         // act
-        CollectionEntity1? entity = default;
+        CollectionEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
         });
 
-        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity!);
+        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity);
         var item0 = result1.Scs![0];
         item0.Id++;
         item0.IntProp = 3;
@@ -498,13 +498,13 @@ public class ListPropertyMappingTests : TestBase
         });
 
         // act
-        CollectionEntity1? entity = default;
+        CollectionEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
         });
 
-        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity!);
+        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity);
         result1.IntProp = 2;
         var item0 = result1.Scs![0];
         item0.IntProp = 2;
@@ -663,12 +663,12 @@ public class ListPropertyMappingTests : TestBase
         });
 
         // act
-        CollectionEntity1? entity = default;
+        CollectionEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
         });
 
-        return mapper.Map<CollectionEntity1, T>(entity!);
+        return mapper.Map<CollectionEntity1, T>(entity);
     }
 }

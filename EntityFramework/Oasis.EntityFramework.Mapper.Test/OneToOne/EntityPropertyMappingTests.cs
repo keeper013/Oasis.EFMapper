@@ -29,13 +29,13 @@ public sealed class EntityPropertyMappingTests : TestBase
         });
 
         // act
-        Outer1? entity = default;
+        Outer1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
         });
 
-        var outer2 = mapper.Map<Outer1, Outer2>(entity!);
+        var outer2 = mapper.Map<Outer1, Outer2>(entity);
 
         // assert
         Assert.AreEqual(1, outer2.IntProp);
@@ -66,13 +66,13 @@ public sealed class EntityPropertyMappingTests : TestBase
         });
 
         // act
-        Outer1? entity = default;
+        Outer1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
         });
 
-        var outer2 = mapper.Map<Outer1, Outer2>(entity!);
+        var outer2 = mapper.Map<Outer1, Outer2>(entity);
         outer2.Inner1 = new Inner2_1(2);
         outer2.Inner2 = new Inner2_2("2");
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -81,14 +81,14 @@ public sealed class EntityPropertyMappingTests : TestBase
             await databaseContext.SaveChangesAsync();
         });
 
-        Outer1? result2 = default;
+        Outer1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result2 = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
         });
 
         // assert
-        Assert.AreEqual(1, result2!.IntProp);
+        Assert.AreEqual(1, result2.IntProp);
         Assert.NotNull(result2.Inner1);
         Assert.AreEqual(2, result2.Inner1!.LongProp);
         Assert.NotNull(result2.Inner2);
@@ -107,7 +107,7 @@ public sealed class EntityPropertyMappingTests : TestBase
 
         await ReplaceOneToOneMapping(mapper);
 
-        Outer1? result2 = default;
+        Outer1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             result2 = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
@@ -117,7 +117,7 @@ public sealed class EntityPropertyMappingTests : TestBase
             Assert.AreEqual(1, await databaseContext.Set<Inner1_2>().CountAsync());
         });
 
-        Assert.AreEqual(1, result2!.IntProp);
+        Assert.AreEqual(1, result2.IntProp);
         Assert.NotNull(result2.Inner1);
         Assert.AreEqual(2, result2.Inner1!.LongProp);
         Assert.NotNull(result2.Inner2);
@@ -190,13 +190,13 @@ public sealed class EntityPropertyMappingTests : TestBase
         });
 
         // act
-        RecursiveEntity1? entity = default;
+        RecursiveEntity1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<RecursiveEntity1>().AsNoTracking().Include(o => o.Parent).Include(o => o.Child).FirstAsync(r => r.StringProperty == "parent");
         });
 
-        var r2 = mapper.Map<RecursiveEntity1, RecursiveEntity2>(entity!);
+        var r2 = mapper.Map<RecursiveEntity1, RecursiveEntity2>(entity);
 
         Assert.AreEqual("parent", r2.StringProperty);
         Assert.Null(r2.Parent);
@@ -207,13 +207,13 @@ public sealed class EntityPropertyMappingTests : TestBase
         r2.StringProperty = "parent 1";
         r2.Child.StringProperty = "child 1";
 
-        RecursiveEntity1? r3 = default;
+        RecursiveEntity1 r3 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             r3 = await mapper.MapAsync<RecursiveEntity2, RecursiveEntity1>(r2, databaseContext, r => r.Include(r => r.Parent).Include(r => r.Child));
         });
 
-        Assert.AreEqual("parent 1", r3!.StringProperty);
+        Assert.AreEqual("parent 1", r3.StringProperty);
         Assert.Null(r3.Parent);
         Assert.NotNull(r3.Child);
         Assert.NotNull(r3.Child!.Parent);
@@ -237,7 +237,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         });
 
         // act
-        Outer2? outer2 = default;
+        Outer2 outer2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var entity = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
@@ -249,7 +249,7 @@ public sealed class EntityPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result1 = await mapper.MapAsync<Outer2, Outer1>(outer2!, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
+            var result1 = await mapper.MapAsync<Outer2, Outer1>(outer2, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
             await databaseContext.SaveChangesAsync();
         });
     }
