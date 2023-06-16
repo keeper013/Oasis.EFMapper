@@ -25,25 +25,25 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Cg5NZXNzYWdlcy5wcm90bxInT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5N",
-            "YXBwZXIuU2FtcGxlIosBCgtCb3Jyb3dlckRUTxIKCgJJZBgBIAEoBRIRCglU",
-            "aW1lU3RhbXAYAiABKAwSDAoETmFtZRgDIAEoCRJPCg1Cb3Jyb3dSZWNvcmRz",
-            "GAQgAygLMjguT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2Ft",
-            "cGxlLkJvcnJvd1JlY29yZERUTyJoCgdCb29rRFRPEgoKAklkGAEgASgFEhEK",
-            "CVRpbWVTdGFtcBgCIAEoDBIMCgROYW1lGAMgASgJEhwKD0N1cnJlbnRCb3Jy",
-            "b3dlchgEIAEoCUgAiAEBQhIKEF9DdXJyZW50Qm9ycm93ZXIiGgoKTmV3Qm9v",
-            "a0RUTxIMCgROYW1lGAEgASgJIlQKD0JvcnJvd1JlY29yZERUTxIKCgJJZBgB",
-            "IAEoBRIRCglUaW1lU3RhbXAYAiABKAwSEgoKQm9ycm93ZXJJZBgDIAEoBRIO",
-            "CgZCb29rSWQYBCABKAUiTgoLQWxsQm9va3NEVE8SPwoFQm9va3MYASADKAsy",
-            "MC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQm9v",
-            "a0RUT0IqqgInT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2Ft",
-            "cGxlYgZwcm90bzM="));
+            "YXBwZXIuU2FtcGxlIpIBCgtCb3Jyb3dlckRUTxIKCgJJZBgBIAEoBRIYChBD",
+            "b25jdXJyZW5jeVRva2VuGAIgASgMEgwKBE5hbWUYAyABKAkSTwoNQm9ycm93",
+            "UmVjb3JkcxgEIAMoCzI4Lk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFw",
+            "cGVyLlNhbXBsZS5Cb3Jyb3dSZWNvcmREVE8ibwoHQm9va0RUTxIKCgJJZBgB",
+            "IAEoBRIYChBDb25jdXJyZW5jeVRva2VuGAIgASgMEgwKBE5hbWUYAyABKAkS",
+            "HAoPQ3VycmVudEJvcnJvd2VyGAQgASgJSACIAQFCEgoQX0N1cnJlbnRCb3Jy",
+            "b3dlciIaCgpOZXdCb29rRFRPEgwKBE5hbWUYASABKAkiWwoPQm9ycm93UmVj",
+            "b3JkRFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwS",
+            "EgoKQm9ycm93ZXJJZBgDIAEoBRIOCgZCb29rSWQYBCABKAUiTgoLQWxsQm9v",
+            "a3NEVE8SPwoFQm9va3MYASADKAsyMC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
+            "b3JlLk1hcHBlci5TYW1wbGUuQm9va0RUT0IqqgInT2FzaXMuRW50aXR5RnJh",
+            "bWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO.Parser, new[]{ "Id", "TimeStamp", "Name", "BorrowRecords" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser, new[]{ "Id", "TimeStamp", "Name", "CurrentBorrower" }, new[]{ "CurrentBorrower" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "BorrowRecords" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "CurrentBorrower" }, new[]{ "CurrentBorrower" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO.Parser, new[]{ "Name" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO.Parser, new[]{ "Id", "TimeStamp", "BorrowerId", "BookId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO.Parser, new[]{ "Id", "ConcurrencyToken", "BorrowerId", "BookId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.AllBooksDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.AllBooksDTO.Parser, new[]{ "Books" }, null, null, null, null)
           }));
     }
@@ -86,7 +86,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BorrowerDTO(BorrowerDTO other) : this() {
       id_ = other.id_;
-      timeStamp_ = other.timeStamp_;
+      concurrencyToken_ = other.concurrencyToken_;
       name_ = other.name_;
       borrowRecords_ = other.borrowRecords_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -110,15 +110,15 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
     }
 
-    /// <summary>Field number for the "TimeStamp" field.</summary>
-    public const int TimeStampFieldNumber = 2;
-    private pb::ByteString timeStamp_ = pb::ByteString.Empty;
+    /// <summary>Field number for the "ConcurrencyToken" field.</summary>
+    public const int ConcurrencyTokenFieldNumber = 2;
+    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString TimeStamp {
-      get { return timeStamp_; }
+    public pb::ByteString ConcurrencyToken {
+      get { return concurrencyToken_; }
       set {
-        timeStamp_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -161,7 +161,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         return true;
       }
       if (Id != other.Id) return false;
-      if (TimeStamp != other.TimeStamp) return false;
+      if (ConcurrencyToken != other.ConcurrencyToken) return false;
       if (Name != other.Name) return false;
       if(!borrowRecords_.Equals(other.borrowRecords_)) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -172,7 +172,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (Id != 0) hash ^= Id.GetHashCode();
-      if (TimeStamp.Length != 0) hash ^= TimeStamp.GetHashCode();
+      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
       hash ^= borrowRecords_.GetHashCode();
       if (_unknownFields != null) {
@@ -197,9 +197,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (TimeStamp.Length != 0) {
+      if (ConcurrencyToken.Length != 0) {
         output.WriteRawTag(18);
-        output.WriteBytes(TimeStamp);
+        output.WriteBytes(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -220,9 +220,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (TimeStamp.Length != 0) {
+      if (ConcurrencyToken.Length != 0) {
         output.WriteRawTag(18);
-        output.WriteBytes(TimeStamp);
+        output.WriteBytes(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -242,8 +242,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Id != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
       }
-      if (TimeStamp.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TimeStamp);
+      if (ConcurrencyToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
@@ -264,8 +264,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.Id != 0) {
         Id = other.Id;
       }
-      if (other.TimeStamp.Length != 0) {
-        TimeStamp = other.TimeStamp;
+      if (other.ConcurrencyToken.Length != 0) {
+        ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.Name.Length != 0) {
         Name = other.Name;
@@ -291,7 +291,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 18: {
-            TimeStamp = input.ReadBytes();
+            ConcurrencyToken = input.ReadBytes();
             break;
           }
           case 26: {
@@ -322,7 +322,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 18: {
-            TimeStamp = input.ReadBytes();
+            ConcurrencyToken = input.ReadBytes();
             break;
           }
           case 26: {
@@ -375,7 +375,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BookDTO(BookDTO other) : this() {
       id_ = other.id_;
-      timeStamp_ = other.timeStamp_;
+      concurrencyToken_ = other.concurrencyToken_;
       name_ = other.name_;
       currentBorrower_ = other.currentBorrower_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -399,15 +399,15 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
     }
 
-    /// <summary>Field number for the "TimeStamp" field.</summary>
-    public const int TimeStampFieldNumber = 2;
-    private pb::ByteString timeStamp_ = pb::ByteString.Empty;
+    /// <summary>Field number for the "ConcurrencyToken" field.</summary>
+    public const int ConcurrencyTokenFieldNumber = 2;
+    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString TimeStamp {
-      get { return timeStamp_; }
+    public pb::ByteString ConcurrencyToken {
+      get { return concurrencyToken_; }
       set {
-        timeStamp_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -463,7 +463,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         return true;
       }
       if (Id != other.Id) return false;
-      if (TimeStamp != other.TimeStamp) return false;
+      if (ConcurrencyToken != other.ConcurrencyToken) return false;
       if (Name != other.Name) return false;
       if (CurrentBorrower != other.CurrentBorrower) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -474,7 +474,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (Id != 0) hash ^= Id.GetHashCode();
-      if (TimeStamp.Length != 0) hash ^= TimeStamp.GetHashCode();
+      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
       if (HasCurrentBorrower) hash ^= CurrentBorrower.GetHashCode();
       if (_unknownFields != null) {
@@ -499,9 +499,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (TimeStamp.Length != 0) {
+      if (ConcurrencyToken.Length != 0) {
         output.WriteRawTag(18);
-        output.WriteBytes(TimeStamp);
+        output.WriteBytes(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -525,9 +525,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (TimeStamp.Length != 0) {
+      if (ConcurrencyToken.Length != 0) {
         output.WriteRawTag(18);
-        output.WriteBytes(TimeStamp);
+        output.WriteBytes(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -550,8 +550,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Id != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
       }
-      if (TimeStamp.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TimeStamp);
+      if (ConcurrencyToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
@@ -574,8 +574,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.Id != 0) {
         Id = other.Id;
       }
-      if (other.TimeStamp.Length != 0) {
-        TimeStamp = other.TimeStamp;
+      if (other.ConcurrencyToken.Length != 0) {
+        ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.Name.Length != 0) {
         Name = other.Name;
@@ -603,7 +603,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 18: {
-            TimeStamp = input.ReadBytes();
+            ConcurrencyToken = input.ReadBytes();
             break;
           }
           case 26: {
@@ -634,7 +634,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 18: {
-            TimeStamp = input.ReadBytes();
+            ConcurrencyToken = input.ReadBytes();
             break;
           }
           case 26: {
@@ -876,7 +876,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public BorrowRecordDTO(BorrowRecordDTO other) : this() {
       id_ = other.id_;
-      timeStamp_ = other.timeStamp_;
+      concurrencyToken_ = other.concurrencyToken_;
       borrowerId_ = other.borrowerId_;
       bookId_ = other.bookId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -900,15 +900,15 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
     }
 
-    /// <summary>Field number for the "TimeStamp" field.</summary>
-    public const int TimeStampFieldNumber = 2;
-    private pb::ByteString timeStamp_ = pb::ByteString.Empty;
+    /// <summary>Field number for the "ConcurrencyToken" field.</summary>
+    public const int ConcurrencyTokenFieldNumber = 2;
+    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString TimeStamp {
-      get { return timeStamp_; }
+    public pb::ByteString ConcurrencyToken {
+      get { return concurrencyToken_; }
       set {
-        timeStamp_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -952,7 +952,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         return true;
       }
       if (Id != other.Id) return false;
-      if (TimeStamp != other.TimeStamp) return false;
+      if (ConcurrencyToken != other.ConcurrencyToken) return false;
       if (BorrowerId != other.BorrowerId) return false;
       if (BookId != other.BookId) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -963,7 +963,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (Id != 0) hash ^= Id.GetHashCode();
-      if (TimeStamp.Length != 0) hash ^= TimeStamp.GetHashCode();
+      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
       if (BorrowerId != 0) hash ^= BorrowerId.GetHashCode();
       if (BookId != 0) hash ^= BookId.GetHashCode();
       if (_unknownFields != null) {
@@ -988,9 +988,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (TimeStamp.Length != 0) {
+      if (ConcurrencyToken.Length != 0) {
         output.WriteRawTag(18);
-        output.WriteBytes(TimeStamp);
+        output.WriteBytes(ConcurrencyToken);
       }
       if (BorrowerId != 0) {
         output.WriteRawTag(24);
@@ -1014,9 +1014,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (TimeStamp.Length != 0) {
+      if (ConcurrencyToken.Length != 0) {
         output.WriteRawTag(18);
-        output.WriteBytes(TimeStamp);
+        output.WriteBytes(ConcurrencyToken);
       }
       if (BorrowerId != 0) {
         output.WriteRawTag(24);
@@ -1039,8 +1039,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Id != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
       }
-      if (TimeStamp.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(TimeStamp);
+      if (ConcurrencyToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
       }
       if (BorrowerId != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(BorrowerId);
@@ -1063,8 +1063,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.Id != 0) {
         Id = other.Id;
       }
-      if (other.TimeStamp.Length != 0) {
-        TimeStamp = other.TimeStamp;
+      if (other.ConcurrencyToken.Length != 0) {
+        ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.BorrowerId != 0) {
         BorrowerId = other.BorrowerId;
@@ -1092,7 +1092,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 18: {
-            TimeStamp = input.ReadBytes();
+            ConcurrencyToken = input.ReadBytes();
             break;
           }
           case 24: {
@@ -1123,7 +1123,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 18: {
-            TimeStamp = input.ReadBytes();
+            ConcurrencyToken = input.ReadBytes();
             break;
           }
           case 24: {

@@ -44,7 +44,7 @@ internal sealed class Mapper : IMapper
         return MapperStaticMethods.Map<TSource, TTarget>(_entityFactory, newEntityTracker, _scalarConverter, _listTypeConstructor, _entityBaseProxy, _lookup, source);
     }
 
-    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, DbContext databaseContext, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = null, MapToDatabaseType mappingType = MapToDatabaseType.Upsert)
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, DbContext databaseContext, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default, MapToDatabaseType mappingType = MapToDatabaseType.Upsert)
         where TSource : class
         where TTarget : class
     {
@@ -112,7 +112,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         _lookup = lookup;
     }
 
-    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, MapToDatabaseType mappingType = MapToDatabaseType.Upsert)
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default, MapToDatabaseType mappingType = MapToDatabaseType.Upsert)
         where TSource : class
         where TTarget : class
     {
@@ -159,7 +159,8 @@ internal static class MapperStaticMethods
         if (sourceHasId)
         {
             TTarget? target;
-            var identityEqualsExpression = BuildIdEqualsExpression<TTarget>(entityBaseProxy, scalarConverter, entityBaseProxy.GetId(source));
+            var id = entityBaseProxy.GetId(source);
+            var identityEqualsExpression = BuildIdEqualsExpression<TTarget>(entityBaseProxy, scalarConverter, id);
             if (includer != default)
             {
                 var includerString = includer.ToString();
@@ -183,8 +184,17 @@ internal static class MapperStaticMethods
                 }
                 else
                 {
-                    new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target, true);
-                    return target;
+                    if (entityBaseProxy.HasConcurrencyToken<TSource>() && entityBaseProxy.HasConcurrencyToken<TTarget>()
+                        && !entityBaseProxy.ConcurrencyTokenIsEmpty(source) && !entityBaseProxy.ConcurrencyTokenIsEmpty(target)
+                        && !entityBaseProxy.ConcurrencyTokenEquals(source, target))
+                    {
+                        throw new ConcurrencyTokenException(typeof(TSource), typeof(TTarget), id);
+                    }
+                    else
+                    {
+                        new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target, true);
+                        return target;
+                    }
                 }
             }
         }

@@ -7,7 +7,7 @@ public class CustomPropertyMappingTests
 {
     public CustomPropertyMappingTests()
     {
-        DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp));
+        DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
     }
 
     private TypeConfiguration DefaultConfiguration { get; }

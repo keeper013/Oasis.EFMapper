@@ -33,5 +33,5 @@ public interface IMapperBuilder
 
 public record struct TypeConfiguration(
     string identityPropertyName,
-    string? timestampPropertyName = default,
+    string? concurrencyTokenPropertyName = default,
     bool keepEntityOnMappingRemoved = IMapperBuilder.DefaultKeepEntityOnMappingRemoved);

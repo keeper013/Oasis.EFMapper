@@ -17,7 +17,7 @@ public abstract class TestBase
             .UseSqlite(connection)
             .Options;
 
-        DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp));
+        DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
     }
 
     protected TypeConfiguration DefaultConfiguration { get; }

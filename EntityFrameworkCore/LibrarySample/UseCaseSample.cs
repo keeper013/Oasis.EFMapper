@@ -27,7 +27,7 @@ public class UseCaseSample
             .Options;
 
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.TimeStamp)));
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken)));
         var bookCustomMapper = factory.MakeCustomPropertyMapperBuilder<Book, BookDTO>()
             .MapProperty(dto => dto.CurrentBorrower, book => book.BorrowRecord != null && book.BorrowRecord.Borrower != null ? book.BorrowRecord.Borrower.Name : string.Empty)
             .Build();
@@ -151,27 +151,27 @@ public class UseCaseSample
 
     private async Task<string> LoadBorrowerData(string name)
     {
-        Borrower? borrower = default;
+        Borrower borrower = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
             borrower = await databaseContext.Set<Borrower>().Include(b => b.BorrowRecords).FirstAsync(b => b.Name == name);
         });
 
-        var dto = Mapper.Map<Borrower, BorrowerDTO>(borrower!);
+        var dto = Mapper.Map<Borrower, BorrowerDTO>(borrower);
         return Convert.ToBase64String(dto.ToByteArray());
     }
 
     private async Task<string> LoadAllBookData()
     {
-        List<Book>? books = default;
+        List<Book> books = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            books = await databaseContext.Set<Book>().Include(b => b.BorrowRecord).ThenInclude(r => r.Borrower).ToListAsync();
+            books = await databaseContext.Set<Book>().Include(b => b.BorrowRecord).ThenInclude(r => r!.Borrower).ToListAsync();
         });
 
         var session = Mapper.CreateMappingSession();
         var allbooks = new AllBooksDTO();
-        foreach (var book in books!)
+        foreach (var book in books)
         {
             allbooks.Books.Add(session.Map<Book, BookDTO>(book));
         }

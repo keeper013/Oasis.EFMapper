@@ -12,7 +12,7 @@ public abstract class EntityBase
 
     [Timestamp]
     [ConcurrencyCheck]
-    public byte[]? TimeStamp { get; set; }
+    public byte[]? ConcurrencyToken { get; set; }
 }
 
 public sealed class Borrower : EntityBase

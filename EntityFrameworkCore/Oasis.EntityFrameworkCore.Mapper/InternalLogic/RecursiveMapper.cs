@@ -47,17 +47,16 @@ internal abstract class RecursiveMapper<T> : IEntityPropertyMapper, IListPropert
         where TTarget : class
     {
         var targetType = typeof(TTarget);
-        var targetTypeIsTracked = _trackerDictionary.TryGetValue(targetType, out var existingTargetTracker);
 
         if (EntityBaseProxy.HasId<TTarget>() && !EntityBaseProxy.IdIsEmpty(target))
         {
-            if (!targetTypeIsTracked)
+            if (!_trackerDictionary.TryGetValue(targetType, out var existingTargetTracker))
             {
                 existingTargetTracker = new ExistingTargetTracker();
                 _trackerDictionary.Add(targetType, existingTargetTracker);
             }
 
-            if (!existingTargetTracker!.StartTracking(target.GetHashCode()))
+            if (!existingTargetTracker.StartTracking(target.GetHashCode()))
             {
                 // Only do mapping if the target hasn't been mapped.
                 // This will be useful to break from infinite loop caused by navigation properties.

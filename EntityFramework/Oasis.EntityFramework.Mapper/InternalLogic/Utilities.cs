@@ -16,13 +16,13 @@ internal static class Utilities
         where TSource : class
         where TTarget : class;
 
-    public delegate object GetId<TEntity>(TEntity entity)
+    public delegate object GetScalarProperty<TEntity>(TEntity entity)
         where TEntity : class;
 
-    public delegate bool IdIsEmpty<TEntity>(TEntity entity)
+    public delegate bool ScalarPropertyIsEmpty<TEntity>(TEntity entity)
         where TEntity : class;
 
-    public delegate bool IdsAreEqual<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
+    public delegate bool ScalarPropertiesAreEqual<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
         where TSource : class
         where TTarget : class;
 
@@ -55,12 +55,10 @@ internal record struct MethodMetaData(Type type, string name);
 
 internal record struct MapperSet(Delegate? customPropertiesMapper, Delegate keyPropertiesMapper, Delegate scalarPropertiesMapper, Delegate entityPropertiesMapper, Delegate listPropertiesMapper);
 
-internal record struct TypeProxyMetaDataSet(MethodMetaData getId, MethodMetaData identityIsEmpty, PropertyInfo identityProperty, bool keepEntityOnMappingRemoved);
+// get method is only needed for id, not for concurrency token, so it's nullable here
+internal record struct TypeKeyProxyMetaDataSet(MethodMetaData? get, MethodMetaData isEmpty, PropertyInfo property);
 
-internal record struct TypeProxy(Delegate getId, Delegate identityIsEmpty, PropertyInfo identityProperty);
-
-internal record struct EntityComparer(Delegate idsAreEqual);
+// get method is only needed for id, not for concurrency token, so it's nullable here
+internal record struct TypeKeyProxy(Delegate? get, Delegate isEmpty, PropertyInfo property);
 
 internal record struct MapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData keyPropertiesMapper, MethodMetaData scalarPropertiesMapper, MethodMetaData entityPropertiesMapper, MethodMetaData listPropertiesMapper);
-
-internal record struct ComparerMetaDataSet(MethodMetaData identityComparer);

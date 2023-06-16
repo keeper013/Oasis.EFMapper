@@ -4,14 +4,14 @@ option csharp_namespace = "Oasis.EntityFrameworkCore.Mapper.Sample";
 
 message BorrowerDTO {
 	int32 Id = 1;
-	bytes TimeStamp = 2;
+	bytes ConcurrencyToken = 2;
 	string Name = 3;
 	repeated BorrowRecordDTO BorrowRecords = 4;
 }
 
 message BookDTO {
 	int32 Id = 1;
-	bytes TimeStamp = 2;
+	bytes ConcurrencyToken = 2;
 	string Name = 3;
 	optional string CurrentBorrower = 4;
 }
@@ -22,7 +22,7 @@ message NewBookDTO {
 
 message BorrowRecordDTO {
     int32 Id = 1;
-	bytes TimeStamp = 2;
+	bytes ConcurrencyToken = 2;
 	int32 BorrowerId = 3;
 	int32 BookId = 4;
 }

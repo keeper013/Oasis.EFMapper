@@ -24,16 +24,16 @@ internal class DatabaseContext : DbContext
 
         if (Database.IsSqlite())
         {
-            var timestampProperties = modelBuilder.Model
+            var concurrencyTokenProperties = modelBuilder.Model
                 .GetEntityTypes()
                 .SelectMany(t => t.GetProperties())
                 .Where(p => p.ClrType == typeof(byte[])
                     && p.ValueGenerated == ValueGenerated.OnAddOrUpdate
                     && p.IsConcurrencyToken);
 
-            foreach (var property in timestampProperties)
+            foreach (var property in concurrencyTokenProperties)
             {
-                property.SetValueConverter(new SqliteTimestampConverter());
+                property.SetValueConverter(new SqliteConcurrencyTokenConverter());
                 property.SetValueComparer(new ValueComparer<byte[]>(
                     (a1, a2) => a1 != default && a2 != default && a1.SequenceEqual(a2),
                     a => a.Aggregate(0, (v, b) => HashCode.Combine(v, b.GetHashCode())),
@@ -43,9 +43,9 @@ internal class DatabaseContext : DbContext
         }
     }
 
-    private class SqliteTimestampConverter : ValueConverter<byte[], string>
+    private class SqliteConcurrencyTokenConverter : ValueConverter<byte[], string>
     {
-        public SqliteTimestampConverter()
+        public SqliteConcurrencyTokenConverter()
             : base(
                 v => ToDb(v),
                 v => FromDb(v))

@@ -11,7 +11,7 @@ public abstract class EntityBase
 
     [Timestamp]
     [ConcurrencyCheck]
-    public byte[]? Timestamp { get; set; }
+    public byte[]? ConcurrencyToken { get; set; }
 }
 
 public abstract class NullableIdEntityBase
@@ -22,21 +22,21 @@ public abstract class NullableIdEntityBase
 
     [Timestamp]
     [ConcurrencyCheck]
-    public byte[]? Timestamp { get; set; }
+    public byte[]? ConcurrencyToken { get; set; }
 }
 
 public abstract class ReversedEntityBase
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public long Timestamp { get; set; }
+    public long ConcurrencyToken { get; set; }
 
     [Timestamp]
     [ConcurrencyCheck]
     public byte[]? Id { get; set; }
 }
 
-public abstract class EntityBaseNoTimeStamp
+public abstract class EntityBaseNoConcurrencyToken
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -51,5 +51,5 @@ public abstract class EntityBase<T>
 
     [Timestamp]
     [ConcurrencyCheck]
-    public byte[]? Timestamp { get; set; }
+    public byte[]? ConcurrencyToken { get; set; }
 }

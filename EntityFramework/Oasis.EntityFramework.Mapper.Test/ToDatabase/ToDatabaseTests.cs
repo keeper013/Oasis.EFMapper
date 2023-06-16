@@ -26,6 +26,32 @@ public class ToDatabaseTests : TestBase
     }
 
     [Test]
+    [TestCase(MapToDatabaseType.Update)]
+    [TestCase(MapToDatabaseType.Upsert)]
+    public async Task UpdateDifferentConcurrencyToken_ShouldFail(MapToDatabaseType mapToDatabaseType)
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>();
+        var mapper = mapperBuilder.Build();
+        var instance = new ToDatabaseEntity2(1, 1, 1);
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<ToDatabaseEntity1>().Add(new ToDatabaseEntity1(1, 2, 1));
+            await databaseContext.SaveChangesAsync();
+        });
+
+        // assert
+        Assert.ThrowsAsync<ConcurrencyTokenException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, databaseContext, null, mapToDatabaseType);
+            await databaseContext.SaveChangesAsync();
+        }));
+    }
+
+    [Test]
     public void UpdateNotExisting_ShouldFail()
     {
         // arrange

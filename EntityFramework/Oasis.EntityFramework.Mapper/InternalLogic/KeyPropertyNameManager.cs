@@ -4,7 +4,7 @@ internal interface IKeyPropertyNameManager
 {
     string? GetIdentityPropertyName(Type type);
 
-    string? GetTimeStampPropertyName(Type type);
+    string? GetConcurrencyTokenPropertyName(Type type);
 
     bool IsKeyPropertyName(string name, Type type);
 }
@@ -25,9 +25,9 @@ internal class KeyPropertyNameManager : IKeyPropertyNameManager
         return _typesUsingCustomConfiguration.TryGetValue(type, out var configuration) ? configuration.identityPropertyName : _defaultConfiguration.identityPropertyName;
     }
 
-    public string? GetTimeStampPropertyName(Type type)
+    public string? GetConcurrencyTokenPropertyName(Type type)
     {
-        return _typesUsingCustomConfiguration.TryGetValue(type, out var configuration) ? configuration.timestampPropertyName : _defaultConfiguration.timestampPropertyName;
+        return _typesUsingCustomConfiguration.TryGetValue(type, out var configuration) ? configuration.concurrencyTokenPropertyName : _defaultConfiguration.concurrencyTokenPropertyName;
     }
 
     public bool IsKeyPropertyName(string name, Type type)
@@ -35,12 +35,12 @@ internal class KeyPropertyNameManager : IKeyPropertyNameManager
         if (_typesUsingCustomConfiguration.TryGetValue(type, out var configuration))
         {
             return (!string.IsNullOrEmpty(configuration.identityPropertyName) && string.Equals(configuration.identityPropertyName, name))
-                || (!string.IsNullOrEmpty(configuration.timestampPropertyName) && string.Equals(configuration.timestampPropertyName, name));
+                || (!string.IsNullOrEmpty(configuration.concurrencyTokenPropertyName) && string.Equals(configuration.concurrencyTokenPropertyName, name));
         }
 
         return (!string.IsNullOrEmpty(_defaultConfiguration.identityPropertyName) && string.Equals(_defaultConfiguration.identityPropertyName, name))
-                || (!string.IsNullOrEmpty(_defaultConfiguration.timestampPropertyName) && string.Equals(_defaultConfiguration.timestampPropertyName, name));
+                || (!string.IsNullOrEmpty(_defaultConfiguration.concurrencyTokenPropertyName) && string.Equals(_defaultConfiguration.concurrencyTokenPropertyName, name));
     }
 }
 
-internal record struct KeyPropertyNameConfiguration(string? identityPropertyName = null, string? timestampPropertyName = null);
+internal record struct KeyPropertyNameConfiguration(string? identityPropertyName = null, string? concurrencyTokenPropertyName = null);

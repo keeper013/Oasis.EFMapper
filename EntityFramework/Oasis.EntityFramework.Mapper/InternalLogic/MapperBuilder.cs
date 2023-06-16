@@ -11,7 +11,7 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     public MapperBuilder(string assemblyName, TypeConfiguration defaultConfiguration)
     {
-        var name = new AssemblyName($"{assemblyName}.Oasis.EntityFrameworkCore.Mapper.Generated");
+        var name = new AssemblyName($"{assemblyName}.Oasis.EntityFramework.Mapper.Generated");
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
         _mapperRegistry = new (defaultConfiguration);

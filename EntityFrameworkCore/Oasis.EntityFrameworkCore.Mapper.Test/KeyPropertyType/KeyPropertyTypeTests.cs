@@ -130,15 +130,15 @@ public class KeyPropertyTypeTests : TestBase
         });
 
         // act
-        SomeSourceEntity<T>? entity = default;
+        SomeSourceEntity<T> entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             entity = await databaseContext.Set<SomeSourceEntity<T>>().AsNoTracking().FirstAsync();
         });
 
-        var instance = mapper.Map<SomeSourceEntity<T>, SomeTargetEntity<T>>(entity!);
+        var instance = mapper.Map<SomeSourceEntity<T>, SomeTargetEntity<T>>(entity);
         Assert.NotEqual(default, instance.Id);
-        Assert.NotEqual(default, instance.Timestamp);
+        Assert.NotEqual(default, instance.ConcurrencyToken);
         Assert.Equal(2, instance.SomeProperty);
     }
 }

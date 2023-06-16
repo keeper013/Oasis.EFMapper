@@ -14,7 +14,7 @@ public abstract class TestBase
 
     protected TestBase()
     {
-        DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp));
+        DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
     }
 
     [SetUp]

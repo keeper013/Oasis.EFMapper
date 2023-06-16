@@ -159,7 +159,8 @@ internal static class MapperStaticMethods
         if (sourceHasId)
         {
             TTarget? target;
-            var identityEqualsExpression = BuildIdEqualsExpression<TTarget>(entityBaseProxy, scalarConverter, entityBaseProxy.GetId(source));
+            var id = entityBaseProxy.GetId(source);
+            var identityEqualsExpression = BuildIdEqualsExpression<TTarget>(entityBaseProxy, scalarConverter, id);
             if (includer != default)
             {
                 var includerString = includer.ToString();
@@ -183,8 +184,17 @@ internal static class MapperStaticMethods
                 }
                 else
                 {
-                    new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target, true);
-                    return target;
+                    if (entityBaseProxy.HasConcurrencyToken<TSource>() && entityBaseProxy.HasConcurrencyToken<TTarget>()
+                        && !entityBaseProxy.ConcurrencyTokenIsEmpty(source) && !entityBaseProxy.ConcurrencyTokenIsEmpty(target)
+                        && !entityBaseProxy.ConcurrencyTokenEquals(source, target))
+                    {
+                        throw new ConcurrencyTokenException(typeof(TSource), typeof(TTarget), id);
+                    }
+                    else
+                    {
+                        new ToDatabaseRecursiveMapper(newEntityTracker, scalarConverter, listTypeConstructor, entityFactory, lookup, entityBaseProxy, databaseContext).Map(source, target, true);
+                        return target;
+                    }
                 }
             }
         }

@@ -427,7 +427,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder
-            .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.Timestamp), nameof(EntityBase.Id)))
+            .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)))
             .WithConfiguration<ScalarEntityNoTimeStamp1>(new TypeConfiguration(nameof(EntityBaseNoTimeStamp.AnotherId)))
             .Register<ScalarEntity1, ScalarEntityCustomKeyProperties1>()
             .Register<ScalarEntity1, ScalarEntityNoTimeStamp1>();
@@ -451,7 +451,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         var instance1 = session1.Map<ScalarEntity1, ScalarEntityCustomKeyProperties1>(entity!);
 
         // assert
-        Assert.AreNotEqual(default, instance1.Timestamp);
+        Assert.AreNotEqual(default, instance1.ConcurrencyToken);
         
         // timestamp doesn't work for sqlite, so verification for timestamp (in this case Id property) is ignored
         Assert.AreEqual(2, instance1.IntProp);
@@ -638,8 +638,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         // act & assert
         Assert.Throws<TypeConfiguratedException>(() => mapperBuilder
-            .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp)))
-            .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.Timestamp)), true)
+            .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken)))
+            .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken)), true)
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
     }
 
@@ -687,7 +687,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         {
             mapperBuilder
                 .WithScalarConverter<ScalarEntityCustomKeyProperties1, int>(s => 1)
-                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.Timestamp), nameof(EntityBase.Id)));
+                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)));
         });
     }
 
@@ -702,7 +702,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.Throws<InvalidScalarTypeException>(() =>
         {
             mapperBuilder
-                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.Timestamp), nameof(EntityBase.Id)))
+                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)))
                 .WithScalarConverter<ScalarEntityCustomKeyProperties1, int>(s => 1);
         });
     }
