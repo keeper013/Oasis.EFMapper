@@ -126,7 +126,7 @@ The library exposes the following public classes/interfaces for users:
         - assemblyName: this is the dynamic assembly name the mapper uses to generate static methods in, it dosn't really matter, any valid assembly name would do.
         - TypeConfiguration: this is the default configuration that will be applied to all mapped entities, it's items are:
             - identityPropertyName, name of identity property, so by default the library will assume any property named as value of this string is the id property (id is important for database records)
-            - timestampPropertyName, name of timestamp property, this is supposed to be the optimistic lock column used for concurrency checking. It's OK to set it to null if most tables in the database doesn't have such concurrency check columns.
+            - concurrencyTokenPropertyName, name of concurrency token property, this is supposed to be the optimistic lock column used for concurrency checking. It's OK to set it to null if most tables in the database doesn't have such concurrency check columns.
             - keepEntityOnMappingRemoved, this is a boolean item to decide when a navigation record is removed or replaced, should we keep it in database or remove it from database. By default its value is false, which represents the good database design. Some more detailed information regarding this configuration item can be found in later sections. It's highly recommended to leave it to be the default value.
     - ICustomPropertyMapperBuilder<TSource, TTarget> MakeCustomPropertyMapperBuilder<TSource, TTarget>(): makes a custom property mapper builder to customize certain property mappings between TSource and TTarget.
         - TSource: source type
@@ -160,12 +160,12 @@ The library exposes the following public classes/interfaces for users:
     - If the entity has an Id property, but the value is default value (e.g. 0 for int, null for int?), the entity will always be mapped as new entity to be inserted into database.
     - If the entity has an Id property, and the Id property's value is not default value, but record of that id value doesn't exist in the correponding database table, the entity will be mapped as new entity to be inserted into database, and id of the target entity will be set to the same value of source entity. The target entity will be successfully inserted into database, but inserted id value may differ. With entity framework core, the inserted id value will be the same as source entity id value. With entity framework 6.0, id value will be automatically generated if stated for the id value, instead of following what was set for source entity.
     - If the entity has an Id property, and the Id property's value is not default value, and the record of tha tid can be found in the corresponding database table, the entity will be mapped as existing entity to update the existing data record.
-2. Id and timestamp properties are considered key properties of entities, if explicitly configurated, mapping these properties doesn't need the property names to match. For example, for the following classes:
+2. Id and concurrency token properties are considered key properties of entities, if explicitly configurated, mapping these properties doesn't need the property names to match. For example, for the following classes:
 ```C#
 public class Entity1
 {
     public int Id { get; set; }
-    public byte[] TimeStamp { get; set; }
+    public byte[] ConcurrencyToken { get; set; }
 }
 public class Entity2
 {
@@ -173,9 +173,9 @@ public class Entity2
     public byte[] ConcurrencyLock { get; set; }
 }
 ```
-If the following registration is done, then when mapping instances of these entities, id and timestamp properties will be correctly mapped:
+If the following registration is done, then when mapping instances of these entities, id and concurrency token properties will be correctly mapped:
 ```C#
-mapperBuilder.WithConfiguration<Entity1>(new TypeConfiguration("Id", "TimeStamp")).WithConfiguration<Entity2>(new TypeConfiguration("EntityId", "ConcurrencyLock"));
+mapperBuilder.WithConfiguration<Entity1>(new TypeConfiguration("Id", "ConcurrencyToken")).WithConfiguration<Entity2>(new TypeConfiguration("EntityId", "ConcurrencyLock"));
 ```
 3. About TypeConfiguration.keepEntityOnMappingRemoved, in the example in introduction section, if borrowing record of id 2 is removed from borrowerDTO, when mapping back to database, the same record shouldn't be removed from database because it doesn't make sense to keep it anymore. So value of it is set to false by default and it's not recommended to change it to true. The possibility to set it to true is kept in case the database is not well designed like below:
 ```C#
