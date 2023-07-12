@@ -7,9 +7,17 @@ public interface IScalarTypeConverter
     object? Convert(object? value, Type targetType);
 }
 
-public interface IListPropertyMapper
+public interface INewTargetTracker<TKeyType>
+    where TKeyType : struct
 {
-    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target)
+    bool NewTargetIfNotExist<TTarget>(TKeyType key, out TTarget target)
+        where TTarget : class;
+}
+
+public interface IListPropertyMapper<TKeyType>
+    where TKeyType : struct
+{
+    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, INewTargetTracker<TKeyType> newTargetTracker)
         where TSource : class
         where TTarget : class;
 
@@ -18,9 +26,10 @@ public interface IListPropertyMapper
         where TItem : class;
 }
 
-public interface IEntityPropertyMapper
+public interface IEntityPropertyMapper<TKeyType>
+    where TKeyType : struct
 {
-    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target)
+    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<TKeyType> newTargetTracker)
         where TSource : class
         where TTarget : class;
 }

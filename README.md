@@ -122,11 +122,11 @@ The library will generate a dynamic assembly and some static methods when users 
 ## User Interface
 The library exposes the following public classes/interfaces for users:
 - IMapperBuilderFactory: this is the factory interface to generate a MapperBuilder to be configured, which later builds a mapper that does the work. It contains 1 Make method:
-    - IMapperBuilder MakeMapperBuilder(string assemblyName, TypeConfiguration defaultConfiguration): makes the mapper builder to be configured.
+    - IMapperBuilder MakeMapperBuilder(string assemblyName, TypeConfiguration? defaultConfiguration): makes the mapper builder to be configured.
         - assemblyName: this is the dynamic assembly name the mapper uses to generate static methods in, it dosn't really matter, any valid assembly name would do.
         - TypeConfiguration: this is the default configuration that will be applied to all mapped entities, it's items are:
-            - identityPropertyName, name of identity property, so by default the library will assume any property named as value of this string is the id property (id is important for database records)
-            - concurrencyTokenPropertyName, name of concurrency token property, this is supposed to be the optimistic lock column used for concurrency checking. It's OK to set it to null if most tables in the database doesn't have such concurrency check columns.
+            - identityPropertyName, name of identity property, so by default the library will assume any property named as value of this string is the id property (id is important for database records), defaulted to "Id" if the defaultConfiguration parameter is null.
+            - concurrencyTokenPropertyName, name of concurrency token property, this is supposed to be the optimistic lock column used for concurrency checking. It's OK to set it to null if most tables in the database doesn't have such concurrency check columns, defaulted to null.
             - keepEntityOnMappingRemoved, this is a boolean item to decide when a navigation record is removed or replaced, should we keep it in database or remove it from database. By default its value is false, which represents the good database design. Some more detailed information regarding this configuration item can be found in later sections. It's highly recommended to leave it to be the default value.
     - ICustomPropertyMapperBuilder<TSource, TTarget> MakeCustomPropertyMapperBuilder<TSource, TTarget>(): makes a custom property mapper builder to customize certain property mappings between TSource and TTarget.
         - TSource: source type

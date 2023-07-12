@@ -28,14 +28,14 @@ internal sealed class MapperBuilder : IMapperBuilder
         var type = _dynamicMethodBuilder.Build();
         var scalarTypeConverter = _mapperRegistry.MakeScalarTypeConverter();
         var listTypeConstructor = _mapperRegistry.MakeListTypeConstructor();
-        var mapper = _mapperRegistry.MakeMapperSetLookUp(type);
+        var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
         var proxy = _mapperRegistry.MakeEntityBaseProxy(type, scalarTypeConverter);
         var entityFactory = _mapperRegistry.MakeEntityFactory();
 
         // release some memory ahead
         _mapperRegistry.Clear();
 
-        return new Mapper(scalarTypeConverter, listTypeConstructor, entityFactory, mapper, proxy);
+        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, proxy, entityFactory);
     }
 
     public IMapperBuilder Register<TSource, TTarget>(ICustomPropertyMapper<TSource, TTarget>? customPropertyMapper = null)

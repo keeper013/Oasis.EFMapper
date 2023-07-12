@@ -8,13 +8,15 @@ internal static class Utilities
         where TSource : class
         where TTarget : class;
 
-    public delegate void MapEntityProperties<TSource, TTarget>(TSource source, TTarget target, IEntityPropertyMapper mapper)
+    public delegate void MapEntityProperties<TSource, TTarget, TKeyType>(IEntityPropertyMapper<TKeyType> mapper, TSource source, TTarget target, INewTargetTracker<TKeyType> newTargetTracker)
         where TSource : class
-        where TTarget : class;
+        where TTarget : class
+        where TKeyType : struct;
 
-    public delegate void MapListProperties<TSource, TTarget>(TSource source, TTarget target, IListPropertyMapper mapper)
+    public delegate void MapListProperties<TSource, TTarget, TKeyType>(IListPropertyMapper<TKeyType> mapper, TSource source, TTarget target, INewTargetTracker<TKeyType> newTargetTracker)
         where TSource : class
-        where TTarget : class;
+        where TTarget : class
+        where TKeyType : struct;
 
     public delegate object GetScalarProperty<TEntity>(TEntity entity)
         where TEntity : class;

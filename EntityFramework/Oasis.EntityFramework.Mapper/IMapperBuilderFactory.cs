@@ -2,7 +2,7 @@
 
 public interface IMapperBuilderFactory
 {
-    IMapperBuilder MakeMapperBuilder(string assemblyName, TypeConfiguration defaultConfiguration);
+    IMapperBuilder MakeMapperBuilder(string assemblyName, TypeConfiguration? defaultConfiguration);
 
     ICustomPropertyMapperBuilder<TSource, TTarget> MakeCustomPropertyMapperBuilder<TSource, TTarget>()
         where TSource : class
