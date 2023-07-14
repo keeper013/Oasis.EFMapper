@@ -183,7 +183,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
                 var targetPropertyType = targetProperty.PropertyType;
 
                 // cascading mapper creation: if entity mapper doesn't exist, create it
-                trigger.RegisterIf(sourcePropertyType, targetPropertyType, !_entityTypeValidator.CanConvert(sourcePropertyType, targetPropertyType));
+                trigger.RegisterIf(sourcePropertyType, targetPropertyType, _entityTypeValidator.CanConvert(sourcePropertyType, targetPropertyType));
 
                 // now it's made sure that mapper between entities exists, emit the entity property mapping code
                 generator.Emit(OpCodes.Ldarg_2);
@@ -223,7 +223,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
                 var targetItemType = targetProperty.PropertyType.GetListItemType();
 
                 // cascading mapper creation: if list item mapper doesn't exist, create it
-                trigger.RegisterIf(sourceItemType!, targetItemType!, !_entityListTypeValidator.CanConvert(sourceItemType!, targetItemType!));
+                trigger.RegisterIf(sourceItemType!, targetItemType!, _entityListTypeValidator.CanConvert(sourceItemType!, targetItemType!));
 
                 // now it's made sure that mapper between list items exists, emit the list property mapping code
                 generator.Emit(OpCodes.Ldarg_2);

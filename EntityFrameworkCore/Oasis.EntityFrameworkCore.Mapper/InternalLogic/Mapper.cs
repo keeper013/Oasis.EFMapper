@@ -11,6 +11,7 @@ internal sealed class Mapper : IMapper
     private readonly IEntityFactory _entityFactory;
     private readonly MapperSetLookUp _lookup;
     private readonly EntityBaseProxy _entityBaseProxy;
+    private readonly TargetTrackerProvider _targetTrackerProvider;
     private readonly ToMemoryRecursiveMapper _toMemoryRecursiveMapper;
 
     public Mapper(
@@ -18,6 +19,7 @@ internal sealed class Mapper : IMapper
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy,
+        TargetTrackerProvider targetTrackerProvider,
         IEntityFactory entityFactory)
     {
         _scalarConverter = scalarConverter;
@@ -25,24 +27,25 @@ internal sealed class Mapper : IMapper
         _entityFactory = entityFactory;
         _lookup = lookup;
         _entityBaseProxy = entityBaseProxy;
-        _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy);
+        _targetTrackerProvider = targetTrackerProvider;
+        _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, entityFactory);
     }
 
     public IMappingSession CreateMappingSession()
     {
-        return new MappingSession(_entityFactory, _toMemoryRecursiveMapper);
+        return new MappingSession(_entityFactory, _targetTrackerProvider, _toMemoryRecursiveMapper);
     }
 
     public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
     {
-        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy, _entityFactory, databaseContext);
+        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy, _entityFactory, _targetTrackerProvider, databaseContext);
     }
 
     public TTarget Map<TSource, TTarget>(TSource source)
         where TSource : class
         where TTarget : class
     {
-        var newEntityTracker = new NewTargetTracker<int>(_entityFactory);
+        var newEntityTracker = _targetTrackerProvider.Provide<TSource, TTarget, int>();
         var target = _entityFactory.Make<TTarget>();
         _toMemoryRecursiveMapper.Map(source, target, true, newEntityTracker);
         return target;
@@ -52,7 +55,7 @@ internal sealed class Mapper : IMapper
         where TSource : class
         where TTarget : class
     {
-        var newEntityTracker = new NewTargetTracker<int>(_entityFactory);
+        var newEntityTracker = _targetTrackerProvider.Provide<TSource, TTarget, int>();
         var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy, _entityFactory, databaseContext);
         return await toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, newEntityTracker);
     }
@@ -61,15 +64,16 @@ internal sealed class Mapper : IMapper
 internal sealed class MappingSession : IMappingSession
 {
     private readonly IEntityFactory _entityFactory;
-    private readonly INewTargetTracker<int> _entityTracker;
+    private readonly INewTargetTracker<int>? _entityTracker;
     private readonly ToMemoryRecursiveMapper _toMemoryRecursiveMapper;
 
     public MappingSession(
         IEntityFactory entityFactory,
+        TargetTrackerProvider targetTrackerProvider,
         ToMemoryRecursiveMapper toMemoryRecursiveMapper)
     {
         _entityFactory = entityFactory;
-        _entityTracker = new NewTargetTracker<int>(entityFactory);
+        _entityTracker = targetTrackerProvider.Provide<int>();
         _toMemoryRecursiveMapper = toMemoryRecursiveMapper;
     }
 
@@ -86,7 +90,7 @@ internal sealed class MappingSession : IMappingSession
 
 internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
 {
-    private readonly NewTargetTracker<int> _newEntityTracker;
+    private readonly INewTargetTracker<int>? _newEntityTracker;
     private readonly ToDatabaseRecursiveMapper _toDatabaseRecursiveMapper;
 
     public MappingToDatabaseSession(
@@ -95,9 +99,10 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy,
         IEntityFactory entityFactory,
+        TargetTrackerProvider targetTrackerProvider,
         DbContext databaseContext)
     {
-        _newEntityTracker = new NewTargetTracker<int>(entityFactory);
+        _newEntityTracker = targetTrackerProvider.Provide<int>();
         _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, entityFactory, databaseContext);
     }
 
@@ -109,40 +114,67 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
     }
 }
 
-internal sealed class NewTargetTracker<TKeyType> : INewTargetTracker<TKeyType>
-    where TKeyType : struct
+internal sealed class TargetTrackerProvider
 {
-    private readonly IDictionary<TKeyType, IDictionary<Type, object>> _newTargetDictionary = new Dictionary<TKeyType, IDictionary<Type, object>>();
+    private readonly IReadOnlyDictionary<Type, ISet<Type>> _loopDependencyMappings;
     private readonly IEntityFactory _entityFactory;
 
-    public NewTargetTracker(IEntityFactory entityFactory)
+    public TargetTrackerProvider(IReadOnlyDictionary<Type, ISet<Type>> loopDependencyMappings, IEntityFactory entityFactory)
     {
+        _loopDependencyMappings = loopDependencyMappings;
         _entityFactory = entityFactory;
     }
 
-    public bool NewTargetIfNotExist<TTarget>(TKeyType key, out TTarget target)
+    public INewTargetTracker<TKeyType>? Provide<TSource, TTarget, TKeyType>()
+        where TSource : class
         where TTarget : class
+        where TKeyType : struct
     {
-        IDictionary<Type, object>? innerDictionary;
-        lock (_newTargetDictionary)
-        {
-            var targetType = typeof(TTarget);
-            if (_newTargetDictionary.TryGetValue(key, out innerDictionary) && innerDictionary.TryGetValue(targetType, out var obj))
-            {
-                target = (TTarget)obj!;
-                return true;
-            }
-            else
-            {
-                if (innerDictionary == default)
-                {
-                    innerDictionary = new Dictionary<Type, object>();
-                    _newTargetDictionary.Add(key, innerDictionary);
-                }
+        return _loopDependencyMappings.TryGetValue(typeof(TSource), out var set) && set.Contains(typeof(TTarget))
+            ? new NewTargetTracker<TKeyType>(_entityFactory) : null;
+    }
 
-                target = _entityFactory.Make<TTarget>();
-                innerDictionary.Add(targetType, target);
-                return false;
+    public INewTargetTracker<TKeyType> Provide<TKeyType>()
+        where TKeyType : struct
+    {
+        return new NewTargetTracker<TKeyType>(_entityFactory);
+    }
+
+    private sealed class NewTargetTracker<TKeyType> : INewTargetTracker<TKeyType>
+        where TKeyType : struct
+    {
+        private readonly IDictionary<TKeyType, IDictionary<Type, object>> _newTargetDictionary = new Dictionary<TKeyType, IDictionary<Type, object>>();
+        private readonly IEntityFactory _entityFactory;
+
+        public NewTargetTracker(IEntityFactory entityFactory)
+        {
+            _entityFactory = entityFactory;
+        }
+
+        public bool NewTargetIfNotExist<TTarget>(TKeyType key, out TTarget target)
+            where TTarget : class
+        {
+            IDictionary<Type, object>? innerDictionary;
+            lock (_newTargetDictionary)
+            {
+                var targetType = typeof(TTarget);
+                if (_newTargetDictionary.TryGetValue(key, out innerDictionary) && innerDictionary.TryGetValue(targetType, out var obj))
+                {
+                    target = (TTarget)obj!;
+                    return true;
+                }
+                else
+                {
+                    if (innerDictionary == default)
+                    {
+                        innerDictionary = new Dictionary<Type, object>();
+                        _newTargetDictionary.Add(key, innerDictionary);
+                    }
+
+                    target = _entityFactory.Make<TTarget>();
+                    innerDictionary.Add(targetType, target);
+                    return false;
+                }
             }
         }
     }

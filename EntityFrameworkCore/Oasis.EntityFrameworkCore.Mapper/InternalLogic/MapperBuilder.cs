@@ -31,11 +31,12 @@ internal sealed class MapperBuilder : IMapperBuilder
         var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
         var proxy = _mapperRegistry.MakeEntityBaseProxy(type, scalarTypeConverter);
         var entityFactory = _mapperRegistry.MakeEntityFactory();
+        var targetTrackerProvider = _mapperRegistry.MakeTargetTrackerProvider(entityFactory);
 
         // release some memory ahead
         _mapperRegistry.Clear();
 
-        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, proxy, entityFactory);
+        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, proxy, targetTrackerProvider, entityFactory);
     }
 
     public IMapperBuilder Register<TSource, TTarget>(ICustomPropertyMapper<TSource, TTarget>? customPropertyMapper = null)

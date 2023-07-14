@@ -16,6 +16,7 @@ internal sealed class MapperRegistry
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _concurrencyTokenComparers = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _typeListFactoryMethods = new ();
+    private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
     private readonly bool _defaultKeepEntityOnMappingRemoved;
 
     public MapperRegistry(TypeConfiguration defaultConfiguration)
@@ -49,7 +50,7 @@ internal sealed class MapperRegistry
             throw new InvalidEntityTypeException(targetType);
         }
 
-        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, methodBuilder), customPropertyMapper);
+        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, methodBuilder, _loopDependencyMapping), customPropertyMapper);
     }
 
     public void RegisterTwoWay(
@@ -69,7 +70,7 @@ internal sealed class MapperRegistry
             throw new InvalidEntityTypeException(targetType);
         }
 
-        var context = new RecursiveRegisterContext(this, methodBuilder);
+        var context = new RecursiveRegisterContext(this, methodBuilder, _loopDependencyMapping);
         RecursivelyRegister(sourceType, targetType, context, customPropertyMapperSourceToTarget);
         RecursivelyRegister(targetType, sourceType, context, customPropertyMapperTargetToSource);
     }
@@ -242,6 +243,11 @@ internal sealed class MapperRegistry
         return new EntityFactory(_factoryMethods);
     }
 
+    public TargetTrackerProvider MakeTargetTrackerProvider(IEntityFactory entityFactory)
+    {
+        return new TargetTrackerProvider(_loopDependencyMapping, entityFactory);
+    }
+
     public void Clear()
     {
         _scalarConverterDictionary.Clear();
@@ -347,6 +353,10 @@ internal sealed class MapperRegistry
             }
 
             context.Pop();
+        }
+        else
+        {
+            context.DumpLoopDependency();
         }
     }
 
