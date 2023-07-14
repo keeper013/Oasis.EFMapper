@@ -11,7 +11,7 @@ internal sealed class MapperRegistry
     private readonly HashSet<Type> _typesUsingDefaultConfiguration = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeIdProxies = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeConcurrencyTokenProxies = new ();
-    private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet>> _mapper = new ();
+    private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet?>> _mapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _idComparers = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _concurrencyTokenComparers = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
@@ -50,7 +50,7 @@ internal sealed class MapperRegistry
             throw new InvalidEntityTypeException(targetType);
         }
 
-        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, methodBuilder, _loopDependencyMapping), customPropertyMapper);
+        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, methodBuilder, _loopDependencyMapping), customPropertyMapper, true);
     }
 
     public void RegisterTwoWay(
@@ -71,8 +71,8 @@ internal sealed class MapperRegistry
         }
 
         var context = new RecursiveRegisterContext(this, methodBuilder, _loopDependencyMapping);
-        RecursivelyRegister(sourceType, targetType, context, customPropertyMapperSourceToTarget);
-        RecursivelyRegister(targetType, sourceType, context, customPropertyMapperTargetToSource);
+        RecursivelyRegister(sourceType, targetType, context, customPropertyMapperSourceToTarget, true);
+        RecursivelyRegister(targetType, sourceType, context, customPropertyMapperTargetToSource, true);
     }
 
     public void WithFactoryMethod(Type type, Type itemType, Delegate factoryMethod, bool throwIfRedundant = false)
@@ -308,7 +308,7 @@ internal sealed class MapperRegistry
         return _knownEntityTypes.Contains(type) || _factoryMethods.ContainsKey(type) || _typeIdProxies.ContainsKey(type) || _typeConcurrencyTokenProxies.ContainsKey(type);
     }
 
-    private void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context, ICustomPropertyMapperInternal? customPropertyMapper)
+    private void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context, ICustomPropertyMapperInternal? customPropertyMapper, bool isFirstRecursion)
     {
         if (!context.Contains(sourceType, targetType))
         {
@@ -332,24 +332,29 @@ internal sealed class MapperRegistry
             RegisterKeyComparer(KeyType.Id, _idComparers, KeyPropertyNames.GetIdentityPropertyName, sourceType, targetType, sourceProperties, targetProperties, methodBuilder);
             RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, KeyPropertyNames.GetConcurrencyTokenPropertyName, sourceType, targetType, sourceProperties, targetProperties, methodBuilder);
 
-            if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet>? innerMapper))
+            if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet?>? innerMapper))
             {
-                innerMapper = new Dictionary<Type, MapperMetaDataSet>();
+                innerMapper = new Dictionary<Type, MapperMetaDataSet?>();
                 _mapper[sourceType] = innerMapper;
             }
 
-            if (!innerMapper.ContainsKey(targetType))
+            if (!innerMapper.TryGetValue(targetType, out var mapperMetaDataSet))
             {
-                innerMapper[targetType] = new MapperMetaDataSet(
+                innerMapper[targetType] = Utilities.BuildMapperMetaDataSet(
                     customPropertyMapper?.MapProperties,
                     methodBuilder.BuildUpKeyPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties),
                     methodBuilder.BuildUpScalarPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties),
                     methodBuilder.BuildUpEntityPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties, context),
                     methodBuilder.BuildUpEntityListPropertiesMapperMethod(sourceType, targetType, sourceProperties, targetProperties, context));
             }
-            else if (customPropertyMapper != null)
+            else if (isFirstRecursion && customPropertyMapper != null)
             {
-                throw new MapperExistsException(sourceType.Name, targetType.Name);
+                innerMapper[targetType] = new MapperMetaDataSet(
+                    customPropertyMapper.MapProperties,
+                    mapperMetaDataSet?.keyPropertiesMapper,
+                    mapperMetaDataSet?.scalarPropertiesMapper,
+                    mapperMetaDataSet?.entityPropertiesMapper,
+                    mapperMetaDataSet?.listPropertiesMapper);
             }
 
             context.Pop();

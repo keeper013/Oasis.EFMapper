@@ -13,18 +13,6 @@ public class CustomPropertyMappingTests
     private TypeConfiguration DefaultConfiguration { get; }
 
     [Fact]
-    public void TestRegisterExistingMapperWithoutCustomPropertyMapping()
-    {
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-        mapperBuilder.Register<CustomEntity1Wrapper, CustomEntity2Wrapper>();
-        var custom = factory.MakeCustomPropertyMapperBuilder<CustomEntity1, CustomEntity2>()
-            .MapProperty(c2 => c2.InternalIntProperty, c1 => c1.InternalProperty.IntProperty)
-            .Build();
-        Assert.Throws<MapperExistsException>(() => mapperBuilder.Register(custom));
-    }
-
-    [Fact]
     public void TestMappingCustomProperty()
     {
         var factory = new MapperBuilderFactory();

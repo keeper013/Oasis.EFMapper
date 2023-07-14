@@ -82,12 +82,12 @@ internal sealed class ScalarMapperTypeValidator : MapperTypeValidator<Delegate>
     public override bool IsValidType(Type type) => type.IsScalarType() || _convertableToScalarTypes.Contains(type);
 }
 
-internal sealed class EntityMapperTypeValidator : MapperTypeValidator<MapperMetaDataSet>
+internal sealed class EntityMapperTypeValidator : MapperTypeValidator<MapperMetaDataSet?>
 {
     private readonly IReadOnlySet<Type> _convertableToScalarTypes;
 
     public EntityMapperTypeValidator(
-        IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet>> mapperDictionary,
+        IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet?>> mapperDictionary,
         IReadOnlySet<Type> convertableToScalarTypes)
         : base(mapperDictionary)
     {
@@ -97,12 +97,12 @@ internal sealed class EntityMapperTypeValidator : MapperTypeValidator<MapperMeta
     public override bool IsValidType(Type type) => type.IsEntityType() && !_convertableToScalarTypes.Contains(type);
 }
 
-internal sealed class EntityListMapperTypeValidator : MapperTypeValidator<MapperMetaDataSet>
+internal sealed class EntityListMapperTypeValidator : MapperTypeValidator<MapperMetaDataSet?>
 {
     private readonly IReadOnlySet<Type> _convertableToScalarTypes;
 
     public EntityListMapperTypeValidator(
-        IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet>> mapperDictionary,
+        IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet?>> mapperDictionary,
         IReadOnlySet<Type> convertableToScalarTypes)
         : base(mapperDictionary)
     {

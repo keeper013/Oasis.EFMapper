@@ -61,19 +61,37 @@ internal abstract class RecursiveMapper : IEntityPropertyMapper<int>, IListPrope
         }
 
         var mapperSet = _lookup.LookUp(typeof(TSource), typeof(TTarget));
-        if (mapperSet.customPropertiesMapper != null)
+        if (!mapperSet.HasValue)
         {
-            ((Action<TSource, TTarget>)mapperSet.customPropertiesMapper)(source, target);
+            return;
         }
 
-        if (mapKeyProperties)
+        var value = mapperSet.Value;
+
+        if (value.customPropertiesMapper != null)
         {
-            ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.keyPropertiesMapper)(source, target, _scalarConverter);
+            ((Action<TSource, TTarget>)value.customPropertiesMapper)(source, target);
         }
 
-        ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.scalarPropertiesMapper)(source, target, _scalarConverter);
-        ((Utilities.MapEntityProperties<TSource, TTarget, int>)mapperSet.entityPropertiesMapper)(this, source, target, newTargetTracker);
-        ((Utilities.MapListProperties<TSource, TTarget, int>)mapperSet.listPropertiesMapper)(this, source, target, newTargetTracker);
+        if (mapKeyProperties && value.keyPropertiesMapper != null)
+        {
+            ((Utilities.MapScalarProperties<TSource, TTarget>)value.keyPropertiesMapper)(source, target, _scalarConverter);
+        }
+
+        if (value.scalarPropertiesMapper != null)
+        {
+            ((Utilities.MapScalarProperties<TSource, TTarget>)value.scalarPropertiesMapper)(source, target, _scalarConverter);
+        }
+
+        if (value.entityPropertiesMapper != null)
+        {
+            ((Utilities.MapEntityProperties<TSource, TTarget, int>)value.entityPropertiesMapper)(this, source, target, newTargetTracker);
+        }
+
+        if (value.listPropertiesMapper != null)
+        {
+            ((Utilities.MapListProperties<TSource, TTarget, int>)value.listPropertiesMapper)(this, source, target, newTargetTracker);
+        }
     }
 
     private class ExistingTargetTracker
@@ -308,7 +326,11 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
     {
         var target = _entityFactory.Make<TTarget>();
         var mapperSet = _lookup.LookUp(typeof(TSource), typeof(TTarget));
-        ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.keyPropertiesMapper)(source, target, _scalarConverter);
+        if (mapperSet?.keyPropertiesMapper != null)
+        {
+            ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.Value.keyPropertiesMapper)(source, target, _scalarConverter);
+        }
+
         try
         {
             _databaseContext.Set<TTarget>().Attach(target);

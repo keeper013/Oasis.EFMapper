@@ -51,11 +51,18 @@ internal static class Utilities
 
         return default;
     }
+
+    internal static MapperMetaDataSet? BuildMapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData? keyPropertiesMapper, MethodMetaData? scalarPropertiesMapper, MethodMetaData? entityPropertiesMapper, MethodMetaData? listPropertiesMapper)
+    {
+        return customPropertiesMapper == null && !keyPropertiesMapper.HasValue && !scalarPropertiesMapper.HasValue && !entityPropertiesMapper.HasValue && !listPropertiesMapper.HasValue
+            ? null
+            : new MapperMetaDataSet(customPropertiesMapper, keyPropertiesMapper, scalarPropertiesMapper, entityPropertiesMapper, listPropertiesMapper);
+    }
 }
 
 internal record struct MethodMetaData(Type type, string name);
 
-internal record struct MapperSet(Delegate? customPropertiesMapper, Delegate keyPropertiesMapper, Delegate scalarPropertiesMapper, Delegate entityPropertiesMapper, Delegate listPropertiesMapper);
+internal record struct MapperSet(Delegate? customPropertiesMapper, Delegate? keyPropertiesMapper, Delegate? scalarPropertiesMapper, Delegate? entityPropertiesMapper, Delegate? listPropertiesMapper);
 
 // get method is only needed for id, not for concurrency token, so it's nullable here
 internal record struct TypeKeyProxyMetaDataSet(MethodMetaData? get, MethodMetaData isEmpty, PropertyInfo property);
@@ -63,4 +70,4 @@ internal record struct TypeKeyProxyMetaDataSet(MethodMetaData? get, MethodMetaDa
 // get method is only needed for id, not for concurrency token, so it's nullable here
 internal record struct TypeKeyProxy(Delegate? get, Delegate isEmpty, PropertyInfo property);
 
-internal record struct MapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData keyPropertiesMapper, MethodMetaData scalarPropertiesMapper, MethodMetaData entityPropertiesMapper, MethodMetaData listPropertiesMapper);
+internal record struct MapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData? keyPropertiesMapper, MethodMetaData? scalarPropertiesMapper, MethodMetaData? entityPropertiesMapper, MethodMetaData? listPropertiesMapper);
