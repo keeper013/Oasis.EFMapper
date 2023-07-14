@@ -8,6 +8,9 @@ internal interface IIdPropertyTracker
     PropertyInfo GetIdProperty<TEntity>();
 }
 
+/// <summary>
+/// This class stores generated functions that handles entity id and concurrency token related matters.
+/// </summary>
 internal sealed class EntityBaseProxy : IIdPropertyTracker
 {
     private readonly bool _defaultKeepEntityOnMappingRemoved;
