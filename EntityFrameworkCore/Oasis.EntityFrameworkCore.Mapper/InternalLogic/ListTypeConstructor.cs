@@ -35,13 +35,18 @@ internal sealed class ListTypeConstructor : IListTypeConstructor
                 return CreateList<TList, TItem>();
             }
         }
-        else if (listType.IsClass && !listType.IsAbstract && listType.GetConstructor(Utilities.PublicInstance, Array.Empty<Type>()) != default)
+        else if (listType.IsClass && !listType.IsAbstract)
         {
-            _factoryMethods.Add(listType, ActivateType<TList>);
-            return ActivateType<TList>(listType);
+            var constructorInfo = listType.GetConstructor(Utilities.PublicInstance, Array.Empty<Type>());
+            if (constructorInfo != null)
+            {
+                Func<TList> func = () => (TList)constructorInfo.Invoke(Array.Empty<object>());
+                _factoryMethods.Add(listType, func);
+                return func();
+            }
         }
 
-        throw new UnknownListTypeException(listType);
+        throw new UnconstructableTypeException(listType);
     }
 
     private static TList CreateList<TList, TItem>()
@@ -49,10 +54,5 @@ internal sealed class ListTypeConstructor : IListTypeConstructor
         where TItem : class
     {
         return (new List<TItem>() as TList)!;
-    }
-
-    private static TList ActivateType<TList>(Type listType)
-    {
-        return (TList)Activator.CreateInstance(listType)!;
     }
 }

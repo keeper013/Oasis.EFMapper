@@ -521,7 +521,7 @@ public class ListPropertyMappingTests : TestBase
     {
         var sc1_1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
         var sc1_2 = new SubScalarEntity1(2, default, "4", new byte[] { 2, 3, 4 });
-        await Assert.ThrowsAsync<UnknownListTypeException>(async () => await MapListProperties_ICollection<CollectionEntity3WithWrapper>(new List<SubScalarEntity1> { sc1_1, sc1_2 }));
+        await Assert.ThrowsAsync<UnconstructableTypeException>(async () => await MapListProperties_ICollection<CollectionEntity3WithWrapper>(new List<SubScalarEntity1> { sc1_1, sc1_2 }));
     }
 
     [Fact]

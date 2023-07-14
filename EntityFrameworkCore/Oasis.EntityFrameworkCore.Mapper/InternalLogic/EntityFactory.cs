@@ -1,5 +1,7 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
+using Oasis.EntityFrameworkCore.Mapper.Exceptions;
+
 internal interface IEntityFactory
 {
     TEntity Make<TEntity>()
@@ -8,9 +10,9 @@ internal interface IEntityFactory
 
 internal class EntityFactory : IEntityFactory
 {
-    private readonly IReadOnlyDictionary<Type, Delegate> _factoryMethods;
+    private readonly IDictionary<Type, Delegate> _factoryMethods;
 
-    public EntityFactory(IReadOnlyDictionary<Type, Delegate> factoryMethods)
+    public EntityFactory(IDictionary<Type, Delegate> factoryMethods)
     {
         _factoryMethods = factoryMethods;
     }
@@ -19,7 +21,22 @@ internal class EntityFactory : IEntityFactory
         where TEntity : class
     {
         var type = typeof(TEntity);
-        return _factoryMethods.TryGetValue(type, out var factoryMethod) ?
-            ((Func<TEntity>)factoryMethod)() : (TEntity)Activator.CreateInstance(type)!;
+        if (_factoryMethods.TryGetValue(type, out var factoryMethod))
+        {
+            return ((Func<TEntity>)factoryMethod)();
+        }
+        else
+        {
+            var constructorInfo = type.GetConstructor(Utilities.PublicInstance, Array.Empty<Type>());
+
+            if (constructorInfo != null)
+            {
+                Func<TEntity> func = () => (TEntity)constructorInfo.Invoke(Array.Empty<object>());
+                _factoryMethods.Add(type, func);
+                return func();
+            }
+        }
+
+        throw new UnconstructableTypeException(type);
     }
 }
