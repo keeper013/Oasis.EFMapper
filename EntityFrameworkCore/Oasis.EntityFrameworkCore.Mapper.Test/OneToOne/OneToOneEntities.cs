@@ -1,30 +1,30 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Test.OneToOne;
 
-public sealed class Outer1 : EntityBase
+public sealed class PrincipalOptional1 : EntityBase
 {
-    public Outer1()
+    public PrincipalOptional1()
     {
     }
 
-    public Outer1(int intProp)
+    public PrincipalOptional1(int intProp)
     {
         IntProp = intProp;
     }
 
     public int IntProp { get; set; }
 
-    public Inner1_1? Inner1 { get; set; }
+    public DependentOptional1_1? Inner1 { get; set; }
 
-    public Inner1_2? Inner2 { get; set; }
+    public DependentOptional1_2? Inner2 { get; set; }
 }
 
-public class Inner1_1 : EntityBase
+public class DependentOptional1_1 : EntityBase
 {
-    public Inner1_1()
+    public DependentOptional1_1()
     {
     }
 
-    public Inner1_1(long longProp)
+    public DependentOptional1_1(long longProp)
     {
         LongProp = longProp;
     }
@@ -33,16 +33,16 @@ public class Inner1_1 : EntityBase
 
     public long? OuterId { get; set; }
 
-    public Outer1? Outer { get; set; }
+    public PrincipalOptional1? Outer { get; set; }
 }
 
-public class Inner1_2 : EntityBase
+public class DependentOptional1_2 : EntityBase
 {
-    public Inner1_2()
+    public DependentOptional1_2()
     {
     }
 
-    public Inner1_2(string stringProp)
+    public DependentOptional1_2(string stringProp)
     {
         StringProp = stringProp;
     }
@@ -51,34 +51,106 @@ public class Inner1_2 : EntityBase
 
     public long? OuterId { get; set; }
 
-    public Outer1? Outer { get; set; }
+    public PrincipalOptional1? Outer { get; set; }
 }
 
-public sealed class Outer2 : EntityBase
+public sealed class PrincipalOptional2 : EntityBase
 {
-    public Outer2()
+    public PrincipalOptional2()
     {
     }
 
-    public Outer2(int intProp)
+    public PrincipalOptional2(int intProp)
     {
         IntProp = intProp;
     }
 
     public int IntProp { get; set; }
 
-    public Inner2_1? Inner1 { get; set; }
+    public Dependent2_1? Inner1 { get; set; }
 
-    public Inner2_2? Inner2 { get; set; }
+    public Dependent2_2? Inner2 { get; set; }
 }
 
-public class Inner2_1 : EntityBase
+public sealed class PrincipalRequired1 : EntityBase
 {
-    public Inner2_1()
+    public PrincipalRequired1()
     {
     }
 
-    public Inner2_1(long longProp)
+    public PrincipalRequired1(int intProp)
+    {
+        IntProp = intProp;
+    }
+
+    public int IntProp { get; set; }
+
+    public DependentRequired1_1 Inner1 { get; set; } = null!;
+
+    public DependentRequired1_2 Inner2 { get; set; } = null!;
+}
+
+public class DependentRequired1_1 : EntityBase
+{
+    public DependentRequired1_1()
+    {
+    }
+
+    public DependentRequired1_1(long longProp)
+    {
+        LongProp = longProp;
+    }
+
+    public long LongProp { get; set; }
+
+    public long? OuterId { get; set; }
+
+    public PrincipalRequired1 Outer { get; set; } = null!;
+}
+
+public class DependentRequired1_2 : EntityBase
+{
+    public DependentRequired1_2()
+    {
+    }
+
+    public DependentRequired1_2(string stringProp)
+    {
+        StringProp = stringProp;
+    }
+
+    public string? StringProp { get; set; }
+
+    public long OuterId { get; set; }
+
+    public PrincipalRequired1 Outer { get; set; } = null!;
+}
+
+public sealed class PrincipalRequired2 : EntityBase
+{
+    public PrincipalRequired2()
+    {
+    }
+
+    public PrincipalRequired2(int intProp)
+    {
+        IntProp = intProp;
+    }
+
+    public int IntProp { get; set; }
+
+    public Dependent2_1 Inner1 { get; set; } = null!;
+
+    public Dependent2_2 Inner2 { get; set; } = null!;
+}
+
+public class Dependent2_1 : EntityBase
+{
+    public Dependent2_1()
+    {
+    }
+
+    public Dependent2_1(long longProp)
     {
         LongProp = longProp;
     }
@@ -86,13 +158,13 @@ public class Inner2_1 : EntityBase
     public long LongProp { get; set; }
 }
 
-public class Inner2_2 : EntityBase
+public class Dependent2_2 : EntityBase
 {
-    public Inner2_2()
+    public Dependent2_2()
     {
     }
 
-    public Inner2_2(string stringProp)
+    public Dependent2_2(string stringProp)
     {
         StringProp = stringProp;
     }

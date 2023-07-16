@@ -76,7 +76,6 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     private readonly GenericMapperMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper<int>).GetMethod(nameof(IEntityPropertyMapper<int>.MapEntityProperty), Utilities.PublicInstance)!);
     private readonly GenericMapperMethodCache _entityListPropertyMapperCache = new (typeof(IListPropertyMapper<int>).GetMethod(nameof(IListPropertyMapper<int>.MapListProperty), Utilities.PublicInstance)!);
     private readonly GenericMapperMethodCache _listTypeConstructorCache = new (typeof(IListPropertyMapper<int>).GetMethod(nameof(IListPropertyMapper<int>.ConstructListType), Utilities.PublicInstance)!);
-    private readonly NullableTypeMethodCache _nullableTypeMethodCache = new ();
     private readonly IScalarTypeMethodCache _isDefaultValueCache = new ScalarTypeMethodCache(typeof(ScalarTypeIsDefaultValueMethods), nameof(ScalarTypeIsDefaultValueMethods.IsDefaultValue), new[] { typeof(object) });
     private readonly IScalarTypeMethodCache _areEqualCache = new ScalarTypeMethodCache(typeof(ScalarTypeEqualMethods), nameof(ScalarTypeEqualMethods.AreEqual), new[] { typeof(object), typeof(object) });
     private readonly TypeBuilder _typeBuilder;
@@ -208,7 +207,10 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         }
 
         var methodName = BuildMapperMethodName(MapEntityPropertiesMethod, sourceType, targetType);
-        var method = BuildMethod(methodName, new[] { typeof(IEntityPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>) }, typeof(void));
+        var method = BuildMethod(
+            methodName,
+            new[] { typeof(IEntityPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>), typeof(MapToDatabaseType?) },
+            typeof(void));
         var generator = method.GetILGenerator();
         foreach (var matched in matchedProperties)
         {
@@ -220,6 +222,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg_2);
             generator.Emit(OpCodes.Callvirt, matched.Item3.GetMethod!);
             generator.Emit(OpCodes.Ldarg_3);
+            generator.Emit(OpCodes.Ldarg, 4);
             generator.Emit(OpCodes.Callvirt, _entityPropertyMapperCache.CreateIfNotExist(matched.Item2, matched.Item4));
             generator.Emit(OpCodes.Callvirt, matched.Item3.SetMethod!);
         }
@@ -257,7 +260,10 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         }
 
         var methodName = BuildMapperMethodName(MapListPropertiesMethod, sourceType, targetType);
-        var method = BuildMethod(methodName, new[] { typeof(IListPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>) }, typeof(void));
+        var method = BuildMethod(
+            methodName,
+            new[] { typeof(IListPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>), typeof(MapToDatabaseType?) },
+            typeof(void));
         var generator = method.GetILGenerator();
 
         foreach (var match in matchedProperties)
@@ -289,6 +295,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg_2);
             generator.Emit(OpCodes.Callvirt, match.Item3.GetMethod!);
             generator.Emit(OpCodes.Ldarg_3);
+            generator.Emit(OpCodes.Ldarg, 4);
             generator.Emit(OpCodes.Callvirt, _entityListPropertyMapperCache.CreateIfNotExist(match.Item2, match.Item4));
         }
 

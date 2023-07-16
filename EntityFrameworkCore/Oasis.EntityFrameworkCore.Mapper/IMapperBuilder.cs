@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 public interface IMapperBuilder
 {
-    public const bool DefaultKeepEntityOnMappingRemoved = false;
+    public const bool DefaultKeepEntityOnMappingRemoved = true;
 
     IMapperBuilder WithFactoryMethod<TList, TItem>(Expression<Func<TList>> factoryMethod, bool throwIfRedundant = false)
         where TList : class, ICollection<TItem>

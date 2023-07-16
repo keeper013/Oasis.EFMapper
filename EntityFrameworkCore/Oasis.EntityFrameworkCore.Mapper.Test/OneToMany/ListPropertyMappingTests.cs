@@ -7,9 +7,51 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using static System.Collections.Specialized.BitVector32;
 
 public class ListPropertyMappingTests : TestBase
 {
+    [Fact]
+    public void MapListProperties_ToMemory_SameInstance_ShouldThrowException()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        mapperBuilder.Register<CollectionEntity1, CollectionEntity2>();
+        var mapper = mapperBuilder.Build();
+        var sc1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
+        var entity1 = new CollectionEntity1(1, new[] { sc1, sc1 });
+
+        // Assert
+        Assert.Throws<DuplicatedListItemException>(() =>
+        {
+            // Act
+            mapper.Map<CollectionEntity1, CollectionEntity2>(entity1);
+        });
+    }
+
+    [Fact]
+    public async Task MapListProperties_ToDatabase_SameInstance_ShouldThrowException()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        mapperBuilder.Register<CollectionEntity2, CollectionEntity1>();
+        var mapper = mapperBuilder.Build();
+        var sc2 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
+        var entity2 = new CollectionEntity2(1, new[] { sc2, sc2 });
+
+        // Assert
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            await Assert.ThrowsAsync<DuplicatedListItemException>(async () =>
+            {
+                // Act
+                await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, databaseContext);
+            });
+        });
+    }
+
     [Fact]
     public async Task MapListProperties_ICollection_MappingShouldSucceed()
     {

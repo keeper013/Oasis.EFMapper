@@ -235,7 +235,10 @@ internal sealed class MapperRegistry
 
     public EntityBaseProxy MakeEntityBaseProxy(Type type, IScalarTypeConverter scalarTypeConverter)
     {
-        return new EntityBaseProxy(_typeIdProxies, _typeConcurrencyTokenProxies, _idComparers, _concurrencyTokenComparers, type, scalarTypeConverter, _defaultKeepEntityOnMappingRemoved);
+        var customKeepEntityOnRemoval = _typesUsingCustomConfiguration
+            .Where(pair => pair.Value.keepEntityOnMappingRemoved != IMapperBuilder.DefaultKeepEntityOnMappingRemoved)
+            .ToDictionary(pair => pair.Key, pair => pair.Value.keepEntityOnMappingRemoved);
+        return new EntityBaseProxy(_typeIdProxies, _typeConcurrencyTokenProxies, _idComparers, _concurrencyTokenComparers, customKeepEntityOnRemoval, type, scalarTypeConverter, _defaultKeepEntityOnMappingRemoved);
     }
 
     public EntityFactory MakeEntityFactory()

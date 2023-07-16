@@ -29,7 +29,7 @@ public interface INewTargetTracker<TKeyType>
 public interface IListPropertyMapper<TKeyType>
     where TKeyType : struct
 {
-    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, INewTargetTracker<TKeyType> newTargetTracker)
+    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, INewTargetTracker<TKeyType> newTargetTracker, MapToDatabaseType? mappingType)
         where TSource : class
         where TTarget : class;
 
@@ -41,7 +41,7 @@ public interface IListPropertyMapper<TKeyType>
 public interface IEntityPropertyMapper<TKeyType>
     where TKeyType : struct
 {
-    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<TKeyType> newTargetTracker)
+    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<TKeyType> newTargetTracker, MapToDatabaseType? mappingType)
         where TSource : class
         where TTarget : class;
 }

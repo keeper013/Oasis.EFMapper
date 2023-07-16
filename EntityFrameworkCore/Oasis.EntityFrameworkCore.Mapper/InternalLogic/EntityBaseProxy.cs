@@ -18,6 +18,7 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
     private readonly IReadOnlyDictionary<Type, TypeKeyProxy> _entityConcurrencyTokenProxies;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _entityIdComparers;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _entityConcurrencyTokenComparers;
+    private readonly IReadOnlyDictionary<Type, bool> _customKeepEntityOnMappingRemoved;
     private readonly IScalarTypeConverter _scalarConverter;
 
     public EntityBaseProxy(
@@ -25,6 +26,7 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         Dictionary<Type, TypeKeyProxyMetaDataSet> entityConcurrencyTokenProxies,
         Dictionary<Type, Dictionary<Type, MethodMetaData>> entityIdComparers,
         Dictionary<Type, Dictionary<Type, MethodMetaData>> entityConcurrencyTokenComparers,
+        Dictionary<Type, bool> customKeepEntityOnMappingRemoved,
         Type type,
         IScalarTypeConverter scalarConverter,
         bool defaultKeepEntityOnMappingRemoved)
@@ -34,6 +36,7 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         _entityConcurrencyTokenProxies = MakeTypeKeyProxyDictionary(entityConcurrencyTokenProxies, type);
         _entityIdComparers = MakeComparerDictionary(entityIdComparers, type);
         _entityConcurrencyTokenComparers = MakeComparerDictionary(entityConcurrencyTokenComparers, type);
+        _customKeepEntityOnMappingRemoved = customKeepEntityOnMappingRemoved;
 
         _scalarConverter = scalarConverter;
     }
@@ -118,7 +121,15 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         where TEntity : class
     {
         var type = typeof(TEntity);
-        if (!_defaultKeepEntityOnMappingRemoved)
+        var found = _customKeepEntityOnMappingRemoved.TryGetValue(type, out var keepOnRemoval);
+        if (found)
+        {
+            if (!keepOnRemoval)
+            {
+                databaseContext.Set<TEntity>().Remove(entity);
+            }
+        }
+        else if (!_defaultKeepEntityOnMappingRemoved)
         {
             databaseContext.Set<TEntity>().Remove(entity);
         }

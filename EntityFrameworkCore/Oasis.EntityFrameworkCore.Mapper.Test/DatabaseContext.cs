@@ -29,8 +29,12 @@ internal class DatabaseContext : DbContext
         modelBuilder.Entity<SubScalarEntity1>().ToTable(nameof(SubScalarEntity1));
         modelBuilder.Entity<ListEntity2>().ToTable(nameof(ListEntity2));
         modelBuilder.Entity<SubEntity2>().ToTable(nameof(SubEntity2));
-        modelBuilder.Entity<Inner1_1>().ToTable(nameof(Inner1_1));
-        modelBuilder.Entity<Outer1>().ToTable(nameof(Outer1));
+        modelBuilder.Entity<DependentOptional1_1>().ToTable(nameof(DependentOptional1_1));
+        modelBuilder.Entity<DependentOptional1_2>().ToTable(nameof(DependentOptional1_2));
+        modelBuilder.Entity<PrincipalOptional1>().ToTable(nameof(PrincipalOptional1));
+        modelBuilder.Entity<DependentRequired1_1>().ToTable(nameof(DependentRequired1_1));
+        modelBuilder.Entity<DependentRequired1_2>().ToTable(nameof(DependentRequired1_2));
+        modelBuilder.Entity<PrincipalRequired1>().ToTable(nameof(PrincipalRequired1));
         modelBuilder.Entity<SessionTestingList1_1>().ToTable(nameof(SessionTestingList1_1));
         modelBuilder.Entity<SessionTestingList1_2>().ToTable(nameof(SessionTestingList1_2));
         modelBuilder.Entity<ScalarItem1>().ToTable(nameof(ScalarItem1));
@@ -58,8 +62,10 @@ internal class DatabaseContext : DbContext
         modelBuilder.Entity<SubScalarEntity1>().HasOne(s => s.CollectionEntity).WithMany(c => c.Scs).HasForeignKey(s => s.CollectionEntityId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<SubEntity2>().HasOne(s => s.ListEntity).WithMany(l => l.SubEntities).HasForeignKey(s => s.ListEntityId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<ScalarEntity1Item>().HasOne(s => s.DerivedEntity1).WithMany(d => d!.Scs).HasForeignKey(s => s.DerivedEntity1Id).OnDelete(DeleteBehavior.Restrict);
-        modelBuilder.Entity<Inner1_1>().HasOne(i => i.Outer).WithOne(o => o.Inner1).HasForeignKey<Inner1_1>(i => i.OuterId).OnDelete(DeleteBehavior.SetNull);
-        modelBuilder.Entity<Inner1_2>().HasOne(i => i.Outer).WithOne(o => o.Inner2).HasForeignKey<Inner1_2>(i => i.OuterId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<DependentOptional1_1>().HasOne(i => i.Outer).WithOne(o => o.Inner1).HasForeignKey<DependentOptional1_1>(i => i.OuterId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<DependentOptional1_2>().HasOne(i => i.Outer).WithOne(o => o.Inner2).HasForeignKey<DependentOptional1_2>(i => i.OuterId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<DependentRequired1_1>().HasOne(i => i.Outer).WithOne(o => o.Inner1).HasForeignKey<DependentRequired1_1>(i => i.OuterId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<DependentRequired1_2>().HasOne(i => i.Outer).WithOne(o => o.Inner2).HasForeignKey<DependentRequired1_2>(i => i.OuterId).OnDelete(DeleteBehavior.SetNull);
         modelBuilder.Entity<RecursiveEntity1>().HasOne(r => r.Parent).WithOne(r => r.Child).HasForeignKey<RecursiveEntity1>(r => r.ParentId).OnDelete(DeleteBehavior.SetNull);
         modelBuilder.Entity<ScalarItem1>().HasOne(s => s.List1).WithMany(l => l.Items).HasForeignKey(s => s.List1Id).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<ScalarItem1>().HasOne(s => s.List2).WithMany(l => l.Items).HasForeignKey(s => s.List2Id).OnDelete(DeleteBehavior.Restrict);
