@@ -8,19 +8,16 @@ internal sealed class MapperBuilder : IMapperBuilder
 {
     private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly MapperRegistry _mapperRegistry;
+    private readonly bool? _defaultKeepEntityOnMappingRemoved;
 
-    public MapperBuilder(string assemblyName, TypeConfiguration defaultConfiguration)
+    public MapperBuilder(string assemblyName, EntityConfiguration defaultConfiguration)
     {
         var name = new AssemblyName($"{assemblyName}.Oasis.EntityFrameworkCore.Mapper.Generated");
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
         _mapperRegistry = new (defaultConfiguration);
-        _dynamicMethodBuilder = new DynamicMethodBuilder(
-            module.DefineType("Mapper", TypeAttributes.Public),
-            _mapperRegistry.ScalarMapperTypeValidator,
-            _mapperRegistry.EntityMapperTypeValidator,
-            _mapperRegistry.EntityListMapperTypeValidator,
-            _mapperRegistry.KeyPropertyNames);
+        _defaultKeepEntityOnMappingRemoved = defaultConfiguration.keepEntityOnMappingRemoved;
+        _dynamicMethodBuilder = new DynamicMethodBuilder(module.DefineType("Mapper", TypeAttributes.Public));
     }
 
     public IMapper Build()
@@ -96,7 +93,7 @@ internal sealed class MapperBuilder : IMapperBuilder
         return this;
     }
 
-    public IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration, bool throwIfRedundant = false)
+    public IMapperBuilder WithConfiguration<TEntity>(EntityConfiguration configuration, bool throwIfRedundant = false)
         where TEntity : class
     {
         lock (_mapperRegistry)

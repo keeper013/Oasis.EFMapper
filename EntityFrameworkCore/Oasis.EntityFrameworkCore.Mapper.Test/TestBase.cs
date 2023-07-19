@@ -17,10 +17,10 @@ public abstract class TestBase
             .UseSqlite(connection)
             .Options;
 
-        DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
+        DefaultConfiguration = new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
     }
 
-    protected TypeConfiguration DefaultConfiguration { get; }
+    protected EntityConfiguration DefaultConfiguration { get; }
 
     protected DbContext CreateDatabaseContext()
     {

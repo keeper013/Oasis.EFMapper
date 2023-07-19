@@ -12,9 +12,9 @@ internal interface IKeyPropertyNameManager
 internal class KeyPropertyNameManager : IKeyPropertyNameManager
 {
     private readonly KeyPropertyNameConfiguration _defaultConfiguration;
-    private readonly IReadOnlyDictionary<Type, TypeConfiguration> _typesUsingCustomConfiguration;
+    private readonly IReadOnlyDictionary<Type, KeyPropertyConfiguration> _typesUsingCustomConfiguration;
 
-    public KeyPropertyNameManager(KeyPropertyNameConfiguration defaultConfiguration, Dictionary<Type, TypeConfiguration> dictionary)
+    public KeyPropertyNameManager(KeyPropertyNameConfiguration defaultConfiguration, Dictionary<Type, KeyPropertyConfiguration> dictionary)
     {
         _defaultConfiguration = defaultConfiguration;
         _typesUsingCustomConfiguration = dictionary;

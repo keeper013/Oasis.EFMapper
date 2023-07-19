@@ -13,7 +13,7 @@ public interface IMapperBuilder
     IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod, bool throwIfRedundant = false)
         where TEntity : class;
 
-    IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration, bool throwIfRedundant = false)
+    IMapperBuilder WithConfiguration<TEntity>(EntityConfiguration configuration, bool throwIfRedundant = false)
         where TEntity : class;
 
     IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression, bool throwIfRedundant = false);
@@ -31,7 +31,7 @@ public interface IMapperBuilder
     IMapper Build();
 }
 
-public record struct TypeConfiguration(
+public record struct EntityConfiguration(
     string identityPropertyName,
     string? concurrencyTokenPropertyName = default,
-    bool keepEntityOnMappingRemoved = IMapperBuilder.DefaultKeepEntityOnMappingRemoved);
+    bool? keepEntityOnMappingRemoved = default);

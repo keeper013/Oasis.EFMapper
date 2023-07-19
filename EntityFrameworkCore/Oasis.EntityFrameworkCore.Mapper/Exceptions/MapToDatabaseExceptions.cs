@@ -23,3 +23,11 @@ public sealed class UpdateToDatabaseWithoutRecordException : EfCoreMapperExcepti
     {
     }
 }
+
+public sealed class MissingIdentityException : EfCoreMapperException
+{
+    public MissingIdentityException(Type type)
+        : base($"Type {type} needs a valid identity property for KeepOnMappingRemoved configuration.")
+    {
+    }
+}

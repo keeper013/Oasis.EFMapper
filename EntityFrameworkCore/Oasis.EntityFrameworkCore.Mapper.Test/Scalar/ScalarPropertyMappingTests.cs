@@ -428,8 +428,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder
-            .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)))
-            .WithConfiguration<ScalarEntityNoConcurrencyToken1>(new TypeConfiguration(nameof(EntityBaseNoConcurrencyToken.AnotherId)))
+            .WithConfiguration<ScalarEntityCustomKeyProperties1>(new EntityConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)))
+            .WithConfiguration<ScalarEntityNoConcurrencyToken1>(new EntityConfiguration(nameof(EntityBaseNoConcurrencyToken.AnotherId)))
             .Register<ScalarEntity1, ScalarEntityCustomKeyProperties1>()
             .Register<ScalarEntity1, ScalarEntityNoConcurrencyToken1>();
         var mapper = mapperBuilder.Build();
@@ -478,7 +478,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
             .WithScalarConverter<ByteArrayWrapper, byte[]>(wrapper => wrapper!.Bytes!)
             .WithScalarConverter<long, LongWrapper>(l => new LongWrapper(l))
             .WithScalarConverter<LongWrapper, long>(wrapper => wrapper!.Value)
-            .WithConfiguration<WrappedScalarEntity2>(new TypeConfiguration(nameof(WrappedScalarEntity2.WrappedId), nameof(WrappedScalarEntity2.WrappedConcurrencyToken)))
+            .WithConfiguration<WrappedScalarEntity2>(new EntityConfiguration(nameof(WrappedScalarEntity2.WrappedId), nameof(WrappedScalarEntity2.WrappedConcurrencyToken)))
             .RegisterTwoWay<ScalarEntity1, WrappedScalarEntity2>()
             .Register<WrappedScalarEntity2, WrappedScalarEntity2>();
         var mapper = mapperBuilder.Build();
@@ -636,8 +636,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         // act & assert
         Assert.Throws<TypeConfiguratedException>(() => mapperBuilder
-            .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken)))
-            .WithConfiguration<EntityWithoutDefaultConstructor>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken)), true)
+            .WithConfiguration<EntityWithoutDefaultConstructor>(new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken)))
+            .WithConfiguration<EntityWithoutDefaultConstructor>(new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken)), true)
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
     }
 
@@ -685,7 +685,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         {
             mapperBuilder
                 .WithScalarConverter<ScalarEntityCustomKeyProperties1, int>(s => 1)
-                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)));
+                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new EntityConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)));
         });
     }
 
@@ -700,7 +700,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.Throws<InvalidScalarTypeException>(() =>
         {
             mapperBuilder
-                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new TypeConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)))
+                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new EntityConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)))
                 .WithScalarConverter<ScalarEntityCustomKeyProperties1, int>(s => 1);
         });
     }

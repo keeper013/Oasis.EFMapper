@@ -13,7 +13,7 @@ internal static class Utilities
         TSource source,
         TTarget target,
         INewTargetTracker<TKeyType>? newTargetTracker,
-        MapToDatabaseType? mappingType)
+        EntityPropertyMappingData? mappingData)
         where TSource : class
         where TTarget : class
         where TKeyType : struct;
@@ -23,7 +23,7 @@ internal static class Utilities
         TSource source,
         TTarget target,
         INewTargetTracker<TKeyType>? newTargetTracker,
-        MapToDatabaseType? mappingType)
+        EntityPropertyMappingData? mappingData)
         where TSource : class
         where TTarget : class
         where TKeyType : struct;

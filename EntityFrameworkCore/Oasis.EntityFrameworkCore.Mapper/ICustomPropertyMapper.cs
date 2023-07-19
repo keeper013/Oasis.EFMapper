@@ -17,5 +17,9 @@ public interface ICustomPropertyMapper<TSource, TTarget>
 {
     IEnumerable<PropertyInfo> MappedTargetProperties { get; }
 
+    bool? MappingKeepEntityOnMappingRemoved { get; }
+
+    IReadOnlyDictionary<string, bool>? PropertyKeepEntityOnMappingRemoved { get; }
+
     void MapProperties(TSource source, TTarget target);
 }

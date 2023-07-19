@@ -7,10 +7,10 @@ public class CustomPropertyMappingTests
 {
     public CustomPropertyMappingTests()
     {
-        DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
+        DefaultConfiguration = new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
     }
 
-    private TypeConfiguration DefaultConfiguration { get; }
+    private EntityConfiguration DefaultConfiguration { get; }
 
     [Fact]
     public void TestMappingCustomProperty()

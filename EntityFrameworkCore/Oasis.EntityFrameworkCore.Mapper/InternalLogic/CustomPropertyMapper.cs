@@ -34,22 +34,32 @@ internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper<TS
     where TSource : class
     where TTarget : class
 {
-    private readonly IList<Action<TSource, TTarget>> _mappingFunctions = new List<Action<TSource, TTarget>>();
+    private readonly IList<Action<TSource, TTarget>> _propertyMappingFunctions = new List<Action<TSource, TTarget>>();
     private readonly ISet<PropertyInfo> _mappedProperties = new HashSet<PropertyInfo>();
 
+    public CustomPropertyMapper(bool? mappingKeepEntityOnMappingRemoved, IReadOnlyDictionary<string, bool>? propertyKeepEntityOnMappingRemoved)
+    {
+        MappingKeepEntityOnMappingRemoved = mappingKeepEntityOnMappingRemoved;
+        PropertyKeepEntityOnMappingRemoved = propertyKeepEntityOnMappingRemoved;
+    }
+
     public IEnumerable<PropertyInfo> MappedTargetProperties => _mappedProperties.ToList();
+
+    public bool? MappingKeepEntityOnMappingRemoved { get; init; }
+
+    public IReadOnlyDictionary<string, bool>? PropertyKeepEntityOnMappingRemoved { get; init; }
 
     public ICustomPropertyMapperBuilder<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value)
     {
         var setterAction = CreateSetter(setter);
         var valueFunc = value.Compile();
-        _mappingFunctions.Add((source, target) => setterAction(target, valueFunc(source)));
+        _propertyMappingFunctions.Add((source, target) => setterAction(target, valueFunc(source)));
         return this;
     }
 
     public void MapProperties(TSource source, TTarget target)
     {
-        foreach (var func in _mappingFunctions)
+        foreach (var func in _propertyMappingFunctions)
         {
             func(source, target);
         }

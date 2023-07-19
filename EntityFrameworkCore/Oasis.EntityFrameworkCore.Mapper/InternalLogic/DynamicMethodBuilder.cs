@@ -21,28 +21,25 @@ internal interface IDynamicMethodBuilder
     MethodMetaData? BuildUpKeyPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties);
+        PropertyInfo? sourceIdentityProperty,
+        PropertyInfo? targetIdentityProperty,
+        PropertyInfo? sourceConcurrencyTokenProperty,
+        PropertyInfo? targetConcurrencyTokenProperty);
 
     MethodMetaData? BuildUpScalarPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties);
+        IList<(PropertyInfo, PropertyInfo)> matchedProperties);
 
     MethodMetaData? BuildUpEntityPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties,
-        IRecursiveRegisterTrigger trigger);
+        IList<(PropertyInfo, Type, PropertyInfo, Type)> matchedProperties);
 
     public MethodMetaData? BuildUpEntityListPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties,
-        IRecursiveRegisterTrigger trigger);
+        IList<(PropertyInfo, Type, PropertyInfo, Type)> matchedProperties);
 
     MethodMetaData BuildUpKeyEqualComparerMethod(
         KeyType keyType,
@@ -79,23 +76,10 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     private readonly IScalarTypeMethodCache _isDefaultValueCache = new ScalarTypeMethodCache(typeof(ScalarTypeIsDefaultValueMethods), nameof(ScalarTypeIsDefaultValueMethods.IsDefaultValue), new[] { typeof(object) });
     private readonly IScalarTypeMethodCache _areEqualCache = new ScalarTypeMethodCache(typeof(ScalarTypeEqualMethods), nameof(ScalarTypeEqualMethods.AreEqual), new[] { typeof(object), typeof(object) });
     private readonly TypeBuilder _typeBuilder;
-    private readonly IMapperTypeValidator _scalarTypeValidator;
-    private readonly IMapperTypeValidator _entityTypeValidator;
-    private readonly IMapperTypeValidator _entityListTypeValidator;
-    private readonly IKeyPropertyNameManager _keyPropertyNameManager;
 
-    public DynamicMethodBuilder(
-        TypeBuilder typeBuilder,
-        IMapperTypeValidator scalarTypeValidator,
-        IMapperTypeValidator entityTypeValidator,
-        IMapperTypeValidator entityListTypeValidator,
-        IKeyPropertyNameManager keyPropertyNameManager)
+    public DynamicMethodBuilder(TypeBuilder typeBuilder)
     {
         _typeBuilder = typeBuilder;
-        _scalarTypeValidator = scalarTypeValidator;
-        _entityTypeValidator = entityTypeValidator;
-        _entityListTypeValidator = entityListTypeValidator;
-        _keyPropertyNameManager = keyPropertyNameManager;
     }
 
     public Type Build()
@@ -106,14 +90,12 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     public MethodMetaData? BuildUpKeyPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties)
+        PropertyInfo? sourceIdentityProperty,
+        PropertyInfo? targetIdentityProperty,
+        PropertyInfo? sourceConcurrencyTokenProperty,
+        PropertyInfo? targetConcurrencyTokenProperty)
     {
-        var sourceIdentityProperty = allSourceProperties.GetKeyProperty(_keyPropertyNameManager.GetIdentityPropertyName(sourceType), false);
-        var targetIdentityProperty = allTargetProperties.GetKeyProperty(_keyPropertyNameManager.GetIdentityPropertyName(targetType), true);
         bool generateForIdentity = sourceIdentityProperty != default && targetIdentityProperty != default;
-        var sourceConcurrencyTokenProperty = allSourceProperties.GetKeyProperty(_keyPropertyNameManager.GetConcurrencyTokenPropertyName(sourceType), false);
-        var targetConcurrencyTokenProperty = allTargetProperties.GetKeyProperty(_keyPropertyNameManager.GetConcurrencyTokenPropertyName(targetType), true);
         bool generateForConcurrencyToken = sourceConcurrencyTokenProperty != default && targetConcurrencyTokenProperty != default;
         if (!generateForIdentity && !generateForConcurrencyToken)
         {
@@ -141,30 +123,8 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     public MethodMetaData? BuildUpScalarPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties)
+        IList<(PropertyInfo, PropertyInfo)> matchedProperties)
     {
-        var sourceProperties = allSourceProperties
-            .Where(p => _scalarTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, sourceType));
-        var targetProperties = allTargetProperties
-            .Where(p => _scalarTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, targetType))
-            .ToDictionary(p => p.Name, p => p);
-
-        var matchedProperties = new List<(PropertyInfo, PropertyInfo)>(sourceProperties.Count());
-        foreach (var sourceProperty in sourceProperties)
-        {
-            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty)
-                && (sourceProperty.PropertyType == targetProperty.PropertyType || _scalarTypeValidator.CanConvert(sourceProperty.PropertyType, targetProperty.PropertyType)))
-            {
-                matchedProperties.Add((sourceProperty, targetProperty));
-            }
-        }
-
-        if (!matchedProperties.Any())
-        {
-            return null;
-        }
-
         var methodName = BuildMapperMethodName(MapScalarPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
         var generator = method.GetILGenerator();
@@ -180,36 +140,12 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     public MethodMetaData? BuildUpEntityPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties,
-        IRecursiveRegisterTrigger trigger)
+        IList<(PropertyInfo, Type, PropertyInfo, Type)> matchedProperties)
     {
-        var sourceProperties = allSourceProperties.Where(p => _entityTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
-        var targetProperties = allTargetProperties.Where(p => _entityTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
-
-        var matchedProperties = new List<(PropertyInfo, Type, PropertyInfo, Type)>(sourceProperties.Count());
-        foreach (var sourceProperty in sourceProperties)
-        {
-            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty))
-            {
-                var sourcePropertyType = sourceProperty.PropertyType;
-                var targetPropertyType = targetProperty.PropertyType;
-
-                // cascading mapper creation: if entity mapper doesn't exist, create it
-                trigger.RegisterIf(sourcePropertyType, targetPropertyType, _entityTypeValidator.CanConvert(sourcePropertyType, targetPropertyType));
-                matchedProperties.Add((sourceProperty, sourcePropertyType, targetProperty, targetPropertyType));
-            }
-        }
-
-        if (!matchedProperties.Any())
-        {
-            return null;
-        }
-
         var methodName = BuildMapperMethodName(MapEntityPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(
             methodName,
-            new[] { typeof(IEntityPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>), typeof(MapToDatabaseType?) },
+            new[] { typeof(IEntityPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>), typeof(EntityPropertyMappingData?) },
             typeof(void));
         var generator = method.GetILGenerator();
         foreach (var matched in matchedProperties)
@@ -234,35 +170,12 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     public MethodMetaData? BuildUpEntityListPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties,
-        IRecursiveRegisterTrigger trigger)
+        IList<(PropertyInfo, Type, PropertyInfo, Type)> matchedProperties)
     {
-        var sourceProperties = allSourceProperties.Where(p => _entityListTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
-        var targetProperties = allTargetProperties.Where(p => _entityListTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false)).ToDictionary(p => p.Name, p => p);
-        var matchedProperties = new List<(PropertyInfo, Type, PropertyInfo, Type)>(sourceProperties.Count());
-        foreach (var sourceProperty in sourceProperties)
-        {
-            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty))
-            {
-                var sourceItemType = sourceProperty.PropertyType.GetListItemType()!;
-                var targetItemType = targetProperty.PropertyType.GetListItemType()!;
-
-                // cascading mapper creation: if list item mapper doesn't exist, create it
-                trigger.RegisterIf(sourceItemType!, targetItemType!, _entityListTypeValidator.CanConvert(sourceItemType!, targetItemType!));
-                matchedProperties.Add((sourceProperty, sourceItemType, targetProperty, targetItemType));
-            }
-        }
-
-        if (!matchedProperties.Any())
-        {
-            return null;
-        }
-
         var methodName = BuildMapperMethodName(MapListPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(
             methodName,
-            new[] { typeof(IListPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>), typeof(MapToDatabaseType?) },
+            new[] { typeof(IListPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>), typeof(EntityPropertyMappingData?) },
             typeof(void));
         var generator = method.GetILGenerator();
 
