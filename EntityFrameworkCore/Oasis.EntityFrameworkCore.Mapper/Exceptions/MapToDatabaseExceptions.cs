@@ -31,3 +31,11 @@ public sealed class MissingIdentityException : EfCoreMapperException
     {
     }
 }
+
+public sealed class CustomTypePropertyEntityRemoverException : EfCoreMapperException
+{
+    public CustomTypePropertyEntityRemoverException(Type source, Type targetType, string propertyName)
+        : base($"No property of entity type or entity list type with name(s) \"{propertyName}\" was found when mapping from ${source} to ${targetType}")
+    {
+    }
+}

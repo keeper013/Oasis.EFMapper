@@ -9,11 +9,10 @@ public sealed class MapperBuilderFactory : IMapperBuilderFactory
         return new MapperBuilder(assemblyName, defaultConfiguration ?? new EntityConfiguration("Id"));
     }
 
-    public ICustomPropertyMapperBuilder<TSource, TTarget> MakeCustomPropertyMapperBuilder<TSource, TTarget>(bool? mappingKeepEntityOnMappingRemoved, IReadOnlyDictionary<string, bool>? propertyKeepEntityOnMappingRemoved)
+    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MakeCustomTypeMapperBuilder<TSource, TTarget>()
         where TSource : class
         where TTarget : class
     {
-        // TODO: validate property keep entity on mapping removed dictionary, verify if mapping can happen for each named property
-        return new CustomPropertyMapper<TSource, TTarget>(mappingKeepEntityOnMappingRemoved, propertyKeepEntityOnMappingRemoved);
+        return new CustomTypeMapperBuilder<TSource, TTarget>();
     }
 }

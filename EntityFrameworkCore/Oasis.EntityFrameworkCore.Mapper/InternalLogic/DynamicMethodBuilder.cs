@@ -52,6 +52,8 @@ internal interface IDynamicMethodBuilder
     MethodMetaData BuildUpGetIdMethod(KeyType keyType, Type type, PropertyInfo identityProperty);
 
     MethodMetaData BuildUpKeyIsEmptyMethod(KeyType keyType, Type type, PropertyInfo identityProperty);
+
+    Type Build();
 }
 
 internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder

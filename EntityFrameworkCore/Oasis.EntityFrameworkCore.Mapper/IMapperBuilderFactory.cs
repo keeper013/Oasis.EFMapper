@@ -4,7 +4,7 @@ public interface IMapperBuilderFactory
 {
     IMapperBuilder MakeMapperBuilder(string assemblyName, EntityConfiguration? defaultConfiguration);
 
-    ICustomPropertyMapperBuilder<TSource, TTarget> MakeCustomPropertyMapperBuilder<TSource, TTarget>(bool? mappingKeepEntityOnMappingRemoved, IReadOnlyDictionary<string, bool>? propertyKeepEntityOnMappingRemoved)
+    ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MakeCustomTypeMapperBuilder<TSource, TTarget>()
         where TSource : class
         where TTarget : class;
 }

@@ -26,14 +26,7 @@ public interface INewTargetTracker<TKeyType>
         where TTarget : class;
 }
 
-public struct EntityPropertyMappingData
-{
-    public Type SourceType { get; set; }
-
-    public Type TargetType { get; set; }
-
-    public string PropertyName { get; set; }
-}
+public record struct EntityPropertyMappingData(Type sourceType, Type targetType, string propertyName);
 
 public interface IListPropertyMapper<TKeyType>
     where TKeyType : struct

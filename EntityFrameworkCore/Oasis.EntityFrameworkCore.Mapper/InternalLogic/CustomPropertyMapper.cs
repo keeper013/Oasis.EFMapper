@@ -2,72 +2,65 @@
 
 using System.Linq.Expressions;
 
-internal interface ICustomPropertyMapperInternal
+internal sealed class PropertyEntityRemover : IPropertyEntityRemover
 {
-    IEnumerable<PropertyInfo> MappedTargetProperties { get; }
+    private readonly Dictionary<string, bool> _propertyKeepEntityOnMappingRemoved = new ();
+    private bool? _mappingKeepEntityOnMappingRemoved;
 
-    Delegate MapProperties { get; }
-}
+    public bool? MappingKeepEntityOnMappingRemoved => _mappingKeepEntityOnMappingRemoved;
 
-internal class CustomPropertyMapperInternal : ICustomPropertyMapperInternal
-{
-    public IEnumerable<PropertyInfo> MappedTargetProperties { get; set; } = null!;
+    public IReadOnlyDictionary<string, bool>? PropertyKeepEntityOnMappingRemoved => _propertyKeepEntityOnMappingRemoved.Any() ? _propertyKeepEntityOnMappingRemoved : null;
 
-    public Delegate MapProperties { get; set; } = null!;
-}
+    public bool HasContent => _mappingKeepEntityOnMappingRemoved.HasValue || _propertyKeepEntityOnMappingRemoved.Any();
 
-internal static class CustomPropertyInternalExtension
-{
-    public static ICustomPropertyMapperInternal ToInternal<TSource, TTarget>(this ICustomPropertyMapper<TSource, TTarget> intf)
-        where TSource : class
-        where TTarget : class
+    public bool KeepEntityOnMappingRemoved { set => _mappingKeepEntityOnMappingRemoved = value; }
+
+    public void KeepEntityOnMappingRemovedForProperty(string propertyName, bool keep)
     {
-        return new CustomPropertyMapperInternal
+        if (string.IsNullOrWhiteSpace(propertyName))
         {
-            MappedTargetProperties = intf.MappedTargetProperties,
-            MapProperties = intf.MapProperties,
-        };
+            throw new ArgumentNullException(nameof(propertyName));
+        }
+
+        if (_propertyKeepEntityOnMappingRemoved.ContainsKey(propertyName))
+        {
+            throw new ArgumentException($"Property ${propertyName} has been configured for KeepEntityOnMappingRemoved.", nameof(propertyName));
+        }
+
+        _propertyKeepEntityOnMappingRemoved.Add(propertyName, keep);
     }
 }
 
-internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper<TSource, TTarget>, ICustomPropertyMapperBuilder<TSource, TTarget>
+internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper
     where TSource : class
     where TTarget : class
 {
     private readonly IList<Action<TSource, TTarget>> _propertyMappingFunctions = new List<Action<TSource, TTarget>>();
     private readonly ISet<PropertyInfo> _mappedProperties = new HashSet<PropertyInfo>();
 
-    public CustomPropertyMapper(bool? mappingKeepEntityOnMappingRemoved, IReadOnlyDictionary<string, bool>? propertyKeepEntityOnMappingRemoved)
-    {
-        MappingKeepEntityOnMappingRemoved = mappingKeepEntityOnMappingRemoved;
-        PropertyKeepEntityOnMappingRemoved = propertyKeepEntityOnMappingRemoved;
-    }
+    public bool HasContent => _propertyMappingFunctions.Any();
 
     public IEnumerable<PropertyInfo> MappedTargetProperties => _mappedProperties.ToList();
 
-    public bool? MappingKeepEntityOnMappingRemoved { get; init; }
+    public Delegate MapProperties => MapPropertiesFunc;
 
-    public IReadOnlyDictionary<string, bool>? PropertyKeepEntityOnMappingRemoved { get; init; }
-
-    public ICustomPropertyMapperBuilder<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value)
+    public void MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value)
     {
         var setterAction = CreateSetter(setter);
         var valueFunc = value.Compile();
         _propertyMappingFunctions.Add((source, target) => setterAction(target, valueFunc(source)));
-        return this;
     }
 
-    public void MapProperties(TSource source, TTarget target)
+    private static PropertyInfo GetProperty<TEntity, TProperty>(Expression<Func<TEntity, TProperty>> expression)
     {
-        foreach (var func in _propertyMappingFunctions)
+        var member = GetMemberExpression(expression).Member;
+        var property = member as PropertyInfo;
+        if (property == null)
         {
-            func(source, target);
+            throw new InvalidOperationException(string.Format("Member with Name '{0}' is not a property.", member.Name));
         }
-    }
 
-    public ICustomPropertyMapper<TSource, TTarget> Build()
-    {
-        return this;
+        return property;
     }
 
     private static MemberExpression GetMemberExpression<TEntity, TProperty>(Expression<Func<TEntity, TProperty>> expression)
@@ -91,16 +84,12 @@ internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper<TS
         return memberExpression;
     }
 
-    private static PropertyInfo GetProperty<TEntity, TProperty>(Expression<Func<TEntity, TProperty>> expression)
+    private void MapPropertiesFunc(TSource source, TTarget target)
     {
-        var member = GetMemberExpression(expression).Member;
-        var property = member as PropertyInfo;
-        if (property == null)
+        foreach (var func in _propertyMappingFunctions)
         {
-            throw new InvalidOperationException(string.Format("Member with Name '{0}' is not a property.", member.Name));
+            func(source, target);
         }
-
-        return property;
     }
 
     private Action<TEntity, TProperty> CreateSetter<TEntity, TProperty>(Expression<Func<TEntity, TProperty>> memberAccess)
@@ -124,5 +113,40 @@ internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper<TS
         var parameters = new ParameterExpression[] { instance, parameter };
 
         return Expression.Lambda<Action<TEntity, TProperty>>(body, parameters).Compile();
+    }
+}
+
+internal class CustomTypeMapperBuilder<TSource, TTarget> : ICustomTypeMapperConfigurationBuilder<TSource, TTarget>, ICustomTypeMapperConfiguration
+    where TSource : class
+    where TTarget : class
+{
+    private CustomPropertyMapper<TSource, TTarget> _customPropertyMapper = new ();
+    private PropertyEntityRemover _propertyEntityRemover = new ();
+
+    public ICustomPropertyMapper? CustomPropertyMapper => _customPropertyMapper.HasContent ? _customPropertyMapper : null;
+
+    public IPropertyEntityRemover? PropertyEntityRemover => _propertyEntityRemover.HasContent ? _propertyEntityRemover : null;
+
+    public ICustomTypeMapperConfiguration Build()
+    {
+        return this;
+    }
+
+    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value)
+    {
+        _customPropertyMapper.MapProperty(setter, value);
+        return this;
+    }
+
+    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> PropertyKeepEntityOnMappingRemoved(string propertyName, bool keep)
+    {
+        _propertyEntityRemover.KeepEntityOnMappingRemovedForProperty(propertyName, keep);
+        return this;
+    }
+
+    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> SetMappingKeepEntityOnMappingRemoved(bool keep)
+    {
+        _propertyEntityRemover.KeepEntityOnMappingRemoved = keep;
+        return this;
     }
 }

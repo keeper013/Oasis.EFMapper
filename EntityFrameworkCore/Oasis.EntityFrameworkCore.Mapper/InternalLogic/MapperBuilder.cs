@@ -6,7 +6,6 @@ using System.Reflection.Emit;
 
 internal sealed class MapperBuilder : IMapperBuilder
 {
-    private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly MapperRegistry _mapperRegistry;
     private readonly bool? _defaultKeepEntityOnMappingRemoved;
 
@@ -15,14 +14,13 @@ internal sealed class MapperBuilder : IMapperBuilder
         var name = new AssemblyName($"{assemblyName}.Oasis.EntityFrameworkCore.Mapper.Generated");
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
-        _mapperRegistry = new (defaultConfiguration);
         _defaultKeepEntityOnMappingRemoved = defaultConfiguration.keepEntityOnMappingRemoved;
-        _dynamicMethodBuilder = new DynamicMethodBuilder(module.DefineType("Mapper", TypeAttributes.Public));
+        _mapperRegistry = new (new DynamicMethodBuilder(module.DefineType("Mapper", TypeAttributes.Public)), defaultConfiguration);
     }
 
     public IMapper Build()
     {
-        var type = _dynamicMethodBuilder.Build();
+        var type = _mapperRegistry.Build();
         var scalarTypeConverter = _mapperRegistry.MakeScalarTypeConverter();
         var listTypeConstructor = _mapperRegistry.MakeListTypeConstructor();
         var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
@@ -36,22 +34,21 @@ internal sealed class MapperBuilder : IMapperBuilder
         return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, proxy, targetTrackerProvider, entityFactory);
     }
 
-    public IMapperBuilder Register<TSource, TTarget>(ICustomPropertyMapper<TSource, TTarget>? customPropertyMapper = null)
+    public IMapperBuilder Register<TSource, TTarget>(ICustomTypeMapperConfiguration? configuration = null)
         where TSource : class
         where TTarget : class
     {
         lock (_mapperRegistry)
         {
-            var customPropertyMapperInternal = customPropertyMapper?.ToInternal();
-            _mapperRegistry.Register(typeof(TSource), typeof(TTarget), _dynamicMethodBuilder, customPropertyMapperInternal);
+            _mapperRegistry.Register(typeof(TSource), typeof(TTarget), configuration);
         }
 
         return this;
     }
 
     public IMapperBuilder RegisterTwoWay<TSource, TTarget>(
-        ICustomPropertyMapper<TSource, TTarget>? customPropertyMapperSourceToTarget = null,
-        ICustomPropertyMapper<TTarget, TSource>? customPropertyMapperTargetToSource = null)
+        ICustomTypeMapperConfiguration? sourceToTargetConfiguration = null,
+        ICustomTypeMapperConfiguration? targetToSourceConfiguration = null)
         where TSource : class
         where TTarget : class
     {
@@ -59,14 +56,13 @@ internal sealed class MapperBuilder : IMapperBuilder
         var targetType = typeof(TTarget);
         if (sourceType == targetType)
         {
-            throw new SameTypeException(sourceType);
+            _mapperRegistry.Register(sourceType, targetType, sourceToTargetConfiguration);
         }
 
         lock (_mapperRegistry)
         {
-            var customPropertyMapperSourceToTargetInternal = customPropertyMapperSourceToTarget?.ToInternal();
-            var customPropertyMapperTargetToSourceInternal = customPropertyMapperTargetToSource?.ToInternal();
-            _mapperRegistry.RegisterTwoWay(sourceType, targetType, _dynamicMethodBuilder, customPropertyMapperSourceToTargetInternal, customPropertyMapperTargetToSourceInternal);
+            _mapperRegistry.Register(sourceType, targetType, sourceToTargetConfiguration);
+            _mapperRegistry.Register(targetType, sourceType, targetToSourceConfiguration);
         }
 
         return this;
@@ -98,7 +94,7 @@ internal sealed class MapperBuilder : IMapperBuilder
     {
         lock (_mapperRegistry)
         {
-            _mapperRegistry.WithConfiguration(typeof(TEntity), configuration, _dynamicMethodBuilder, throwIfRedundant);
+            _mapperRegistry.WithConfiguration(typeof(TEntity), configuration, throwIfRedundant);
         }
 
         return this;

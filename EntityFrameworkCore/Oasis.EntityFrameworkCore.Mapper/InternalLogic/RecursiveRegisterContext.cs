@@ -1,11 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-internal interface IRecursiveRegisterTrigger
-{
-    void RegisterIf(Type sourceType, Type targetType, bool hasRegistered);
-}
-
-internal sealed class RecursiveRegisterContext : IRecursiveRegisterTrigger
+internal sealed class RecursiveRegisterContext
 {
     private static readonly MethodInfo RecursivelyRegisterMethod = typeof(MapperRegistry).GetMethod("RecursivelyRegister", BindingFlags.NonPublic | BindingFlags.Instance)!;
     private readonly Stack<(Type, Type)> _stack = new ();
@@ -58,7 +53,7 @@ internal sealed class RecursiveRegisterContext : IRecursiveRegisterTrigger
                 // there is no way to get generic arguments that user defined for the source and target,
                 // so though reflection is slow, it's the only way that works here.
                 // considering registering is a one-time-job, it's acceptable.
-                RecursivelyRegisterMethod.Invoke(_mapperRegistry, new object?[] { sourceType, targetType, this, null, false });
+                RecursivelyRegisterMethod.Invoke(_mapperRegistry, new object?[] { sourceType, targetType, this });
             }
         }
         else
