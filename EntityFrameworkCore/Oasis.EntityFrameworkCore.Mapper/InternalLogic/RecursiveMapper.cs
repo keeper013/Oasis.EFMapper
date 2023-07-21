@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-internal abstract class RecursiveMapper : IEntityPropertyMapper<int>, IListPropertyMapper<int>
+internal abstract class RecursiveMapper : IRecursiveMapper<int>
 {
     private readonly MapperSetLookUp _lookup;
     private readonly IScalarTypeConverter _scalarConverter;
@@ -26,15 +26,17 @@ internal abstract class RecursiveMapper : IEntityPropertyMapper<int>, IListPrope
 
     protected EntityBaseProxy EntityBaseProxy { get; init; }
 
-    public abstract TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<int> newTargetTracker, string propertyName)
+    public abstract TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<int>? newTargetTracker, string propertyName)
         where TSource : class
         where TTarget : class;
 
-    public abstract void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, INewTargetTracker<int> newTargetTracker, string propertyName)
+    public abstract void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, INewTargetTracker<int>? newTargetTracker, string propertyName)
         where TSource : class
         where TTarget : class;
 
-    TList IListPropertyMapper<int>.ConstructListType<TList, TItem>()
+    public TList ConstructListType<TList, TItem>()
+        where TList : class, ICollection<TItem>
+        where TItem : class
     {
         return _listTypeConstructor.Construct<TList, TItem>();
     }
@@ -70,30 +72,19 @@ internal abstract class RecursiveMapper : IEntityPropertyMapper<int>, IListPrope
 
         using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
         var value = mapperSet.Value;
-
         if (value.customPropertiesMapper != null)
         {
             ((Action<TSource, TTarget>)value.customPropertiesMapper)(source, target);
         }
 
-        if (mapKeyProperties && value.keyPropertiesMapper != null)
+        if (value.keyMapper != null && mapKeyProperties)
         {
-            ((Utilities.MapScalarProperties<TSource, TTarget>)value.keyPropertiesMapper)(source, target, _scalarConverter);
+            ((Utilities.MapScalarProperties<TSource, TTarget>)value.keyMapper)(source, target, _scalarConverter);
         }
 
-        if (value.scalarPropertiesMapper != null)
+        if (value.contentMapper != null)
         {
-            ((Utilities.MapScalarProperties<TSource, TTarget>)value.scalarPropertiesMapper)(source, target, _scalarConverter);
-        }
-
-        if (value.entityPropertiesMapper != null)
-        {
-            ((Utilities.MapEntityProperties<TSource, TTarget, int>)value.entityPropertiesMapper)(this, source, target, newTargetTracker);
-        }
-
-        if (value.listPropertiesMapper != null)
-        {
-            ((Utilities.MapListProperties<TSource, TTarget, int>)value.listPropertiesMapper)(this, source, target, newTargetTracker);
+            ((Utilities.MapProperties<TSource, TTarget, int>)value.contentMapper)(source, target, _scalarConverter, this, newTargetTracker);
         }
     }
 
@@ -333,9 +324,9 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
     {
         var target = _entityFactory.Make<TTarget>();
         var mapperSet = _lookup.LookUp(typeof(TSource), typeof(TTarget));
-        if (mapperSet?.keyPropertiesMapper != null)
+        if (mapperSet?.keyMapper != null)
         {
-            ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.Value.keyPropertiesMapper)(source, target, _scalarConverter);
+            ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.Value.keyMapper)(source, target, _scalarConverter);
         }
 
         try

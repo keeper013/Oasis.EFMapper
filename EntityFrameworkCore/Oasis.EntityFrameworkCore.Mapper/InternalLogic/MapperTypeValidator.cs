@@ -84,34 +84,24 @@ internal sealed class ScalarMapperTypeValidator : MapperTypeValidator<Delegate>
 
 internal sealed class EntityMapperTypeValidator : MapperTypeValidator<MapperMetaDataSet?>
 {
-    private readonly IReadOnlySet<Type> _convertableToScalarTypes;
-
-    public EntityMapperTypeValidator(
-        IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet?>> mapperDictionary,
-        IReadOnlySet<Type> convertableToScalarTypes)
+    public EntityMapperTypeValidator(IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet?>> mapperDictionary)
         : base(mapperDictionary)
     {
-        _convertableToScalarTypes = convertableToScalarTypes;
     }
 
-    public override bool IsValidType(Type type) => type.IsEntityType() && !_convertableToScalarTypes.Contains(type);
+    public override bool IsValidType(Type type) => type.IsEntityType();
 }
 
 internal sealed class EntityListMapperTypeValidator : MapperTypeValidator<MapperMetaDataSet?>
 {
-    private readonly IReadOnlySet<Type> _convertableToScalarTypes;
-
-    public EntityListMapperTypeValidator(
-        IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet?>> mapperDictionary,
-        IReadOnlySet<Type> convertableToScalarTypes)
+    public EntityListMapperTypeValidator(IReadOnlyDictionary<Type, Dictionary<Type, MapperMetaDataSet?>> mapperDictionary)
         : base(mapperDictionary)
     {
-        _convertableToScalarTypes = convertableToScalarTypes;
     }
 
     public override bool IsValidType(Type type)
     {
-        return TryGetListItemType(type, out var itemType) && itemType.IsEntityType() && !_convertableToScalarTypes.Contains(itemType);
+        return TryGetListItemType(type, out var itemType) && itemType.IsEntityType();
     }
 
     private static bool TryGetListItemType(Type type, [NotNullWhen(true)] out Type? itemType)

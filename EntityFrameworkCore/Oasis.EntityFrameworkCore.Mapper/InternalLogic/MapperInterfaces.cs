@@ -28,22 +28,22 @@ public interface INewTargetTracker<TKeyType>
 
 public record struct EntityPropertyMappingData(Type sourceType, Type targetType, string propertyName);
 
-public interface IListPropertyMapper<TKeyType>
+/// <summary>
+/// Recursive mapper interface. This interface has to be public, or else generate code will have problem accessing its methods.
+/// </summary>
+/// <typeparam name="TKeyType">Type of target tracker key, int if using hash code.</typeparam>
+public interface IRecursiveMapper<TKeyType>
     where TKeyType : struct
 {
-    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, INewTargetTracker<TKeyType> newTargetTracker, string propertyName)
+    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
+        where TSource : class
+        where TTarget : class;
+    //TODO: handle scalar list
+    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
         where TSource : class
         where TTarget : class;
 
     TList ConstructListType<TList, TItem>()
         where TList : class, ICollection<TItem>
         where TItem : class;
-}
-
-public interface IEntityPropertyMapper<TKeyType>
-    where TKeyType : struct
-{
-    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<TKeyType> newTargetTracker, string propertyName)
-        where TSource : class
-        where TTarget : class;
 }

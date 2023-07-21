@@ -8,19 +8,11 @@ internal static class Utilities
         where TSource : class
         where TTarget : class;
 
-    public delegate void MapEntityProperties<TSource, TTarget, TKeyType>(
-        IEntityPropertyMapper<TKeyType> mapper,
+    public delegate void MapProperties<TSource, TTarget, TKeyType>(
         TSource source,
         TTarget target,
-        INewTargetTracker<TKeyType>? newTargetTracker)
-        where TSource : class
-        where TTarget : class
-        where TKeyType : struct;
-
-    public delegate void MapListProperties<TSource, TTarget, TKeyType>(
-        IListPropertyMapper<TKeyType> mapper,
-        TSource source,
-        TTarget target,
+        IScalarTypeConverter converter,
+        IRecursiveMapper<TKeyType> mapper,
         INewTargetTracker<TKeyType>? newTargetTracker)
         where TSource : class
         where TTarget : class
@@ -60,17 +52,17 @@ internal static class Utilities
         return default;
     }
 
-    internal static MapperMetaDataSet? BuildMapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData? keyPropertiesMapper, MethodMetaData? scalarPropertiesMapper, MethodMetaData? entityPropertiesMapper, MethodMetaData? listPropertiesMapper)
+    internal static MapperMetaDataSet? BuildMapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData? keyMapper, MethodMetaData? contentMapper)
     {
-        return customPropertiesMapper == null && !keyPropertiesMapper.HasValue && !scalarPropertiesMapper.HasValue && !entityPropertiesMapper.HasValue && !listPropertiesMapper.HasValue
+        return customPropertiesMapper == null && !keyMapper.HasValue && !contentMapper.HasValue
             ? null
-            : new MapperMetaDataSet(customPropertiesMapper, keyPropertiesMapper, scalarPropertiesMapper, entityPropertiesMapper, listPropertiesMapper);
+            : new MapperMetaDataSet(customPropertiesMapper, keyMapper, contentMapper);
     }
 }
 
 internal record struct MethodMetaData(Type type, string name);
 
-internal record struct MapperSet(Delegate? customPropertiesMapper, Delegate? keyPropertiesMapper, Delegate? scalarPropertiesMapper, Delegate? entityPropertiesMapper, Delegate? listPropertiesMapper);
+internal record struct MapperSet(Delegate? customPropertiesMapper, Delegate? keyMapper, Delegate? contentMapper);
 
 // get method is only needed for id, not for concurrency token, so it's nullable here
 internal record struct TypeKeyProxyMetaDataSet(MethodMetaData? get, MethodMetaData isEmpty, PropertyInfo property);
@@ -78,4 +70,4 @@ internal record struct TypeKeyProxyMetaDataSet(MethodMetaData? get, MethodMetaDa
 // get method is only needed for id, not for concurrency token, so it's nullable here
 internal record struct TypeKeyProxy(Delegate? get, Delegate isEmpty, PropertyInfo property);
 
-internal record struct MapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData? keyPropertiesMapper, MethodMetaData? scalarPropertiesMapper, MethodMetaData? entityPropertiesMapper, MethodMetaData? listPropertiesMapper);
+internal record struct MapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData? keyMapper, MethodMetaData? contentMapper);

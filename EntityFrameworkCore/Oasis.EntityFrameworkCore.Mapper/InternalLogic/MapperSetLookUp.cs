@@ -20,10 +20,8 @@ internal sealed class MapperSetLookUp
                     var value = mapperMetaDataSet.Value;
                     innerDictionary.Add(innerPair.Key, new MapperSet(
                         value.customPropertiesMapper,
-                        value.keyPropertiesMapper.HasValue ? Delegate.CreateDelegate(value.keyPropertiesMapper.Value.type, type.GetMethod(value.keyPropertiesMapper.Value.name)!) : null,
-                        value.scalarPropertiesMapper.HasValue ? Delegate.CreateDelegate(value.scalarPropertiesMapper.Value.type, type.GetMethod(value.scalarPropertiesMapper.Value.name)!) : null,
-                        value.entityPropertiesMapper.HasValue ? Delegate.CreateDelegate(value.entityPropertiesMapper.Value.type, type.GetMethod(value.entityPropertiesMapper.Value.name)!) : null,
-                        value.listPropertiesMapper.HasValue ? Delegate.CreateDelegate(value.listPropertiesMapper.Value.type, type.GetMethod(value.listPropertiesMapper.Value.name)!) : null));
+                        value.keyMapper.HasValue ? Delegate.CreateDelegate(value.keyMapper.Value.type, type.GetMethod(value.keyMapper.Value.name)!) : null,
+                        value.contentMapper.HasValue ? Delegate.CreateDelegate(value.contentMapper.Value.type, type.GetMethod(value.contentMapper.Value.name)!) : null));
                 }
                 else
                 {

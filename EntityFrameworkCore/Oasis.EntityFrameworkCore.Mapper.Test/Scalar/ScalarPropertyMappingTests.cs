@@ -597,7 +597,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
 
         // act & assert
-        Assert.Throws<FactoryMethodException>(() => mapperBuilder.Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
+        Assert.Throws<FactoryMethodException>(() => mapperBuilder.Register<ScalarEntity1, EntityWithoutDefaultConstructor>().Build());
     }
 
     [Fact]
@@ -639,69 +639,5 @@ public sealed class ScalarPropertyMappingTests : TestBase
             .WithConfiguration<EntityWithoutDefaultConstructor>(new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken)))
             .WithConfiguration<EntityWithoutDefaultConstructor>(new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken)), true)
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
-    }
-
-    [Fact]
-    public void FactoryMethodForScalarType_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidEntityTypeException>(() =>
-        {
-            mapperBuilder
-                .WithScalarConverter<EntityWithoutDefaultConstructor, int>(e => 1)
-                .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(100));
-        });
-    }
-
-    [Fact]
-    public void ScalarTypeForFactoryMethodType_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidScalarTypeException>(() =>
-        {
-            mapperBuilder
-                .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(100))
-                .WithScalarConverter<EntityWithoutDefaultConstructor, int>(e => 1);
-        });
-    }
-
-    [Fact]
-    public void ConfigurationForScalarType_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidEntityTypeException>(() =>
-        {
-            mapperBuilder
-                .WithScalarConverter<ScalarEntityCustomKeyProperties1, int>(s => 1)
-                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new EntityConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)));
-        });
-    }
-
-    [Fact]
-    public void ScalarTypeForConfiguration_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidScalarTypeException>(() =>
-        {
-            mapperBuilder
-                .WithConfiguration<ScalarEntityCustomKeyProperties1>(new EntityConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)))
-                .WithScalarConverter<ScalarEntityCustomKeyProperties1, int>(s => 1);
-        });
     }
 }

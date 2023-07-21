@@ -7,15 +7,13 @@ using System.Reflection.Emit;
 internal sealed class MapperBuilder : IMapperBuilder
 {
     private readonly MapperRegistry _mapperRegistry;
-    private readonly bool? _defaultKeepEntityOnMappingRemoved;
 
     public MapperBuilder(string assemblyName, EntityConfiguration defaultConfiguration)
     {
         var name = new AssemblyName($"{assemblyName}.Oasis.EntityFrameworkCore.Mapper.Generated");
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
-        _defaultKeepEntityOnMappingRemoved = defaultConfiguration.keepEntityOnMappingRemoved;
-        _mapperRegistry = new (new DynamicMethodBuilder(module.DefineType("Mapper", TypeAttributes.Public)), defaultConfiguration);
+        _mapperRegistry = new (module, defaultConfiguration);
     }
 
     public IMapper Build()

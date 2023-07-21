@@ -27,9 +27,13 @@ internal sealed class RecursiveContextPopper : IDisposable
     }
 }
 
+internal interface IRecursiveRegister
+{
+    void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context);
+}
+
 internal sealed class RecursiveRegisterContext : RecursiveContext
 {
-    private static readonly MethodInfo RecursivelyRegisterMethod = typeof(MapperRegistry).GetMethod("RecursivelyRegister", BindingFlags.NonPublic | BindingFlags.Instance)!;
     private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping;
 
     public RecursiveRegisterContext(Dictionary<Type, ISet<Type>> loopDependencyMapping)
@@ -52,7 +56,7 @@ internal sealed class RecursiveRegisterContext : RecursiveContext
         }
     }
 
-    public void RegisterIf(MapperRegistry mapperRegistry, Type sourceType, Type targetType, bool hasRegistered)
+    public void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered)
     {
         if (hasRegistered)
         {
@@ -63,10 +67,7 @@ internal sealed class RecursiveRegisterContext : RecursiveContext
         }
         else
         {
-            // there is no way to get generic arguments that user defined for the source and target,
-            // so though reflection is slow, it's the only way that works here.
-            // considering registering is a one-time-job, it's acceptable.
-            RecursivelyRegisterMethod.Invoke(mapperRegistry, new object?[] { sourceType, targetType, this });
+            recursiveRegister.RecursivelyRegister(sourceType, targetType, this);
         }
     }
 }

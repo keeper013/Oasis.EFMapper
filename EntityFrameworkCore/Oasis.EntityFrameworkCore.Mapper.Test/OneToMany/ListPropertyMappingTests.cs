@@ -567,46 +567,6 @@ public class ListPropertyMappingTests : TestBase
     }
 
     [Fact]
-    public async Task ListWrapperWithNoSetter_ShouldFail()
-    {
-        var sc1_1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
-        var sc1_2 = new SubScalarEntity1(2, default, "4", new byte[] { 2, 3, 4 });
-        await Assert.ThrowsAsync<SetterMissingException>(async () => await MapListProperties_ICollection<CollectionEntity4WithWrapper>(new List<SubScalarEntity1> { sc1_1, sc1_2 }));
-    }
-
-    [Fact]
-    public void ScalarAsEntity_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidEntityTypeException>(() =>
-        {
-            mapperBuilder
-                .WithScalarConverter<ListEntity2, int>(e => 1)
-                .Register<ListEntity2, ListEntity3>();
-        });
-    }
-
-    [Fact]
-    public void EntityAsScalar_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidScalarTypeException>(() =>
-        {
-            mapperBuilder
-                .Register<ListEntity2, ListEntity3>()
-                .WithScalarConverter<ListEntity2, int>(e => 1);
-        });
-    }
-
-    [Fact]
     public void CustomFactoryMethodForClassWithDefaultConstructor_ShouldFail()
     {
         // arrange
@@ -633,52 +593,6 @@ public class ListPropertyMappingTests : TestBase
         {
             mapperBuilder
                 .WithFactoryMethod<StringListNoDefaultConstructor, string>(() => new StringListNoDefaultConstructor(1));
-        });
-    }
-
-    [Fact]
-    public void CustomFactoryMethodForNonEntityList_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidEntityListTypeException>(() =>
-        {
-            mapperBuilder
-                .WithScalarConverter<ScalarEntity2Item, int>(s => 1)
-                .WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2Item>(() => new ScalarEntity2NoDefaultConstructorListWrapper(1));
-        });
-    }
-
-    [Fact]
-    public void EntityInListForScalar_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidScalarTypeException>(() =>
-        {
-            mapperBuilder
-                .WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2Item>(() => new ScalarEntity2NoDefaultConstructorListWrapper(1))
-                .WithScalarConverter<ScalarEntity2Item, int>(s => 1);
-        });
-    }
-
-    [Fact]
-    public void EntityListForScalar_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidScalarTypeException>(() =>
-        {
-            mapperBuilder.WithScalarConverter<ScalarEntity2ListWrapper, int>(s => 1);
         });
     }
 
