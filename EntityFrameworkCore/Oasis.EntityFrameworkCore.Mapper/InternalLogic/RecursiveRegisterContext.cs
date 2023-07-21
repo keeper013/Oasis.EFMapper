@@ -1,28 +1,45 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-internal sealed class RecursiveRegisterContext
+internal abstract class RecursiveContext
 {
-    private static readonly MethodInfo RecursivelyRegisterMethod = typeof(MapperRegistry).GetMethod("RecursivelyRegister", BindingFlags.NonPublic | BindingFlags.Instance)!;
-    private readonly Stack<(Type, Type)> _stack = new ();
-    private readonly MapperRegistry _mapperRegistry;
-    private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping;
+    protected Stack<(Type, Type)> Stack { get; } = new ();
 
-    public RecursiveRegisterContext(MapperRegistry mapperRegistry, IDynamicMethodBuilder methodBuilder, Dictionary<Type, ISet<Type>> loopDependencyMapping)
+    public void Push(Type sourceType, Type targetType) => Stack.Push((sourceType, targetType));
+
+    public void Pop() => Stack.Pop();
+
+    public bool Contains(Type sourceType, Type targetType) => Stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType);
+}
+
+internal sealed class RecursiveContextPopper : IDisposable
+{
+    private readonly RecursiveContext? _context;
+
+    public RecursiveContextPopper(RecursiveContext? context, Type sourceType, Type targetType)
     {
-        _mapperRegistry = mapperRegistry;
-        _loopDependencyMapping = loopDependencyMapping;
-        MethodBuilder = methodBuilder;
+        _context = context;
+        _context?.Push(sourceType, targetType);
     }
 
-    public IDynamicMethodBuilder MethodBuilder { get; }
+    public void Dispose()
+    {
+        _context?.Pop();
+    }
+}
 
-    public void Push(Type sourceType, Type targetType) => _stack.Push((sourceType, targetType));
+internal sealed class RecursiveRegisterContext : RecursiveContext
+{
+    private static readonly MethodInfo RecursivelyRegisterMethod = typeof(MapperRegistry).GetMethod("RecursivelyRegister", BindingFlags.NonPublic | BindingFlags.Instance)!;
+    private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping;
 
-    public void Pop() => _stack.Pop();
+    public RecursiveRegisterContext(Dictionary<Type, ISet<Type>> loopDependencyMapping)
+    {
+        _loopDependencyMapping = loopDependencyMapping;
+    }
 
     public void DumpLoopDependency()
     {
-        foreach (var mappingTuple in _stack)
+        foreach (var mappingTuple in Stack)
         {
             if (_loopDependencyMapping.TryGetValue(mappingTuple.Item1, out var set))
             {
@@ -35,32 +52,30 @@ internal sealed class RecursiveRegisterContext
         }
     }
 
-    public bool Contains(Type sourceType, Type targetType) => _stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType);
-
-    public void RegisterIf(Type sourceType, Type targetType, bool hasRegistered)
+    public void RegisterIf(MapperRegistry mapperRegistry, Type sourceType, Type targetType, bool hasRegistered)
     {
-        if (!_stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
+        if (hasRegistered)
         {
-            if (hasRegistered)
+            if (_loopDependencyMapping.TryGetValue(sourceType, out var set) && set.Contains(targetType))
             {
-                if (LoopDependencyContains(sourceType, targetType))
-                {
-                    DumpLoopDependency();
-                }
-            }
-            else
-            {
-                // there is no way to get generic arguments that user defined for the source and target,
-                // so though reflection is slow, it's the only way that works here.
-                // considering registering is a one-time-job, it's acceptable.
-                RecursivelyRegisterMethod.Invoke(_mapperRegistry, new object?[] { sourceType, targetType, this });
+                DumpLoopDependency();
             }
         }
         else
         {
-            DumpLoopDependency();
+            // there is no way to get generic arguments that user defined for the source and target,
+            // so though reflection is slow, it's the only way that works here.
+            // considering registering is a one-time-job, it's acceptable.
+            RecursivelyRegisterMethod.Invoke(mapperRegistry, new object?[] { sourceType, targetType, this });
         }
     }
+}
 
-    private bool LoopDependencyContains(Type sourceType, Type targetType) => _loopDependencyMapping.TryGetValue(sourceType, out var set) && set.Contains(targetType);
+internal sealed class MappingToDatabaseContext : RecursiveContext
+{
+    public EntityPropertyMappingData MakeMappingData(string propertyName)
+    {
+        var tuple = Stack.Peek();
+        return new EntityPropertyMappingData(tuple.Item1, tuple.Item2, propertyName);
+    }
 }

@@ -102,8 +102,8 @@ public sealed class EntityPropertyMappingTests : TestBase
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder
-            .WithConfiguration<DependentRequired1_1>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), false))
-            .WithConfiguration<DependentRequired1_2>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), false))
+            .WithConfiguration<DependentRequired1_1>(new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), false))
+            .WithConfiguration<DependentRequired1_2>(new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), false))
             .RegisterTwoWay<PrincipalRequired1, PrincipalRequired2>();
         var mapper = mapperBuilder.Build();
 

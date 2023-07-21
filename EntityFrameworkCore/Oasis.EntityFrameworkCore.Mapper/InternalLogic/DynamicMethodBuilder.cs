@@ -147,7 +147,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var methodName = BuildMapperMethodName(MapEntityPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(
             methodName,
-            new[] { typeof(IEntityPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>), typeof(EntityPropertyMappingData?) },
+            new[] { typeof(IEntityPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>) },
             typeof(void));
         var generator = method.GetILGenerator();
         foreach (var matched in matchedProperties)
@@ -160,7 +160,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg_2);
             generator.Emit(OpCodes.Callvirt, matched.Item3.GetMethod!);
             generator.Emit(OpCodes.Ldarg_3);
-            generator.Emit(OpCodes.Ldarg, 4);
+            generator.Emit(OpCodes.Ldstr, matched.Item3.Name);
             generator.Emit(OpCodes.Callvirt, _entityPropertyMapperCache.CreateIfNotExist(matched.Item2, matched.Item4));
             generator.Emit(OpCodes.Callvirt, matched.Item3.SetMethod!);
         }
@@ -177,7 +177,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         var methodName = BuildMapperMethodName(MapListPropertiesMethod, sourceType, targetType);
         var method = BuildMethod(
             methodName,
-            new[] { typeof(IListPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>), typeof(EntityPropertyMappingData?) },
+            new[] { typeof(IListPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>) },
             typeof(void));
         var generator = method.GetILGenerator();
 
@@ -210,7 +210,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg_2);
             generator.Emit(OpCodes.Callvirt, match.Item3.GetMethod!);
             generator.Emit(OpCodes.Ldarg_3);
-            generator.Emit(OpCodes.Ldarg, 4);
+            generator.Emit(OpCodes.Ldstr, match.Item3.Name);
             generator.Emit(OpCodes.Callvirt, _entityListPropertyMapperCache.CreateIfNotExist(match.Item2, match.Item4));
         }
 

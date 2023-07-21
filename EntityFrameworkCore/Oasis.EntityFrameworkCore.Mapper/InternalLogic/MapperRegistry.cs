@@ -3,8 +3,7 @@
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Reflection.Emit;
 
-internal record struct KeyPropertyConfiguration(string identityPropertyName,
-    string? concurrencyTokenPropertyName = default);
+internal record struct KeyPropertyConfiguration(string identityPropertyName, string? concurrencyTokenPropertyName = default);
 
 internal sealed class MapperRegistry
 {
@@ -20,8 +19,8 @@ internal sealed class MapperRegistry
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet?>> _mapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _idComparers = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _concurrencyTokenComparers = new ();
-    private readonly Dictionary<Type, Dictionary<Type, bool>> _mappingKeepEntityOnMappingRemovedConfiguration = new ();
-    private readonly Dictionary<Type, Dictionary<Type, IReadOnlyDictionary<string, bool>>> _propertyKeepEntityOnMappingRemovedConfiguration = new ();
+    private readonly Dictionary<Type, Dictionary<Type, bool>> _mappingKeepEntityOnMappingRemoved = new ();
+    private readonly Dictionary<Type, Dictionary<Type, IReadOnlyDictionary<string, bool>>> _propertyKeepEntityOnMappingRemoved = new ();
     private readonly Dictionary<Type, Dictionary<Type, ICustomTypeMapperConfiguration?>> _toBeRegistered = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _typeListFactoryMethods = new ();
@@ -30,6 +29,7 @@ internal sealed class MapperRegistry
     private readonly IMapperTypeValidator _entityMapperTypeValidator;
     private readonly IMapperTypeValidator _entityListMapperTypeValidator;
     private readonly IKeyPropertyNameManager _keyPropertyNames;
+    private readonly bool _defaultKeepEntityOnMappingRemoved;
 
     public MapperRegistry(IDynamicMethodBuilder dynamicMethodBuilder, EntityConfiguration defaultConfiguration)
     {
@@ -40,6 +40,7 @@ internal sealed class MapperRegistry
         _scalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTypes);
         _entityMapperTypeValidator = new EntityMapperTypeValidator(_mapper, _convertableToScalarTypes);
         _entityListMapperTypeValidator = new EntityListMapperTypeValidator(_mapper, _convertableToScalarTypes);
+        _defaultKeepEntityOnMappingRemoved = defaultConfiguration.keepEntityOnMappingRemoved ?? IMapperBuilder.DefaultKeepEntityOnMappingRemoved;
     }
 
     public void Register(Type sourceType, Type targetType, ICustomTypeMapperConfiguration? configuration)
@@ -243,6 +244,11 @@ internal sealed class MapperRegistry
         return new TargetTrackerProvider(_loopDependencyMapping, entityFactory);
     }
 
+    public EntityRemover MakeEntityRemover()
+    {
+        return new EntityRemover(_defaultKeepEntityOnMappingRemoved, _typeKeepEntityOnMappingRemovedConfiguration, _mappingKeepEntityOnMappingRemoved, _propertyKeepEntityOnMappingRemoved);
+    }
+
     public void Clear()
     {
         _scalarConverterDictionary.Clear();
@@ -356,7 +362,7 @@ internal sealed class MapperRegistry
             throw new InvalidEntityTypeException(targetType);
         }
 
-        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(this, _dynamicMethodBuilder, _loopDependencyMapping));
+        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping));
     }
 
     private bool IsKnownEntityType(Type type)
@@ -380,11 +386,9 @@ internal sealed class MapperRegistry
                 throw new ArgumentException($"At least 1 configuration item of {nameof(ICustomTypeMapperConfiguration)} should not be null.", nameof(configuration));
             }
 
-            context.Push(sourceType, targetType);
+            using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
+            RegisterTypeKeyProxies(sourceType, targetType, _dynamicMethodBuilder);
 
-            RegisterTypeKeyProxies(sourceType, targetType, context.MethodBuilder);
-
-            var methodBuilder = context.MethodBuilder;
             var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).ToList();
             var targetProperties = targetType.GetProperties(Utilities.PublicInstance).ToList();
             if (configuration?.CustomPropertyMapper != null)
@@ -395,8 +399,8 @@ internal sealed class MapperRegistry
             (var sourceIdentityProperty, var targetIdentityProperty, var sourceConcurrencyTokenProperty, var targetConcurrencyTokenProperty) =
                 ExtractKeyProperties(sourceType, targetType, sourceProperties, targetProperties);
 
-            RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, methodBuilder);
-            RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, methodBuilder);
+            RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder);
+            RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder);
 
             if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet?>? innerMapper))
             {
@@ -412,32 +416,30 @@ internal sealed class MapperRegistry
                     var remover = configuration.PropertyEntityRemover;
                     if (remover.MappingKeepEntityOnMappingRemoved.HasValue)
                     {
-                        AddToTypeTypeDictionary(_mappingKeepEntityOnMappingRemovedConfiguration, sourceType, targetType, remover.MappingKeepEntityOnMappingRemoved.Value);
+                        AddToTypeTypeDictionary(_mappingKeepEntityOnMappingRemoved, sourceType, targetType, remover.MappingKeepEntityOnMappingRemoved.Value);
                     }
 
                     if (remover.PropertyKeepEntityOnMappingRemoved != null)
                     {
-                        AddToTypeTypeDictionary(_propertyKeepEntityOnMappingRemovedConfiguration, sourceType, targetType, remover.PropertyKeepEntityOnMappingRemoved);
+                        AddToTypeTypeDictionary(_propertyKeepEntityOnMappingRemoved, sourceType, targetType, remover.PropertyKeepEntityOnMappingRemoved);
                         keepEntityOnMappingRemovedProperties = remover.PropertyKeepEntityOnMappingRemoved.Keys.ToHashSet();
                     }
                 }
 
-                var keyPropertiesMapper = methodBuilder.BuildUpKeyPropertiesMapperMethod(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty);
+                var keyPropertiesMapper = _dynamicMethodBuilder.BuildUpKeyPropertiesMapperMethod(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty);
                 var mappedScalarProperties = ExtractScalarProperties(sourceProperties, targetProperties);
-                var scalarPropertiesMapper = mappedScalarProperties.Any() ? methodBuilder.BuildUpScalarPropertiesMapperMethod(sourceType, targetType, mappedScalarProperties) : null;
+                var scalarPropertiesMapper = mappedScalarProperties.Any() ? _dynamicMethodBuilder.BuildUpScalarPropertiesMapperMethod(sourceType, targetType, mappedScalarProperties) : null;
                 var mappedEntityProperties = ExtractEntityProperties(sourceProperties, targetProperties, context, keepEntityOnMappingRemovedProperties);
-                var entityPropertiesMapper = mappedEntityProperties.Any() ? methodBuilder.BuildUpEntityPropertiesMapperMethod(sourceType, targetType, mappedEntityProperties) : null;
+                var entityPropertiesMapper = mappedEntityProperties.Any() ? _dynamicMethodBuilder.BuildUpEntityPropertiesMapperMethod(sourceType, targetType, mappedEntityProperties) : null;
                 var mappedEntityListProperties = ExtractEntityListProperties(sourceProperties, targetProperties, context, keepEntityOnMappingRemovedProperties);
                 if (keepEntityOnMappingRemovedProperties != null && keepEntityOnMappingRemovedProperties.Any())
                 {
                     throw new CustomTypePropertyEntityRemoverException(sourceType, targetType, string.Join('/', keepEntityOnMappingRemovedProperties));
                 }
 
-                var entityListPropertiesMapper = mappedEntityListProperties.Any() ? methodBuilder.BuildUpEntityListPropertiesMapperMethod(sourceType, targetType, mappedEntityListProperties) : null;
+                var entityListPropertiesMapper = mappedEntityListProperties.Any() ? _dynamicMethodBuilder.BuildUpEntityListPropertiesMapperMethod(sourceType, targetType, mappedEntityListProperties) : null;
                 innerMapper[targetType] = Utilities.BuildMapperMetaDataSet(configuration?.CustomPropertyMapper?.MapProperties, keyPropertiesMapper, scalarPropertiesMapper, entityPropertiesMapper, entityListPropertiesMapper);
             }
-
-            context.Pop();
         }
         else
         {
@@ -516,7 +518,7 @@ internal sealed class MapperRegistry
                 var targetPropertyType = targetProperty.PropertyType;
 
                 // cascading mapper creation: if entity mapper doesn't exist, create it
-                context.RegisterIf(sourcePropertyType, targetPropertyType, _entityMapperTypeValidator.CanConvert(sourcePropertyType, targetPropertyType));
+                context.RegisterIf(this, sourcePropertyType, targetPropertyType, _entityMapperTypeValidator.CanConvert(sourcePropertyType, targetPropertyType));
                 matchedProperties.Add((sourceProperty, sourcePropertyType, targetProperty, targetPropertyType));
                 keepEntityOnMappingRemovedProperties?.Remove(sourceProperty.Name);
             }
@@ -548,7 +550,7 @@ internal sealed class MapperRegistry
                 var targetItemType = targetProperty.PropertyType.GetListItemType()!;
 
                 // cascading mapper creation: if list item mapper doesn't exist, create it
-                context.RegisterIf(sourceItemType!, targetItemType!, _entityListMapperTypeValidator.CanConvert(sourceItemType!, targetItemType!));
+                context.RegisterIf(this, sourceItemType!, targetItemType!, _entityListMapperTypeValidator.CanConvert(sourceItemType!, targetItemType!));
                 matchedProperties.Add((sourceProperty, sourceItemType, targetProperty, targetItemType));
                 keepEntityOnMappingRemovedProperties?.Remove(sourceProperty.Name);
             }

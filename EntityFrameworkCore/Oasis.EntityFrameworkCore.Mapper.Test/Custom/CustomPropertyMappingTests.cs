@@ -17,10 +17,10 @@ public class CustomPropertyMappingTests
     {
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-        var custom = factory.MakeCustomPropertyMapperBuilder<CustomEntity1, CustomEntity2>()
+        var custom = factory.MakeCustomTypeMapperBuilder<CustomEntity1, CustomEntity2>()
             .MapProperty(c2 => c2.InternalIntProperty, c1 => c1.InternalProperty.IntProperty)
             .Build();
-        var mapper = mapperBuilder.Register(custom).Build();
+        var mapper = mapperBuilder.Register<CustomEntity1, CustomEntity2>(custom).Build();
 
         var c1 = new CustomEntity1
         {
@@ -38,10 +38,10 @@ public class CustomPropertyMappingTests
     {
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-        var custom = factory.MakeCustomPropertyMapperBuilder<CustomEntity3, CustomEntity2>()
+        var custom = factory.MakeCustomTypeMapperBuilder<CustomEntity3, CustomEntity2>()
             .MapProperty(c2 => c2.InternalIntProperty, c3 => c3.InternalProperty.IntProperty)
             .Build();
-        var mapper = mapperBuilder.Register(custom).Build();
+        var mapper = mapperBuilder.Register<CustomEntity3, CustomEntity2>(custom).Build();
 
         var c3 = new CustomEntity3
         {
