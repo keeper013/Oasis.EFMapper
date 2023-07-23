@@ -1,23 +1,35 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-internal interface IKeyPropertyNameManager
-{
-    string? GetIdentityPropertyName(Type type);
+using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-    string? GetConcurrencyTokenPropertyName(Type type);
-
-    bool IsKeyPropertyName(string name, Type type);
-}
-
-internal class KeyPropertyNameManager : IKeyPropertyNameManager
+internal class KeyPropertyNameManager
 {
     private readonly KeyPropertyNameConfiguration _defaultConfiguration;
-    private readonly IReadOnlyDictionary<Type, KeyPropertyConfiguration> _typesUsingCustomConfiguration;
+    private readonly Dictionary<Type, KeyPropertyConfiguration> _typesUsingCustomConfiguration = new ();
 
-    public KeyPropertyNameManager(KeyPropertyNameConfiguration defaultConfiguration, Dictionary<Type, KeyPropertyConfiguration> dictionary)
+    public KeyPropertyNameManager(KeyPropertyNameConfiguration defaultConfiguration)
     {
         _defaultConfiguration = defaultConfiguration;
-        _typesUsingCustomConfiguration = dictionary;
+    }
+
+    public bool ContainsConfiguration(Type type)
+    {
+        return _typesUsingCustomConfiguration.ContainsKey(type);
+    }
+
+    public void Add(Type type, KeyPropertyConfiguration config)
+    {
+        if (_typesUsingCustomConfiguration.ContainsKey(type))
+        {
+            throw new TypeConfiguratedException(type);
+        }
+
+        _typesUsingCustomConfiguration.Add(type, config);
+    }
+
+    public void Clear()
+    {
+        _typesUsingCustomConfiguration.Clear();
     }
 
     public string? GetIdentityPropertyName(Type type)

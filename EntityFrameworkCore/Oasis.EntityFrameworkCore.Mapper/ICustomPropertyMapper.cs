@@ -21,6 +21,8 @@ public interface ICustomTypeMapperConfiguration
     ICustomPropertyMapper? CustomPropertyMapper { get; }
 
     IPropertyEntityRemover? PropertyEntityRemover { get; }
+
+    string[]? ExcludedProperties { get; }
 }
 
 public interface ICustomTypeMapperConfigurationBuilder<TSource, TTarget>
@@ -32,6 +34,8 @@ public interface ICustomTypeMapperConfigurationBuilder<TSource, TTarget>
     ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value);
 
     ICustomTypeMapperConfigurationBuilder<TSource, TTarget> PropertyKeepEntityOnMappingRemoved(string propertyName, bool keep);
+
+    ICustomTypeMapperConfigurationBuilder<TSource, TTarget> ExcludePropertyByName(params string[] names);
 
     ICustomTypeMapperConfiguration Build();
 }

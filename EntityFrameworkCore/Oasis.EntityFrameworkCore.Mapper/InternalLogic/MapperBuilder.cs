@@ -37,11 +37,7 @@ internal sealed class MapperBuilder : IMapperBuilder
         where TSource : class
         where TTarget : class
     {
-        lock (_mapperRegistry)
-        {
-            _mapperRegistry.Register(typeof(TSource), typeof(TTarget), configuration);
-        }
-
+        _mapperRegistry.Register(typeof(TSource), typeof(TTarget), configuration);
         return this;
     }
 
@@ -58,44 +54,29 @@ internal sealed class MapperBuilder : IMapperBuilder
             _mapperRegistry.Register(sourceType, targetType, sourceToTargetConfiguration);
         }
 
-        lock (_mapperRegistry)
-        {
-            _mapperRegistry.Register(sourceType, targetType, sourceToTargetConfiguration);
-            _mapperRegistry.Register(targetType, sourceType, targetToSourceConfiguration);
-        }
+        _mapperRegistry.Register(sourceType, targetType, sourceToTargetConfiguration);
+        _mapperRegistry.Register(targetType, sourceType, targetToSourceConfiguration);
 
         return this;
     }
 
     IMapperBuilder IMapperBuilder.WithFactoryMethod<TList, TItem>(Expression<Func<TList>> factoryMethod, bool throwIfRedundant)
     {
-        lock (_mapperRegistry)
-        {
-            _mapperRegistry.WithFactoryMethod(typeof(TList), typeof(TItem), factoryMethod.Compile(), throwIfRedundant);
-        }
-
+        _mapperRegistry.WithFactoryMethod(typeof(TList), typeof(TItem), factoryMethod.Compile(), throwIfRedundant);
         return this;
     }
 
     public IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod, bool throwIfRedundant = false)
         where TEntity : class
     {
-        lock (_mapperRegistry)
-        {
-            _mapperRegistry.WithFactoryMethod(typeof(TEntity), factoryMethod.Compile(), throwIfRedundant);
-        }
-
+        _mapperRegistry.WithFactoryMethod(typeof(TEntity), factoryMethod.Compile(), throwIfRedundant);
         return this;
     }
 
     public IMapperBuilder WithConfiguration<TEntity>(EntityConfiguration configuration, bool throwIfRedundant = false)
         where TEntity : class
     {
-        lock (_mapperRegistry)
-        {
-            _mapperRegistry.WithConfiguration(typeof(TEntity), configuration, throwIfRedundant);
-        }
-
+        _mapperRegistry.WithConfiguration(typeof(TEntity), configuration, throwIfRedundant);
         return this;
     }
 
@@ -108,11 +89,7 @@ internal sealed class MapperBuilder : IMapperBuilder
             throw new SameTypeException(targetType);
         }
 
-        lock (_mapperRegistry)
-        {
-            _mapperRegistry.WithScalarConverter(typeof(TSource), typeof(TTarget), expression.Compile(), throwIfRedundant);
-        }
-
+        _mapperRegistry.WithScalarConverter(typeof(TSource), typeof(TTarget), expression.Compile(), throwIfRedundant);
         return this;
     }
 }

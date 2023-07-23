@@ -122,10 +122,13 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : ICustomTypeMapperConf
 {
     private CustomPropertyMapper<TSource, TTarget> _customPropertyMapper = new ();
     private PropertyEntityRemover _propertyEntityRemover = new ();
+    private ISet<string> _excludedProperties = new HashSet<string>();
 
-    public ICustomPropertyMapper? CustomPropertyMapper => _customPropertyMapper.HasContent ? _customPropertyMapper : null;
+    public string[]? ExcludedProperties => _excludedProperties.Any() ? _excludedProperties.ToArray() : default;
 
-    public IPropertyEntityRemover? PropertyEntityRemover => _propertyEntityRemover.HasContent ? _propertyEntityRemover : null;
+    public ICustomPropertyMapper? CustomPropertyMapper => _customPropertyMapper.HasContent ? _customPropertyMapper : default;
+
+    public IPropertyEntityRemover? PropertyEntityRemover => _propertyEntityRemover.HasContent ? _propertyEntityRemover : default;
 
     public ICustomTypeMapperConfiguration Build()
     {
@@ -147,6 +150,12 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : ICustomTypeMapperConf
     public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> SetMappingKeepEntityOnMappingRemoved(bool keep)
     {
         _propertyEntityRemover.KeepEntityOnMappingRemoved = keep;
+        return this;
+    }
+
+    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> ExcludePropertyByName(params string[] names)
+    {
+        _excludedProperties.UnionWith(names);
         return this;
     }
 }

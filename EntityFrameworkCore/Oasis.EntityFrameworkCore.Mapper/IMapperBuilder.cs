@@ -34,4 +34,5 @@ public interface IMapperBuilder
 public record struct EntityConfiguration(
     string identityPropertyName,
     string? concurrencyTokenPropertyName = default,
-    bool? keepEntityOnMappingRemoved = default);
+    bool? keepEntityOnMappingRemoved = default,
+    string[]? excludedProperties = default);

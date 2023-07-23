@@ -1,7 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Test.OneToOne;
 
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using System.Threading.Tasks;
 using Xunit;
 

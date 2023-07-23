@@ -38,7 +38,7 @@ public interface IRecursiveMapper<TKeyType>
     TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
         where TSource : class
         where TTarget : class;
-    //TODO: handle scalar list
+
     void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
         where TSource : class
         where TTarget : class;

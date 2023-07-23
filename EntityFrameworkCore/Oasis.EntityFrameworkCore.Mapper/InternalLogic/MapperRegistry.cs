@@ -1,7 +1,7 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Reflection.Emit;
+using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
 internal record struct KeyPropertyConfiguration(string identityPropertyName, string? concurrencyTokenPropertyName = default);
 
@@ -11,9 +11,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarTypes = new ();
     private readonly HashSet<Type> _knownEntityTypes = new ();
-    private readonly Dictionary<Type, KeyPropertyConfiguration> _keyPropertyConfiguration = new ();
     private readonly Dictionary<Type, bool> _typeKeepEntityOnMappingRemovedConfiguration = new ();
-    private readonly HashSet<Type> _typesUsingDefaultConfiguration = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeIdProxies = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeConcurrencyTokenProxies = new ();
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet?>> _mapper = new ();
@@ -27,14 +25,13 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
     private readonly IMapperTypeValidator _scalarMapperTypeValidator;
     private readonly IMapperTypeValidator _entityMapperTypeValidator;
-    private readonly IKeyPropertyNameManager _keyPropertyNames;
+    private readonly KeyPropertyNameManager _keyPropertyNames;
+    private readonly ExcludedPropertyManager _excludedPropertyManager = new ();
     private readonly bool _defaultKeepEntityOnMappingRemoved;
 
     public MapperRegistry(ModuleBuilder module, EntityConfiguration defaultConfiguration)
     {
-        _keyPropertyNames = new KeyPropertyNameManager(
-            new KeyPropertyNameConfiguration(defaultConfiguration.identityPropertyName, defaultConfiguration.concurrencyTokenPropertyName),
-            _keyPropertyConfiguration);
+        _keyPropertyNames = new KeyPropertyNameManager(new KeyPropertyNameConfiguration(defaultConfiguration.identityPropertyName, defaultConfiguration.concurrencyTokenPropertyName));
         _scalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTypes);
         _entityMapperTypeValidator = new EntityMapperTypeValidator(_mapper);
         _defaultKeepEntityOnMappingRemoved = defaultConfiguration.keepEntityOnMappingRemoved ?? IMapperBuilder.DefaultKeepEntityOnMappingRemoved;
@@ -47,7 +44,37 @@ internal sealed class MapperRegistry : IRecursiveRegister
 
     public void Register(Type sourceType, Type targetType, ICustomTypeMapperConfiguration? configuration)
     {
-        AddToTypeTypeDictionary(_toBeRegistered, sourceType, targetType, configuration);
+        if (configuration != null)
+        {
+            if (configuration.CustomPropertyMapper == null && configuration.PropertyEntityRemover == null && configuration.ExcludedProperties == null)
+            {
+                throw new ArgumentException($"At least 1 configuration item of {nameof(ICustomTypeMapperConfiguration)} should not be null.", nameof(configuration));
+            }
+
+            if (configuration.ExcludedProperties != null)
+            {
+                if (configuration.CustomPropertyMapper != null)
+                {
+                    var excluded = configuration.CustomPropertyMapper.MappedTargetProperties.FirstOrDefault(p => configuration.ExcludedProperties.Contains(p.Name));
+                    if (excluded != null)
+                    {
+                        throw new CustomMappingPropertyExcludedException(sourceType, targetType, excluded.Name);
+                    }
+
+                    var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance);
+                    var targetProperties = targetType.GetProperties(Utilities.PublicInstance);
+                    foreach (var propertyName in configuration.ExcludedProperties)
+                    {
+                        if (!sourceProperties.Any(p => string.Equals(p.Name, propertyName)) || !targetProperties.Any(p => string.Equals(p.Name, propertyName)))
+                        {
+                            throw new UselessExcludeException(sourceType, targetType, propertyName);
+                        }
+                    }
+                }
+            }
+        }
+
+        _toBeRegistered.Add(sourceType, targetType, configuration);
     }
 
     public Type Build()
@@ -126,7 +153,8 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
 
         bool typeIsConfigurated = false;
-        if (_keyPropertyConfiguration.ContainsKey(type) || _typeKeepEntityOnMappingRemovedConfiguration.ContainsKey(type))
+        if (_keyPropertyNames.ContainsConfiguration(type) || _typeKeepEntityOnMappingRemovedConfiguration.ContainsKey(type)
+            || _excludedPropertyManager.ContainsTypeConfiguration(type))
         {
             if (throwIfRedundant)
             {
@@ -136,29 +164,13 @@ internal sealed class MapperRegistry : IRecursiveRegister
             typeIsConfigurated = true;
         }
 
-        if (_typesUsingDefaultConfiguration.Contains(type))
-        {
-            typeIsConfigurated = true;
-            if (throwIfRedundant)
-            {
-                throw new TypeAlreadyRegisteredException(type);
-            }
-        }
-
         if (!typeIsConfigurated)
         {
-            _keyPropertyConfiguration[type] = new KeyPropertyConfiguration(configuration.identityPropertyName, configuration.concurrencyTokenPropertyName);
-
-            var identityProperty = type.GetProperties(Utilities.PublicInstance).GetKeyProperty(configuration.identityPropertyName, false);
+            var properties = type.GetProperties(Utilities.PublicInstance);
+            var identityProperty = properties.GetKeyProperty(configuration.identityPropertyName, false);
             if (identityProperty != default)
             {
-                _typeIdProxies.Add(type, BuildTypeKeyProxy(type, identityProperty, _dynamicMethodBuilder, KeyType.Id));
-            }
-
-            var concurrencyTokenProperty = type.GetProperties(Utilities.PublicInstance).GetKeyProperty(configuration.concurrencyTokenPropertyName, false);
-            if (concurrencyTokenProperty != default)
-            {
-                _typeConcurrencyTokenProxies.Add(type, BuildTypeKeyProxy(type, concurrencyTokenProperty, _dynamicMethodBuilder, KeyType.ConcurrencyToken));
+                _keyPropertyNames.Add(type, new KeyPropertyConfiguration(configuration.identityPropertyName, configuration.concurrencyTokenPropertyName));
             }
 
             if (configuration.keepEntityOnMappingRemoved.HasValue)
@@ -169,6 +181,19 @@ internal sealed class MapperRegistry : IRecursiveRegister
                 }
 
                 _typeKeepEntityOnMappingRemovedConfiguration.Add(type, configuration.keepEntityOnMappingRemoved.Value);
+            }
+
+            if (configuration.excludedProperties != null && configuration.excludedProperties.Any())
+            {
+                foreach (var propertyName in configuration.excludedProperties)
+                {
+                    if (!properties.Any(p => string.Equals(p.Name, propertyName)))
+                    {
+                        throw new UselessExcludeException(type, propertyName);
+                    }
+                }
+
+                _excludedPropertyManager.Add(type, new HashSet<string>(configuration.excludedProperties));
             }
         }
     }
@@ -250,26 +275,26 @@ internal sealed class MapperRegistry : IRecursiveRegister
                 throw new FactoryMethodException(targetType, true);
             }
 
-            var configuration = PopFromTypeTypeDictionary(_toBeRegistered, sourceType, targetType);
-
-            if (configuration != null && configuration.CustomPropertyMapper == null && configuration.PropertyEntityRemover == null)
-            {
-                throw new ArgumentException($"At least 1 configuration item of {nameof(ICustomTypeMapperConfiguration)} should not be null.", nameof(configuration));
-            }
+            var configuration = _toBeRegistered.Pop(sourceType, targetType);
 
             using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
-            RegisterTypeKeyProxies(sourceType, targetType, _dynamicMethodBuilder);
-
-            var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance).ToList();
-            var targetProperties = targetType.GetProperties(Utilities.PublicInstance).ToList();
+            (var sourceExcludedProperties, var targetExcludedProperties) = _excludedPropertyManager.GetExcludedPropertyNames(sourceType, targetType);
+            var sourceProperties = sourceExcludedProperties != null
+                ? sourceType.GetProperties(Utilities.PublicInstance).Where(p => !sourceExcludedProperties.Contains(p.Name)).ToList()
+                : sourceType.GetProperties(Utilities.PublicInstance).ToList();
+            var targetProperties = targetExcludedProperties != null
+                ? targetType.GetProperties(Utilities.PublicInstance).Where(p => !targetExcludedProperties.Contains(p.Name)).ToList()
+                : targetType.GetProperties(Utilities.PublicInstance).ToList();
             if (configuration?.CustomPropertyMapper != null)
             {
                 targetProperties = targetProperties.Except(configuration.CustomPropertyMapper.MappedTargetProperties).ToList();
             }
 
             (var sourceIdentityProperty, var targetIdentityProperty, var sourceConcurrencyTokenProperty, var targetConcurrencyTokenProperty) =
-                ExtractKeyProperties(sourceType, targetType, sourceProperties, targetProperties);
+                ExtractKeyProperties(sourceType, targetType, sourceProperties, targetProperties, sourceExcludedProperties, targetExcludedProperties);
 
+            RegisterKeyProperty(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder, _typeIdProxies, KeyType.Id);
+            RegisterKeyProperty(sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder, _typeConcurrencyTokenProxies, KeyType.ConcurrencyToken);
             RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder);
             RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder);
 
@@ -287,12 +312,12 @@ internal sealed class MapperRegistry : IRecursiveRegister
                     var remover = configuration.PropertyEntityRemover;
                     if (remover.MappingKeepEntityOnMappingRemoved.HasValue)
                     {
-                        AddToTypeTypeDictionary(_mappingKeepEntityOnMappingRemoved, sourceType, targetType, remover.MappingKeepEntityOnMappingRemoved.Value);
+                        _mappingKeepEntityOnMappingRemoved.Add(sourceType, targetType, remover.MappingKeepEntityOnMappingRemoved.Value);
                     }
 
                     if (remover.PropertyKeepEntityOnMappingRemoved != null)
                     {
-                        AddToTypeTypeDictionary(_propertyKeepEntityOnMappingRemoved, sourceType, targetType, remover.PropertyKeepEntityOnMappingRemoved);
+                        _propertyKeepEntityOnMappingRemoved.Add(sourceType, targetType, remover.PropertyKeepEntityOnMappingRemoved);
                         keepEntityOnMappingRemovedProperties = remover.PropertyKeepEntityOnMappingRemoved.Keys.ToHashSet();
                     }
                 }
@@ -327,8 +352,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         _scalarConverterDictionary.Clear();
         _convertableToScalarTypes.Clear();
         _knownEntityTypes.Clear();
-        _keyPropertyConfiguration.Clear();
-        _typesUsingDefaultConfiguration.Clear();
+        _keyPropertyNames.Clear();
         _typeIdProxies.Clear();
         _typeConcurrencyTokenProxies.Clear();
         _mapper.Clear();
@@ -357,70 +381,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
         PropertyInfo? targetKeyProperty,
         IDynamicMethodBuilder methodBuilder)
     {
-        AddToTypeTypeDictionary(
-            comparers,
+        comparers.Add(
             sourceType,
             targetType,
             () => methodBuilder.BuildUpKeyEqualComparerMethod(keyType, sourceType, targetType, sourceKeyProperty!, targetKeyProperty!),
             sourceKeyProperty != default && targetKeyProperty != default);
-    }
-
-    private static void AddToTypeTypeDictionary<T>(Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, T value, bool? extraCondition = null)
-    {
-        if (!dict.TryGetValue(sourceType, out var innerDict))
-        {
-            innerDict = new Dictionary<Type, T>();
-            dict[sourceType] = innerDict;
-        }
-
-        if (!innerDict.ContainsKey(targetType) && (!extraCondition.HasValue || extraCondition.Value))
-        {
-            innerDict![targetType] = value;
-        }
-    }
-
-    private static void AddToTypeTypeDictionary<T>(Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, Func<T> func, bool? extraCondition = null)
-    {
-        if (!dict.TryGetValue(sourceType, out var innerDict))
-        {
-            innerDict = new Dictionary<Type, T>();
-            dict[sourceType] = innerDict;
-        }
-
-        if (!innerDict.ContainsKey(targetType) && (!extraCondition.HasValue || extraCondition.Value))
-        {
-            innerDict![targetType] = func();
-        }
-    }
-
-    private static void RemoveFromTypeTypeDictionary<T>(Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
-    {
-        if (dict.TryGetValue(sourceType, out var innerDict) && innerDict.Remove(targetType))
-        {
-            if (!innerDict.Any())
-            {
-                dict.Remove(sourceType);
-            }
-        }
-        else
-        {
-            throw new InvalidOperationException($"Remove from type type diction is not supposed to remove empty: {sourceType} -> {targetType}");
-        }
-    }
-
-    private static T? PopFromTypeTypeDictionary<T>(Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
-    {
-        if (dict.TryGetValue(sourceType, out var innerDict) && innerDict.Remove(targetType, out var item))
-        {
-            if (!innerDict.Any())
-            {
-                dict.Remove(sourceType);
-            }
-
-            return item;
-        }
-
-        return default;
     }
 
     private void RegisterAndPop(Type sourceType, Type targetType)
@@ -438,12 +403,48 @@ internal sealed class MapperRegistry : IRecursiveRegister
         RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping));
     }
 
-    private (PropertyInfo?, PropertyInfo?, PropertyInfo?, PropertyInfo?) ExtractKeyProperties(Type sourceType, Type targetType, IList<PropertyInfo> sourceProperties, IList<PropertyInfo> targetProperties)
+    private (PropertyInfo?, PropertyInfo?, PropertyInfo?, PropertyInfo?) ExtractKeyProperties(
+        Type sourceType,
+        Type targetType,
+        IList<PropertyInfo> sourceProperties,
+        IList<PropertyInfo> targetProperties,
+        ISet<string>? sourceExcludedProperties,
+        ISet<string>? targetExcludedProperties)
     {
-        var sourceIdentityProperty = sourceProperties.GetKeyProperty(_keyPropertyNames.GetIdentityPropertyName(sourceType), false);
-        var targetIdentityProperty = targetProperties.GetKeyProperty(_keyPropertyNames.GetIdentityPropertyName(targetType), true);
-        var sourceConcurrencyTokenProperty = sourceProperties.GetKeyProperty(_keyPropertyNames.GetConcurrencyTokenPropertyName(sourceType), false);
-        var targetConcurrencyTokenProperty = targetProperties.GetKeyProperty(_keyPropertyNames.GetConcurrencyTokenPropertyName(targetType), true);
+        var sourceIdentityPropertyName = _keyPropertyNames.GetIdentityPropertyName(sourceType);
+        var targetIdentityPropertyName = _keyPropertyNames.GetIdentityPropertyName(targetType);
+        var sourceConcurrencyTokenPropertyName = _keyPropertyNames.GetConcurrencyTokenPropertyName(sourceType);
+        var targetConcurrencyTokenPropertyName = _keyPropertyNames.GetConcurrencyTokenPropertyName(targetType);
+        if (sourceExcludedProperties != null)
+        {
+            if (sourceIdentityPropertyName != null && sourceExcludedProperties.Contains(sourceIdentityPropertyName))
+            {
+                throw new KeyTypeExcludedException(sourceType, targetType, sourceIdentityPropertyName);
+            }
+
+            if (sourceConcurrencyTokenPropertyName != null && sourceExcludedProperties.Contains(sourceConcurrencyTokenPropertyName))
+            {
+                throw new KeyTypeExcludedException(sourceType, targetType, sourceConcurrencyTokenPropertyName);
+            }
+        }
+
+        if (targetExcludedProperties != null)
+        {
+            if (targetIdentityPropertyName != null && targetExcludedProperties.Contains(targetIdentityPropertyName))
+            {
+                throw new KeyTypeExcludedException(sourceType, targetType, targetIdentityPropertyName);
+            }
+
+            if (targetConcurrencyTokenPropertyName != null && targetExcludedProperties.Contains(targetConcurrencyTokenPropertyName))
+            {
+                throw new KeyTypeExcludedException(sourceType, targetType, targetConcurrencyTokenPropertyName);
+            }
+        }
+
+        var sourceIdentityProperty = sourceProperties.GetKeyProperty(sourceIdentityPropertyName, false);
+        var targetIdentityProperty = targetProperties.GetKeyProperty(targetIdentityPropertyName, true);
+        var sourceConcurrencyTokenProperty = sourceProperties.GetKeyProperty(sourceConcurrencyTokenPropertyName, false);
+        var targetConcurrencyTokenProperty = targetProperties.GetKeyProperty(targetConcurrencyTokenPropertyName, true);
         if (sourceIdentityProperty != null)
         {
             sourceProperties.Remove(sourceIdentityProperty);
@@ -467,28 +468,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return (sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty);
     }
 
-    private void RegisterTypeKeyProxies(Type sourceType, Type targetType, IDynamicMethodBuilder methodBuilder)
-    {
-        var sourceTypeRegistered = _keyPropertyConfiguration.ContainsKey(sourceType) || _typesUsingDefaultConfiguration.Contains(sourceType);
-        var targetTypeRegistered = _keyPropertyConfiguration.ContainsKey(targetType) || _typesUsingDefaultConfiguration.Contains(targetType);
-        if (!sourceTypeRegistered || !targetTypeRegistered)
-        {
-            var sourceIdProperty = sourceType.GetProperties(Utilities.PublicInstance).GetKeyProperty(_keyPropertyNames.GetIdentityPropertyName(sourceType), false);
-            var targetIdProperty = targetType.GetProperties(Utilities.PublicInstance).GetKeyProperty(_keyPropertyNames.GetIdentityPropertyName(targetType), true);
-            RegisterKeyProperty(sourceType, targetType, sourceIdProperty, targetIdProperty, sourceTypeRegistered, targetTypeRegistered, methodBuilder, _typeIdProxies, KeyType.Id);
-            var sourceConcurrentyTokenProperty = sourceType.GetProperties(Utilities.PublicInstance).GetKeyProperty(_keyPropertyNames.GetConcurrencyTokenPropertyName(sourceType), false);
-            var targetConcurrentyTokenProperty = targetType.GetProperties(Utilities.PublicInstance).GetKeyProperty(_keyPropertyNames.GetConcurrencyTokenPropertyName(targetType), true);
-            RegisterKeyProperty(sourceType, targetType, sourceConcurrentyTokenProperty, targetConcurrentyTokenProperty, sourceTypeRegistered, targetTypeRegistered, methodBuilder, _typeConcurrencyTokenProxies, KeyType.ConcurrencyToken);
-        }
-    }
-
     private void RegisterKeyProperty(
         Type sourceType,
         Type targetType,
         PropertyInfo? sourceProperty,
         PropertyInfo? targetProperty,
-        bool sourceTypeRegistered,
-        bool targetTypeRegistered,
         IDynamicMethodBuilder methodBuilder,
         Dictionary<Type, TypeKeyProxyMetaDataSet> typeKeyProxies,
         KeyType keyType)
@@ -505,22 +489,14 @@ internal sealed class MapperRegistry : IRecursiveRegister
             }
         }
 
-        if (!sourceTypeRegistered)
+        if (sourcePropertyExists && !typeKeyProxies.ContainsKey(sourceType))
         {
-            _typesUsingDefaultConfiguration.Add(sourceType);
-            if (sourcePropertyExists && !typeKeyProxies.ContainsKey(sourceType))
-            {
-                typeKeyProxies.Add(sourceType, BuildTypeKeyProxy(sourceType, sourceProperty!, methodBuilder, keyType));
-            }
+            typeKeyProxies.Add(sourceType, BuildTypeKeyProxy(sourceType, sourceProperty!, methodBuilder, keyType));
         }
 
-        if (!targetTypeRegistered && sourceType != targetType)
+        if (targetPropertyExists && !typeKeyProxies.ContainsKey(targetType))
         {
-            _typesUsingDefaultConfiguration.Add(targetType);
-            if (targetPropertyExists && !typeKeyProxies.ContainsKey(targetType))
-            {
-                typeKeyProxies.Add(targetType, BuildTypeKeyProxy(targetType, targetProperty!, methodBuilder, keyType));
-            }
+            typeKeyProxies.Add(targetType, BuildTypeKeyProxy(targetType, targetProperty!, methodBuilder, keyType));
         }
     }
 }

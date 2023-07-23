@@ -58,6 +58,55 @@ internal static class Utilities
             ? null
             : new MapperMetaDataSet(customPropertiesMapper, keyMapper, contentMapper);
     }
+
+    internal static void Add<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, T value, bool? extraCondition = null)
+    {
+        if (!dict.TryGetValue(sourceType, out var innerDict))
+        {
+            innerDict = new Dictionary<Type, T>();
+            dict[sourceType] = innerDict;
+        }
+
+        if (!innerDict.ContainsKey(targetType) && (!extraCondition.HasValue || extraCondition.Value))
+        {
+            innerDict![targetType] = value;
+        }
+    }
+
+    internal static void Add<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, Func<T> func, bool? extraCondition = null)
+    {
+        if (!dict.TryGetValue(sourceType, out var innerDict))
+        {
+            innerDict = new Dictionary<Type, T>();
+            dict[sourceType] = innerDict;
+        }
+
+        if (!innerDict.ContainsKey(targetType) && (!extraCondition.HasValue || extraCondition.Value))
+        {
+            innerDict![targetType] = func();
+        }
+    }
+
+    internal static T? Pop<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
+    {
+        if (dict.TryGetValue(sourceType, out var innerDict) && innerDict.Remove(targetType, out var item))
+        {
+            if (!innerDict.Any())
+            {
+                dict.Remove(sourceType);
+            }
+
+            return item;
+        }
+
+        return default;
+    }
+
+    internal static T? Find<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
+    {
+        return dict.TryGetValue(sourceType, out var innerDict) && innerDict.TryGetValue(targetType, out var item)
+            ? item : default;
+    }
 }
 
 internal record struct MethodMetaData(Type type, string name);
