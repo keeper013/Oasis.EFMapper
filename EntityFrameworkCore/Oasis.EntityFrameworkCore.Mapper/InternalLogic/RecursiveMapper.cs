@@ -41,7 +41,7 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
         return _listTypeConstructor.Construct<TList, TItem>();
     }
 
-    internal void Map<TSource, TTarget>(TSource source, TTarget target, bool mapKeyProperties, INewTargetTracker<int>? newTargetTracker, MappingToDatabaseContext? context)
+    internal void Map<TSource, TTarget>(TSource source, TTarget target, bool mapKeyProperties, INewTargetTracker<int>? newTargetTracker, MappingToDatabaseContext? context = null)
         where TSource : class
         where TTarget : class
     {
@@ -190,7 +190,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             }
         }
 
-        return MapToTarget<TSource, TTarget>(source, sourceHasId, newTargetTracker);
+        return MapToNewTarget<TSource, TTarget>(source, sourceHasId, newTargetTracker);
     }
 
     public override TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<int>? newTargetTracker, string propertyName)
@@ -214,7 +214,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                 _entityRemover.RemoveIfConfigured(_databaseContext, target, _mappingContext.MakeMappingData(propertyName));
             }
 
-            return MapToTarget<TSource, TTarget>(source, false, newTargetTracker);
+            return MapToNewTarget<TSource, TTarget>(source, false, newTargetTracker);
         }
 
         if (target != default && !EntityBaseProxy.IdEquals(source, target))
@@ -249,7 +249,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
 
                 if (EntityBaseProxy.IdIsEmpty(s))
                 {
-                    target.Add(MapToTarget<TSource, TTarget>(s, false, newTargetTracker));
+                    target.Add(MapToNewTarget<TSource, TTarget>(s, false, newTargetTracker));
                 }
                 else
                 {
@@ -293,7 +293,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         return Expression.Lambda<Func<TEntity, bool>>(equal, parameter);
     }
 
-    private TTarget MapToTarget<TSource, TTarget>(TSource source, bool mapKeyProperties, INewTargetTracker<int>? newTargetTracker)
+    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, bool mapKeyProperties, INewTargetTracker<int>? newTargetTracker)
         where TSource : class
         where TTarget : class
     {
@@ -363,7 +363,13 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper
     {
         if (source != default)
         {
-            return MapToTarget<TSource, TTarget>(source, newTargetTracker);
+            if (target != default)
+            {
+                Map(source, target, true, newTargetTracker);
+                return target;
+            }
+
+            return MapToNewTarget<TSource, TTarget>(source, newTargetTracker);
         }
 
         return default;
@@ -381,12 +387,12 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper
                     throw new DuplicatedListItemException(typeof(TSource));
                 }
 
-                target.Add(MapToTarget<TSource, TTarget>(s, newTargetTracker));
+                target.Add(MapToNewTarget<TSource, TTarget>(s, newTargetTracker));
             }
         }
     }
 
-    private TTarget MapToTarget<TSource, TTarget>(TSource source, INewTargetTracker<int>? newTargetTracker)
+    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, INewTargetTracker<int>? newTargetTracker)
         where TSource : class
         where TTarget : class
     {
@@ -394,7 +400,7 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper
         bool targetHasBeenMapped;
         if (newTargetTracker != null)
         {
-            targetHasBeenMapped = newTargetTracker.NewTargetIfNotExist<TTarget>(source.GetHashCode(), out newTarget);
+            targetHasBeenMapped = newTargetTracker.NewTargetIfNotExist(source.GetHashCode(), out newTarget);
         }
         else
         {
@@ -404,7 +410,7 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper
 
         if (!targetHasBeenMapped)
         {
-            Map(source, newTarget, true, newTargetTracker, null);
+            Map(source, newTarget, true, newTargetTracker);
         }
 
         return newTarget;
