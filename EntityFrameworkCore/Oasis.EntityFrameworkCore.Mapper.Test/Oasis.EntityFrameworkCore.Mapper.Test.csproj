@@ -32,8 +32,4 @@
     <ProjectReference Include="..\Oasis.EntityFrameworkCore.Mapper\Oasis.EntityFrameworkCore.Mapper.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="KeepEntityOnMappingRemoved\" />
-  </ItemGroup>
-
 </Project>

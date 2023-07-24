@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Oasis.EntityFrameworkCore.Mapper.Test.KeepEntityOnMappingRemoved;
 using Oasis.EntityFrameworkCore.Mapper.Test.KeyPropertyType;
 using Oasis.EntityFrameworkCore.Mapper.Test.OneToMany;
 using Oasis.EntityFrameworkCore.Mapper.Test.OneToOne;
@@ -70,6 +71,10 @@ internal class DatabaseContext : DbContext
         modelBuilder.Entity<ScalarItem1>().HasOne(s => s.List1).WithMany(l => l.Items).HasForeignKey(s => s.List1Id).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<ScalarItem1>().HasOne(s => s.List2).WithMany(l => l.Items).HasForeignKey(s => s.List2Id).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<ToDatabaseEntity1>().ToTable(nameof(ToDatabaseEntity1));
+        modelBuilder.Entity<Principal1>().ToTable(nameof(Principal1));
+        modelBuilder.Entity<Dependant1>().ToTable(nameof(Dependant1));
+        modelBuilder.Entity<Principal1>().HasOne(p => p.OptionalDependant).WithOne().HasForeignKey<Dependant1>(o => o.PrincipalId).IsRequired(false);
+        modelBuilder.Entity<Principal1>().HasMany(p => p.DependentList).WithOne().HasForeignKey(d => d.PrincipalId).IsRequired(false);
 
         if (Database.IsSqlite())
         {
