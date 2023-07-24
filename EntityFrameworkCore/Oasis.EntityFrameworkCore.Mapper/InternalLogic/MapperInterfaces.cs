@@ -35,11 +35,11 @@ public record struct EntityPropertyMappingData(Type sourceType, Type targetType,
 public interface IRecursiveMapper<TKeyType>
     where TKeyType : struct
 {
-    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
+    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName, bool? keepUnmatched)
         where TSource : class
         where TTarget : class;
 
-    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
+    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName, bool? keepUnmatched)
         where TSource : class
         where TTarget : class;
 

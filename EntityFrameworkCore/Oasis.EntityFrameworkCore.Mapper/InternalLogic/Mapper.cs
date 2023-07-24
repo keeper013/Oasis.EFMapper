@@ -54,13 +54,13 @@ internal sealed class Mapper : IMapper
         return target;
     }
 
-    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, DbContext databaseContext, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default, MapToDatabaseType mappingType = MapToDatabaseType.Upsert)
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, DbContext databaseContext, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default, MapToDatabaseType mappingType = MapToDatabaseType.Upsert, bool? keepUnmatched = null)
         where TSource : class
         where TTarget : class
     {
         var newEntityTracker = _targetTrackerProvider.Provide<TSource, TTarget, int>();
         var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy, _entityRemover, _entityFactory, databaseContext);
-        return await toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, newEntityTracker);
+        return await toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, newEntityTracker, keepUnmatched);
     }
 }
 
@@ -110,11 +110,11 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, entityRemover, entityFactory, databaseContext);
     }
 
-    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default, MapToDatabaseType mappingType = MapToDatabaseType.Upsert)
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default, MapToDatabaseType mappingType = MapToDatabaseType.Upsert, bool? keepUnmatched = null)
         where TSource : class
         where TTarget : class
     {
-        return await _toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, _newEntityTracker);
+        return await _toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, _newEntityTracker, keepUnmatched);
     }
 }
 
