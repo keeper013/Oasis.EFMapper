@@ -1,6 +1,7 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using System.Reflection.Emit;
+using System.Security.AccessControl;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
 internal record struct KeyPropertyConfiguration(string identityPropertyName, string? concurrencyTokenPropertyName = default);
@@ -60,17 +61,19 @@ internal sealed class MapperRegistry : IRecursiveRegister
                     {
                         throw new CustomMappingPropertyExcludedException(sourceType, targetType, excluded.Name);
                     }
+                }
 
-                    var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance);
-                    var targetProperties = targetType.GetProperties(Utilities.PublicInstance);
-                    foreach (var propertyName in configuration.ExcludedProperties)
+                var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance);
+                var targetProperties = targetType.GetProperties(Utilities.PublicInstance);
+                foreach (var propertyName in configuration.ExcludedProperties)
+                {
+                    if (!sourceProperties.Any(p => string.Equals(p.Name, propertyName)) || !targetProperties.Any(p => string.Equals(p.Name, propertyName)))
                     {
-                        if (!sourceProperties.Any(p => string.Equals(p.Name, propertyName)) || !targetProperties.Any(p => string.Equals(p.Name, propertyName)))
-                        {
-                            throw new UselessExcludeException(sourceType, targetType, propertyName);
-                        }
+                        throw new UselessExcludeException(sourceType, targetType, propertyName);
                     }
                 }
+
+                _excludedPropertyManager.Add(sourceType, targetType, new HashSet<string>(configuration.ExcludedProperties));
             }
         }
 
