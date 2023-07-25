@@ -8,19 +8,22 @@ using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 internal abstract class RecursiveMapper : IRecursiveMapper<int>
 {
     private readonly MapperSetLookUp _lookup;
+    private readonly ExistingTargetTracker _existingTargetTracker;
     private readonly IScalarTypeConverter _scalarConverter;
     private readonly IListTypeConstructor _listTypeConstructor;
-    private readonly IDictionary<Type, ExistingTargetTracker> _trackerDictionary = new Dictionary<Type, ExistingTargetTracker>();
+    private readonly IDictionary<Type, IExistingTargetTracker> _trackerDictionary = new Dictionary<Type, IExistingTargetTracker>();
 
     internal RecursiveMapper(
         IScalarTypeConverter scalarConverter,
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
+        ExistingTargetTracker existingTargetTracker,
         EntityBaseProxy entityBaseProxy)
     {
         _scalarConverter = scalarConverter;
         _listTypeConstructor = listTypeConstructor;
         _lookup = lookup;
+        _existingTargetTracker = existingTargetTracker;
         EntityBaseProxy = entityBaseProxy;
     }
 
@@ -52,11 +55,11 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
         {
             if (!_trackerDictionary.TryGetValue(targetType, out var existingTargetTracker))
             {
-                existingTargetTracker = new ExistingTargetTracker();
+                existingTargetTracker = _existingTargetTracker.GetTargetTracker(targetType);
                 _trackerDictionary.Add(targetType, existingTargetTracker);
             }
 
-            if (!existingTargetTracker.StartTracking(target.GetHashCode()))
+            if (!existingTargetTracker.StartTracking(target))
             {
                 // Only do mapping if the target hasn't been mapped.
                 // This will be useful to break from infinite loop caused by navigation properties.
@@ -87,13 +90,6 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
             ((Utilities.MapProperties<TSource, TTarget, int>)value.contentMapper)(source, target, _scalarConverter, this, newTargetTracker, keepUnmatched);
         }
     }
-
-    private class ExistingTargetTracker
-    {
-        private readonly ISet<int> _existingTargetHashCodeSet = new HashSet<int>();
-
-        public bool StartTracking(int hashCode) => _existingTargetHashCodeSet.Add(hashCode);
-    }
 }
 
 internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
@@ -110,11 +106,12 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         IScalarTypeConverter scalarConverter,
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
+        ExistingTargetTracker existingTargetTracker,
         EntityBaseProxy entityBaseProxy,
         EntityRemover entityRemover,
         IEntityFactory entityFactory,
         DbContext databaseContext)
-        : base(scalarConverter, listTypeConstructor, lookup, entityBaseProxy)
+        : base(scalarConverter, listTypeConstructor, lookup, existingTargetTracker, entityBaseProxy)
     {
         _scalarConverter = scalarConverter;
         _entityFactory = entityFactory;
@@ -354,9 +351,10 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper
         IScalarTypeConverter scalarConverter,
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
+        ExistingTargetTracker existingTargetTracker,
         EntityBaseProxy entityBaseProxy,
         IEntityFactory entityFactory)
-        : base(scalarConverter, listTypeConstructor, lookup, entityBaseProxy)
+        : base(scalarConverter, listTypeConstructor, lookup, existingTargetTracker, entityBaseProxy)
     {
         _entityFactory = entityFactory;
     }

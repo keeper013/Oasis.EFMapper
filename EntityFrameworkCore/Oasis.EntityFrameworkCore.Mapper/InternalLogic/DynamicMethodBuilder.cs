@@ -16,41 +16,7 @@ internal enum KeyType
     ConcurrencyToken,
 }
 
-internal interface IDynamicMethodBuilder
-{
-    MethodMetaData? BuildUpKeyPropertiesMapperMethod(
-        Type sourceType,
-        Type targetType,
-        PropertyInfo? sourceIdentityProperty,
-        PropertyInfo? targetIdentityProperty,
-        PropertyInfo? sourceConcurrencyTokenProperty,
-        PropertyInfo? targetConcurrencyTokenProperty);
-
-    MethodMetaData? BuildUpContentMappingMethod(
-        Type sourceType,
-        Type targetType,
-        List<PropertyInfo> sourceProperties,
-        List<PropertyInfo> targetProperties,
-        IRecursiveRegister recursiveRegister,
-        RecursiveRegisterContext context,
-        ISet<string>? keepEntityOnMappingRemovedProperties);
-
-    MethodMetaData BuildUpKeyEqualComparerMethod(
-        KeyType keyType,
-        Type sourceType,
-        Type targetType,
-        PropertyInfo sourceKeyProperty,
-        PropertyInfo targetKeyProperty);
-
-    // concurrency token doesn't need get method, so the only get method is for id
-    MethodMetaData BuildUpGetIdMethod(KeyType keyType, Type type, PropertyInfo identityProperty);
-
-    MethodMetaData BuildUpKeyIsEmptyMethod(KeyType keyType, Type type, PropertyInfo identityProperty);
-
-    Type Build();
-}
-
-internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
+internal sealed class DynamicMethodBuilder
 {
     private const char MapKeyPropertiesMethod = 'k';
     private const char CompareIdMethod = 'i';
@@ -58,8 +24,11 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     private const char GetId = 'd';
     private const char IdEmpty = 'b';
     private const char ConcurrencyTokenEmpty = 'n';
+    private const char BuildExistingTargetTracker = 'u';
+    private const char StartTrackExistingTarget = 's';
 
     private static readonly MethodInfo ObjectEqual = typeof(object).GetMethod(nameof(object.Equals), new[] { typeof(object) })!;
+    private static readonly Type _delegateType = typeof(Delegate);
     private readonly GenericMapperMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethods().First(m => string.Equals(m.Name, nameof(IScalarTypeConverter.Convert)) && m.IsGenericMethod));
     private readonly GenericMapperMethodCache _entityPropertyMapperCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapEntityProperty), Utilities.PublicInstance)!);
     private readonly GenericMapperMethodCache _entityListPropertyMapperCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapListProperty), Utilities.PublicInstance)!);
@@ -168,7 +137,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         return BuildUpKeyEqualComparerMethod(sourceType, targetType, sourceKeyProperty, targetKeyProperty, keyType == KeyType.Id ? CompareIdMethod : CompareConcurrencyTokenMethod);
     }
 
-    public MethodMetaData BuildUpGetIdMethod(KeyType keyType, Type type, PropertyInfo identityProperty)
+    public MethodMetaData BuildUpGetIdMethod(Type type, PropertyInfo identityProperty)
     {
         return BuildUpGetKeyMethod(type, identityProperty, GetId);
     }
@@ -176,6 +145,36 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
     public MethodMetaData BuildUpKeyIsEmptyMethod(KeyType keyType, Type type, PropertyInfo identityProperty)
     {
         return BuildUpKeyIsEmptyMethod(type, identityProperty, keyType == KeyType.Id ? IdEmpty : ConcurrencyTokenEmpty);
+    }
+
+    public MethodMetaData BuildUpBuildExistingTargetTrackerMethod(Type targetType, PropertyInfo identityProperty)
+    {
+        var methodName = BuildMethodName(BuildExistingTargetTracker, targetType);
+        var identityType = identityProperty.PropertyType;
+        var classType = typeof(ExistingTargetTracker<>).MakeGenericType(identityType);
+        var constructor = classType.GetConstructor(new Type[] { _delegateType })!;
+        var method = BuildMethod(methodName, new[] { _delegateType }, typeof(IExistingTargetTracker));
+        var generator = method.GetILGenerator();
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Newobj, constructor);
+        generator.Emit(OpCodes.Ret);
+        return new MethodMetaData(typeof(Utilities.BuildExistingTargetTracker), method.Name);
+    }
+
+    public MethodMetaData BuildUpStartTrackExistingTargetMethod(Type targetType, PropertyInfo identityProperty)
+    {
+        var methodName = BuildMethodName(StartTrackExistingTarget, targetType);
+        var identityType = identityProperty.PropertyType;
+        var keySetType = typeof(ISet<>).MakeGenericType(identityType);
+        var addMethod = keySetType.GetMethod("Add")!;
+        var method = BuildMethod(methodName, new[] { keySetType, targetType }, typeof(bool));
+        var generator = method.GetILGenerator();
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, identityProperty.GetMethod!);
+        generator.Emit(OpCodes.Callvirt, addMethod);
+        generator.Emit(OpCodes.Ret);
+        return new MethodMetaData(typeof(Utilities.StartTrackingNewTarget<,>).MakeGenericType(targetType, identityType), method.Name);
     }
 
     private static string GetTypeName(Type type)

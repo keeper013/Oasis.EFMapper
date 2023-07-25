@@ -10,6 +10,7 @@ internal sealed class Mapper : IMapper
     private readonly IListTypeConstructor _listTypeConstructor;
     private readonly IEntityFactory _entityFactory;
     private readonly MapperSetLookUp _lookup;
+    private readonly ExistingTargetTracker _existingTargetTracker;
     private readonly EntityBaseProxy _entityBaseProxy;
     private readonly TargetTrackerProvider _targetTrackerProvider;
     private readonly EntityRemover _entityRemover;
@@ -19,6 +20,7 @@ internal sealed class Mapper : IMapper
         IScalarTypeConverter scalarConverter,
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
+        ExistingTargetTracker existingTargetTracker,
         EntityBaseProxy entityBaseProxy,
         TargetTrackerProvider targetTrackerProvider,
         EntityRemover entityRemover,
@@ -28,10 +30,11 @@ internal sealed class Mapper : IMapper
         _listTypeConstructor = listTypeConstructor;
         _entityFactory = entityFactory;
         _lookup = lookup;
+        _existingTargetTracker = existingTargetTracker;
         _entityBaseProxy = entityBaseProxy;
         _targetTrackerProvider = targetTrackerProvider;
         _entityRemover = entityRemover;
-        _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, entityFactory);
+        _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(scalarConverter, listTypeConstructor, lookup, existingTargetTracker, entityBaseProxy, entityFactory);
     }
 
     public IMappingSession CreateMappingSession()
@@ -41,7 +44,7 @@ internal sealed class Mapper : IMapper
 
     public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
     {
-        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy, _entityRemover, _entityFactory, _targetTrackerProvider, databaseContext);
+        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _lookup, _existingTargetTracker, _entityBaseProxy, _entityRemover, _entityFactory, _targetTrackerProvider, databaseContext);
     }
 
     public TTarget Map<TSource, TTarget>(TSource source)
@@ -59,7 +62,7 @@ internal sealed class Mapper : IMapper
         where TTarget : class
     {
         var newEntityTracker = _targetTrackerProvider.Provide<TSource, TTarget, int>();
-        var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy, _entityRemover, _entityFactory, databaseContext);
+        var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _existingTargetTracker, _entityBaseProxy, _entityRemover, _entityFactory, databaseContext);
         return await toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, newEntityTracker, keepUnmatched);
     }
 }
@@ -100,6 +103,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         IScalarTypeConverter scalarConverter,
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
+        ExistingTargetTracker existingTargetTracker,
         EntityBaseProxy entityBaseProxy,
         EntityRemover entityRemover,
         IEntityFactory entityFactory,
@@ -107,7 +111,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         DbContext databaseContext)
     {
         _newEntityTracker = targetTrackerProvider.Provide<int>();
-        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, entityRemover, entityFactory, databaseContext);
+        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, existingTargetTracker, entityBaseProxy, entityRemover, entityFactory, databaseContext);
     }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default, MapToDatabaseType mappingType = MapToDatabaseType.Upsert, bool? keepUnmatched = null)

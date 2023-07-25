@@ -1,14 +1,13 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using System.Reflection.Emit;
-using System.Security.AccessControl;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
 internal record struct KeyPropertyConfiguration(string identityPropertyName, string? concurrencyTokenPropertyName = default);
 
 internal sealed class MapperRegistry : IRecursiveRegister
 {
-    private readonly IDynamicMethodBuilder _dynamicMethodBuilder;
+    private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarTypes = new ();
     private readonly HashSet<Type> _knownEntityTypes = new ();
@@ -24,6 +23,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _typeListFactoryMethods = new ();
     private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
+    private readonly Dictionary<Type, ExistingTargetTrackerMetaDataSet> _existingTargetTrackers = new ();
     private readonly IMapperTypeValidator _scalarMapperTypeValidator;
     private readonly IMapperTypeValidator _entityMapperTypeValidator;
     private readonly KeyPropertyNameManager _keyPropertyNames;
@@ -249,6 +249,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new MapperSetLookUp(_mapper, type);
     }
 
+    public ExistingTargetTracker MakeExistingTargetTracker(Type type)
+    {
+        return new ExistingTargetTracker(_existingTargetTrackers, type);
+    }
+
     public EntityBaseProxy MakeEntityBaseProxy(Type type, IScalarTypeConverter scalarTypeConverter)
     {
         return new EntityBaseProxy(_typeIdProxies, _typeConcurrencyTokenProxies, _idComparers, _concurrencyTokenComparers, type, scalarTypeConverter);
@@ -300,6 +305,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
             RegisterKeyProperty(sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder, _typeConcurrencyTokenProxies, KeyType.ConcurrencyToken);
             RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder);
             RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder);
+            RegisterExistingTargetTracker(targetType, targetIdentityProperty);
 
             if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet?>? innerMapper))
             {
@@ -366,11 +372,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private static TypeKeyProxyMetaDataSet BuildTypeKeyProxy(
         Type type,
         PropertyInfo property,
-        IDynamicMethodBuilder methodBuilder,
+        DynamicMethodBuilder methodBuilder,
         KeyType keyType)
     {
         return new TypeKeyProxyMetaDataSet(
-            keyType == KeyType.Id ? methodBuilder.BuildUpGetIdMethod(keyType, type, property) : null,
+            keyType == KeyType.Id ? methodBuilder.BuildUpGetIdMethod(type, property) : null,
             methodBuilder.BuildUpKeyIsEmptyMethod(keyType, type, property),
             property);
     }
@@ -382,7 +388,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         Type targetType,
         PropertyInfo? sourceKeyProperty,
         PropertyInfo? targetKeyProperty,
-        IDynamicMethodBuilder methodBuilder)
+        DynamicMethodBuilder methodBuilder)
     {
         comparers.Add(
             sourceType,
@@ -476,7 +482,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         Type targetType,
         PropertyInfo? sourceProperty,
         PropertyInfo? targetProperty,
-        IDynamicMethodBuilder methodBuilder,
+        DynamicMethodBuilder methodBuilder,
         Dictionary<Type, TypeKeyProxyMetaDataSet> typeKeyProxies,
         KeyType keyType)
     {
@@ -500,6 +506,18 @@ internal sealed class MapperRegistry : IRecursiveRegister
         if (targetPropertyExists && !typeKeyProxies.ContainsKey(targetType))
         {
             typeKeyProxies.Add(targetType, BuildTypeKeyProxy(targetType, targetProperty!, methodBuilder, keyType));
+        }
+    }
+
+    private void RegisterExistingTargetTracker(Type targetType, PropertyInfo? targetIdentityProperty)
+    {
+        if (targetIdentityProperty != default && !_existingTargetTrackers.ContainsKey(targetType))
+        {
+            _existingTargetTrackers.Add(
+                targetType,
+                new ExistingTargetTrackerMetaDataSet(
+                    _dynamicMethodBuilder.BuildUpBuildExistingTargetTrackerMethod(targetType, targetIdentityProperty),
+                    _dynamicMethodBuilder.BuildUpStartTrackExistingTargetMethod(targetType, targetIdentityProperty)));
         }
     }
 }

@@ -26,6 +26,18 @@ public interface INewTargetTracker<TKeyType>
         where TTarget : class;
 }
 
+public interface IExistingTargetTracker
+{
+    /// <summary>
+    /// Starts tracking a target by Id.
+    /// </summary>
+    /// <typeparam name="TTarget">Target type.</typeparam>
+    /// <param name="target">Target to track.</param>
+    /// <returns>true if the target isn't tracked yet, else false.</returns>
+    bool StartTracking<TTarget>(TTarget target)
+        where TTarget : class;
+}
+
 public record struct EntityPropertyMappingData(Type sourceType, Type targetType, string propertyName);
 
 /// <summary>
