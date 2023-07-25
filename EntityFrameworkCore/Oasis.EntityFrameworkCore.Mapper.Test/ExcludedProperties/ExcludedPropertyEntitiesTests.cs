@@ -3,7 +3,7 @@
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using Xunit;
 
-public class ExcludedPropertyEntitiesTests : TestBase
+public sealed class ExcludedPropertyEntitiesTests : TestBase
 {
     [Fact]
     public void Exclude_CustomMappedProperties_ShouldThrowException()

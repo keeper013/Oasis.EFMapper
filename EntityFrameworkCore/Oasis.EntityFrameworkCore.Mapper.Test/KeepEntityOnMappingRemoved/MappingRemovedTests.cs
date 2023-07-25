@@ -6,21 +6,21 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
-public class MappingRemovedTests : TestBase
+public sealed class MappingRemovedTests : TestBase
 {
     [Fact]
     public void PropertyConfig_WrongPropertyName_ShouldThrowException()
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var config = factory.MakeCustomTypeMapperBuilder<Principal2, Principal1>()
+        var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
             .SetMappingKeepEntityOnMappingRemoved(false)
             .PropertyKeepEntityOnMappingRemoved("NoneExistingPropertyName", true)
             .Build();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(false));
         var mapper = mapperBuilder
-            .WithConfiguration<Dependant1>(BuildEntityConfiguration(false))
-            .RegisterTwoWay<Principal2, Principal1>(config);
+            .WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(false))
+            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config);
 
         // act and assert
         Assert.Throws<CustomTypePropertyEntityRemoverException>(() => mapper.Build());
@@ -34,7 +34,7 @@ public class MappingRemovedTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(defaultKeep));
-        var mapper = mapperBuilder.RegisterTwoWay<Principal2, Principal1>().Build();
+        var mapper = mapperBuilder.RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
         await RemoveEntityTest(mapper, dependantCount);
@@ -48,7 +48,7 @@ public class MappingRemovedTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(defaultKeep));
-        var mapper = mapperBuilder.RegisterTwoWay<Principal2, Principal1>().Build();
+        var mapper = mapperBuilder.RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
         await RemoveListItemTest(mapper, dependantCount);
@@ -62,7 +62,7 @@ public class MappingRemovedTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
-        var mapper = mapperBuilder.WithConfiguration<Dependant1>(BuildEntityConfiguration(defaultKeep)).RegisterTwoWay<Principal2, Principal1>().Build();
+        var mapper = mapperBuilder.WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(defaultKeep)).RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
         await RemoveEntityTest(mapper, dependantCount);
@@ -76,7 +76,7 @@ public class MappingRemovedTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
-        var mapper = mapperBuilder.WithConfiguration<Dependant1>(BuildEntityConfiguration(defaultKeep)).RegisterTwoWay<Principal2, Principal1>().Build();
+        var mapper = mapperBuilder.WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(defaultKeep)).RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
         await RemoveListItemTest(mapper, dependantCount);
@@ -89,11 +89,11 @@ public class MappingRemovedTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var config = factory.MakeCustomTypeMapperBuilder<Principal2, Principal1>().SetMappingKeepEntityOnMappingRemoved(defaultKeep).Build();
+        var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().SetMappingKeepEntityOnMappingRemoved(defaultKeep).Build();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
         var mapper = mapperBuilder
-            .WithConfiguration<Dependant1>(BuildEntityConfiguration(!defaultKeep))
-            .RegisterTwoWay<Principal2, Principal1>(config).Build();
+            .WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(!defaultKeep))
+            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
 
         // act and assert
         await RemoveEntityTest(mapper, dependantCount);
@@ -106,11 +106,11 @@ public class MappingRemovedTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var config = factory.MakeCustomTypeMapperBuilder<Principal2, Principal1>().SetMappingKeepEntityOnMappingRemoved(defaultKeep).Build();
+        var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().SetMappingKeepEntityOnMappingRemoved(defaultKeep).Build();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
         var mapper = mapperBuilder
-            .WithConfiguration<Dependant1>(BuildEntityConfiguration(!defaultKeep))
-            .RegisterTwoWay<Principal2, Principal1>(config).Build();
+            .WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(!defaultKeep))
+            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
 
         // act and assert
         await RemoveListItemTest(mapper, dependantCount);
@@ -123,14 +123,14 @@ public class MappingRemovedTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var config = factory.MakeCustomTypeMapperBuilder<Principal2, Principal1>()
+        var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
             .SetMappingKeepEntityOnMappingRemoved(!defaultKeep)
-            .PropertyKeepEntityOnMappingRemoved(nameof(Principal1.OptionalDependant), defaultKeep)
+            .PropertyKeepEntityOnMappingRemoved(nameof(MappingRemovedPrincipal1.OptionalDependant), defaultKeep)
             .Build();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
         var mapper = mapperBuilder
-            .WithConfiguration<Dependant1>(BuildEntityConfiguration(!defaultKeep))
-            .RegisterTwoWay<Principal2, Principal1>(config).Build();
+            .WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(!defaultKeep))
+            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
 
         // act and assert
         await RemoveEntityTest(mapper, dependantCount);
@@ -143,14 +143,14 @@ public class MappingRemovedTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var config = factory.MakeCustomTypeMapperBuilder<Principal2, Principal1>()
+        var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
             .SetMappingKeepEntityOnMappingRemoved(!defaultKeep)
-            .PropertyKeepEntityOnMappingRemoved(nameof(Principal1.DependentList), defaultKeep)
+            .PropertyKeepEntityOnMappingRemoved(nameof(MappingRemovedPrincipal1.DependantList), defaultKeep)
             .Build();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
         var mapper = mapperBuilder
-            .WithConfiguration<Dependant1>(BuildEntityConfiguration(!defaultKeep))
-            .RegisterTwoWay<Principal2, Principal1>(config).Build();
+            .WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(!defaultKeep))
+            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
 
         // act and assert
         await RemoveListItemTest(mapper, dependantCount);
@@ -161,27 +161,27 @@ public class MappingRemovedTests : TestBase
         // act
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var principal = new Principal2 { OptionalDependant = new Dependant2 { IntProp = 1 } };
-            var mappedPrincipal = await mapper.MapAsync<Principal2, Principal1>(principal, databaseContext);
+            var principal = new MappingRemovedPrincipal2 { OptionalDependant = new MappingRemovedDependant2 { IntProp = 1 } };
+            var mappedPrincipal = await mapper.MapAsync<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(principal, databaseContext);
             await databaseContext.SaveChangesAsync();
-            Assert.Equal(1, await databaseContext.Set<Principal1>().CountAsync());
-            Assert.Equal(1, await databaseContext.Set<Dependant1>().CountAsync());
+            Assert.Equal(1, await databaseContext.Set<MappingRemovedPrincipal1>().CountAsync());
+            Assert.Equal(1, await databaseContext.Set<MappingRemovedDependant1>().CountAsync());
         });
 
-        Principal2 mappedPrincipal = null!;
+        MappingRemovedPrincipal2 mappedPrincipal = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var principal = await databaseContext.Set<Principal1>().Include(p => p.OptionalDependant).FirstAsync();
-            mappedPrincipal = mapper.Map<Principal1, Principal2>(principal);
+            var principal = await databaseContext.Set<MappingRemovedPrincipal1>().Include(p => p.OptionalDependant).FirstAsync();
+            mappedPrincipal = mapper.Map<MappingRemovedPrincipal1, MappingRemovedPrincipal2>(principal);
         });
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             mappedPrincipal.OptionalDependant = null;
-            await mapper.MapAsync<Principal2, Principal1>(mappedPrincipal, databaseContext, p => p.Include(p => p.OptionalDependant), MapToDatabaseType.Update);
+            await mapper.MapAsync<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(mappedPrincipal, databaseContext, p => p.Include(p => p.OptionalDependant), MapToDatabaseType.Update);
             await databaseContext.SaveChangesAsync();
-            Assert.Equal(1, await databaseContext.Set<Principal1>().CountAsync());
-            Assert.Equal(dependantCount, await databaseContext.Set<Dependant1>().CountAsync());
+            Assert.Equal(1, await databaseContext.Set<MappingRemovedPrincipal1>().CountAsync());
+            Assert.Equal(dependantCount, await databaseContext.Set<MappingRemovedDependant1>().CountAsync());
         });
     }
 
@@ -190,27 +190,27 @@ public class MappingRemovedTests : TestBase
         // act
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var principal = new Principal2 { DependentList = new List<Dependant2> { new Dependant2 { IntProp = 1 } } };
-            var mappedPrincipal = await mapper.MapAsync<Principal2, Principal1>(principal, databaseContext);
+            var principal = new MappingRemovedPrincipal2 { DependantList = new List<MappingRemovedDependant2> { new MappingRemovedDependant2 { IntProp = 1 } } };
+            var mappedPrincipal = await mapper.MapAsync<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(principal, databaseContext);
             await databaseContext.SaveChangesAsync();
-            Assert.Equal(1, await databaseContext.Set<Principal1>().CountAsync());
-            Assert.Equal(1, await databaseContext.Set<Dependant1>().CountAsync());
+            Assert.Equal(1, await databaseContext.Set<MappingRemovedPrincipal1>().CountAsync());
+            Assert.Equal(1, await databaseContext.Set<MappingRemovedDependant1>().CountAsync());
         });
 
-        Principal2 mappedPrincipal = null!;
+        MappingRemovedPrincipal2 mappedPrincipal = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var principal = await databaseContext.Set<Principal1>().Include(p => p.DependentList).FirstAsync();
-            mappedPrincipal = mapper.Map<Principal1, Principal2>(principal);
+            var principal = await databaseContext.Set<MappingRemovedPrincipal1>().Include(p => p.DependantList).FirstAsync();
+            mappedPrincipal = mapper.Map<MappingRemovedPrincipal1, MappingRemovedPrincipal2>(principal);
         });
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            mappedPrincipal.DependentList.Clear();
-            await mapper.MapAsync<Principal2, Principal1>(mappedPrincipal, databaseContext, p => p.Include(p => p.DependentList), MapToDatabaseType.Update);
+            mappedPrincipal.DependantList.Clear();
+            await mapper.MapAsync<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(mappedPrincipal, databaseContext, p => p.Include(p => p.DependantList), MapToDatabaseType.Update);
             await databaseContext.SaveChangesAsync();
-            Assert.Equal(1, await databaseContext.Set<Principal1>().CountAsync());
-            Assert.Equal(dependantCount, await databaseContext.Set<Dependant1>().CountAsync());
+            Assert.Equal(1, await databaseContext.Set<MappingRemovedPrincipal1>().CountAsync());
+            Assert.Equal(dependantCount, await databaseContext.Set<MappingRemovedDependant1>().CountAsync());
         });
     }
 
