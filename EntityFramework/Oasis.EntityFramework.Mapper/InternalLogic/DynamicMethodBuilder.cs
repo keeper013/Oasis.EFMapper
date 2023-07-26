@@ -16,87 +16,41 @@ internal enum KeyType
     ConcurrencyToken,
 }
 
-internal interface IDynamicMethodBuilder
+internal sealed class DynamicMethodBuilder
 {
-    MethodMetaData BuildUpKeyPropertiesMapperMethod(
-        Type sourceType,
-        Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties);
-
-    MethodMetaData BuildUpScalarPropertiesMapperMethod(
-        Type sourceType,
-        Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties);
-
-    MethodMetaData BuildUpEntityPropertiesMapperMethod(
-        Type sourceType,
-        Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties,
-        IRecursiveRegisterTrigger trigger);
-
-    public MethodMetaData BuildUpEntityListPropertiesMapperMethod(
-        Type sourceType,
-        Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties,
-        IRecursiveRegisterTrigger trigger);
-
-    MethodMetaData BuildUpKeyEqualComparerMethod(
-        KeyType keyType,
-        Type sourceType,
-        Type targetType,
-        PropertyInfo sourceKeyProperty,
-        PropertyInfo targetKeyProperty);
-
-    // concurrency token doesn't need get method, so the only get method is for id
-    MethodMetaData BuildUpGetIdMethod(KeyType keyType, Type type, PropertyInfo identityProperty);
-
-    MethodMetaData BuildUpKeyIsEmptyMethod(KeyType keyType, Type type, PropertyInfo identityProperty);
-}
-
-internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
-{
-    private const char MapScalarPropertiesMethod = 's';
     private const char MapKeyPropertiesMethod = 'k';
-    private const char MapEntityPropertiesMethod = 'e';
-    private const char MapListPropertiesMethod = 'l';
     private const char CompareIdMethod = 'i';
     private const char CompareConcurrencyTokenMethod = 'o';
     private const char GetId = 'd';
     private const char IdEmpty = 'b';
     private const char ConcurrencyTokenEmpty = 'n';
+    private const char BuildExistingTargetTracker = 'u';
+    private const char StartTrackExistingTarget = 's';
+    private const char Construct = 'c';
 
     private static readonly MethodInfo ObjectEqual = typeof(object).GetMethod(nameof(object.Equals), new[] { typeof(object) })!;
-    private static readonly ConstructorInfo MissingSetting = typeof(SetterMissingException).GetConstructor(Utilities.PublicInstance, null, new[] { typeof(string) }, null)!;
-
+    private static readonly Type _delegateType = typeof(Delegate);
     private readonly GenericMapperMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethods().First(m => string.Equals(m.Name, nameof(IScalarTypeConverter.Convert)) && m.IsGenericMethod));
-    private readonly GenericMapperMethodCache _entityPropertyMapperCache = new (typeof(IEntityPropertyMapper<int>).GetMethod(nameof(IEntityPropertyMapper<int>.MapEntityProperty), Utilities.PublicInstance)!);
-    private readonly GenericMapperMethodCache _entityListPropertyMapperCache = new (typeof(IListPropertyMapper<int>).GetMethod(nameof(IListPropertyMapper<int>.MapListProperty), Utilities.PublicInstance)!);
-    private readonly GenericMapperMethodCache _listTypeConstructorCache = new (typeof(IListPropertyMapper<int>).GetMethod(nameof(IListPropertyMapper<int>.ConstructListType), Utilities.PublicInstance)!);
-    private readonly NullableTypeMethodCache _nullableTypeMethodCache = new ();
+    private readonly GenericMapperMethodCache _entityPropertyMapperCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapEntityProperty), Utilities.PublicInstance)!);
+    private readonly GenericMapperMethodCache _entityListPropertyMapperCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapListProperty), Utilities.PublicInstance)!);
+    private readonly GenericMapperMethodCache _listTypeConstructorCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.ConstructListType), Utilities.PublicInstance)!);
     private readonly IScalarTypeMethodCache _isDefaultValueCache = new ScalarTypeMethodCache(typeof(ScalarTypeIsDefaultValueMethods), nameof(ScalarTypeIsDefaultValueMethods.IsDefaultValue), new[] { typeof(object) });
     private readonly IScalarTypeMethodCache _areEqualCache = new ScalarTypeMethodCache(typeof(ScalarTypeEqualMethods), nameof(ScalarTypeEqualMethods.AreEqual), new[] { typeof(object), typeof(object) });
     private readonly TypeBuilder _typeBuilder;
-    private readonly IMapperTypeValidator _scalarTypeValidator;
-    private readonly IMapperTypeValidator _entityTypeValidator;
-    private readonly IMapperTypeValidator _entityListTypeValidator;
-    private readonly IKeyPropertyNameManager _keyPropertyNameManager;
+    private readonly IMapperTypeValidator _scalarMapperTypeValidator;
+    private readonly IMapperTypeValidator _entityMapperTypeValidator;
+    private readonly IMapperTypeValidator _entityListMapperTypeValidator;
 
     public DynamicMethodBuilder(
         TypeBuilder typeBuilder,
-        IMapperTypeValidator scalarTypeValidator,
-        IMapperTypeValidator entityTypeValidator,
-        IMapperTypeValidator entityListTypeValidator,
-        IKeyPropertyNameManager keyPropertyNameManager)
+        IMapperTypeValidator scalarMapperTypeValidator,
+        IMapperTypeValidator entityMapperTypeValidator,
+        IMapperTypeValidator entityListMapperTypeValidator)
     {
         _typeBuilder = typeBuilder;
-        _scalarTypeValidator = scalarTypeValidator;
-        _entityTypeValidator = entityTypeValidator;
-        _entityListTypeValidator = entityListTypeValidator;
-        _keyPropertyNameManager = keyPropertyNameManager;
+        _scalarMapperTypeValidator = scalarMapperTypeValidator;
+        _entityMapperTypeValidator = entityMapperTypeValidator;
+        _entityListMapperTypeValidator = entityListMapperTypeValidator;
     }
 
     public Type Build()
@@ -104,161 +58,77 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         return _typeBuilder.CreateType()!;
     }
 
-    public MethodMetaData BuildUpKeyPropertiesMapperMethod(
+    public MethodMetaData? BuildUpKeyPropertiesMapperMethod(
         Type sourceType,
         Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties)
+        PropertyInfo? sourceIdentityProperty,
+        PropertyInfo? targetIdentityProperty,
+        PropertyInfo? sourceConcurrencyTokenProperty,
+        PropertyInfo? targetConcurrencyTokenProperty)
     {
-        var methodName = BuildMapperMethodName(MapKeyPropertiesMethod, sourceType, targetType);
-        var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
-        var generator = method.GetILGenerator();
-        var sourceIdentityProperty = allSourceProperties.GetKeyProperty(_keyPropertyNameManager.GetIdentityPropertyName(sourceType), false);
-        var targetIdentityProperty = allTargetProperties.GetKeyProperty(_keyPropertyNameManager.GetIdentityPropertyName(targetType), true);
-
         if (sourceIdentityProperty != default && targetIdentityProperty != default)
         {
-            GenerateScalarPropertyValueAssignmentIL(generator, sourceIdentityProperty, targetIdentityProperty);
+            var methodName = BuildMapperMethodName(MapKeyPropertiesMethod, sourceType, targetType);
+            var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
+            var generator = method.GetILGenerator();
+            GenerateKeyPropertiesMappingCode(generator, sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty);
+            generator.Emit(OpCodes.Ret);
+            return new MethodMetaData(typeof(Utilities.MapScalarProperties<,>).MakeGenericType(sourceType, targetType), method.Name);
         }
 
-        var sourceConcurrencyTokenProperty = allSourceProperties.GetKeyProperty(_keyPropertyNameManager.GetConcurrencyTokenPropertyName(sourceType), false);
-        var targetConcurrencyTokenProperty = allTargetProperties.GetKeyProperty(_keyPropertyNameManager.GetConcurrencyTokenPropertyName(targetType), true);
-        if (sourceConcurrencyTokenProperty != default && targetConcurrencyTokenProperty != default)
-        {
-            GenerateScalarPropertyValueAssignmentIL(generator, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty);
-        }
-
-        generator.Emit(OpCodes.Ret);
-
-        return new MethodMetaData(typeof(Utilities.MapScalarProperties<,>).MakeGenericType(sourceType, targetType), method.Name);
+        return null;
     }
 
-    public MethodMetaData BuildUpScalarPropertiesMapperMethod(
+    public MethodMetaData? BuildUpContentMappingMethod(
         Type sourceType,
         Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties)
+        List<PropertyInfo> sourceProperties,
+        List<PropertyInfo> targetProperties,
+        IRecursiveRegister recursiveRegister,
+        RecursiveRegisterContext context,
+        ISet<string>? keepEntityOnMappingRemovedProperties)
     {
-        var methodName = BuildMapperMethodName(MapScalarPropertiesMethod, sourceType, targetType);
-        var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
-        var generator = method.GetILGenerator();
-        var sourceProperties = allSourceProperties
-            .Where(p => _scalarTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, sourceType));
-        var targetProperties = allTargetProperties
-            .Where(p => _scalarTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true) && !_keyPropertyNameManager.IsKeyPropertyName(p.Name, targetType))
-            .ToDictionary(p => p.Name, p => p);
-
-        foreach (var sourceProperty in sourceProperties)
+        var mappedScalarProperties = ExtractScalarProperties(sourceProperties, targetProperties);
+        var generateScalarPropertyMappingCode = mappedScalarProperties.Any();
+        var mappedEntityProperties = ExtractEntityProperties(sourceProperties, targetProperties, recursiveRegister, context, keepEntityOnMappingRemovedProperties);
+        var generateEntityPropertyMappingCode = mappedEntityProperties.Any();
+        var mappedEntityListProperties = ExtractEntityListProperties(sourceProperties, targetProperties, recursiveRegister, context, keepEntityOnMappingRemovedProperties);
+        if (keepEntityOnMappingRemovedProperties != null && keepEntityOnMappingRemovedProperties.Any())
         {
-            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty)
-                && (sourceProperty.PropertyType == targetProperty.PropertyType || _scalarTypeValidator.CanConvert(sourceProperty.PropertyType, targetProperty.PropertyType)))
-            {
-                GenerateScalarPropertyValueAssignmentIL(generator, sourceProperty, targetProperty);
-            }
+            throw new CustomTypePropertyEntityRemoverException(sourceType, targetType, string.Join("/", keepEntityOnMappingRemovedProperties));
         }
 
-        generator.Emit(OpCodes.Ret);
+        var generateEntityListPropertyMappingCode = mappedEntityListProperties.Any();
 
-        return new MethodMetaData(typeof(Utilities.MapScalarProperties<,>).MakeGenericType(sourceType, targetType), method.Name);
-    }
-
-    public MethodMetaData BuildUpEntityPropertiesMapperMethod(
-        Type sourceType,
-        Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties,
-        IRecursiveRegisterTrigger trigger)
-    {
-        var methodName = BuildMapperMethodName(MapEntityPropertiesMethod, sourceType, targetType);
-        var method = BuildMethod(methodName, new[] { typeof(IEntityPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>) }, typeof(void));
-        var generator = method.GetILGenerator();
-        var sourceProperties = allSourceProperties.Where(p => _entityTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
-        var targetProperties = allTargetProperties.Where(p => _entityTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
-
-        foreach (var sourceProperty in sourceProperties)
+        if (generateScalarPropertyMappingCode || generateEntityPropertyMappingCode || generateEntityListPropertyMappingCode)
         {
-            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty))
+            var methodName = BuildMapperMethodName(sourceType, targetType);
+            var method = BuildMethod(
+                methodName,
+                new[] { sourceType, targetType, typeof(IScalarTypeConverter), typeof(IRecursiveMapper<int>), typeof(IExistingTargetTracker), typeof(INewTargetTracker<int>), typeof(bool?) },
+                typeof(void));
+            var generator = method.GetILGenerator();
+
+            if (generateScalarPropertyMappingCode)
             {
-                var sourcePropertyType = sourceProperty.PropertyType;
-                var targetPropertyType = targetProperty.PropertyType;
-
-                // cascading mapper creation: if entity mapper doesn't exist, create it
-                trigger.RegisterIf(sourcePropertyType, targetPropertyType, !_entityTypeValidator.CanConvert(sourcePropertyType, targetPropertyType));
-
-                // now it's made sure that mapper between entities exists, emit the entity property mapping code
-                generator.Emit(OpCodes.Ldarg_2);
-                generator.Emit(OpCodes.Ldarg_0);
-                generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
-                generator.Emit(OpCodes.Ldarg_2);
-                generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
-                generator.Emit(OpCodes.Ldarg_3);
-                generator.Emit(OpCodes.Callvirt, _entityPropertyMapperCache.CreateIfNotExist(sourcePropertyType, targetPropertyType));
-                generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
+                GenerateScalarPropertiesMappingCode(generator, mappedScalarProperties);
             }
+
+            if (generateEntityPropertyMappingCode)
+            {
+                GenerateEntityPropertiesMappingCode(generator, mappedEntityProperties);
+            }
+
+            if (generateEntityListPropertyMappingCode)
+            {
+                GenerateEntityListPropertiesMappingCode(generator, mappedEntityListProperties);
+            }
+
+            generator.Emit(OpCodes.Ret);
+            return new MethodMetaData(typeof(Utilities.MapProperties<,,>).MakeGenericType(sourceType, targetType, typeof(int)), method.Name);
         }
 
-        generator.Emit(OpCodes.Ret);
-        return new MethodMetaData(typeof(Utilities.MapEntityProperties<,,>).MakeGenericType(sourceType, targetType, typeof(int)), method.Name);
-    }
-
-    public MethodMetaData BuildUpEntityListPropertiesMapperMethod(
-        Type sourceType,
-        Type targetType,
-        PropertyInfo[] allSourceProperties,
-        PropertyInfo[] allTargetProperties,
-        IRecursiveRegisterTrigger trigger)
-    {
-        var methodName = BuildMapperMethodName(MapListPropertiesMethod, sourceType, targetType);
-        var method = BuildMethod(methodName, new[] { typeof(IListPropertyMapper<int>), sourceType, targetType, typeof(INewTargetTracker<int>) }, typeof(void));
-        var generator = method.GetILGenerator();
-        var sourceProperties = allSourceProperties.Where(p => _entityListTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
-        var targetProperties = allTargetProperties.Where(p => _entityListTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false)).ToDictionary(p => p.Name, p => p);
-
-        foreach (var sourceProperty in sourceProperties)
-        {
-            if (targetProperties.TryGetValue(sourceProperty.Name, out var targetProperty))
-            {
-                var sourceItemType = sourceProperty.PropertyType.GetListItemType();
-                var targetItemType = targetProperty.PropertyType.GetListItemType();
-
-                // cascading mapper creation: if list item mapper doesn't exist, create it
-                trigger.RegisterIf(sourceItemType!, targetItemType!, !_entityListTypeValidator.CanConvert(sourceItemType!, targetItemType!));
-
-                // now it's made sure that mapper between list items exists, emit the list property mapping code
-                generator.Emit(OpCodes.Ldarg_2);
-                generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
-                var jumpLabel = generator.DefineLabel();
-                generator.Emit(OpCodes.Brtrue_S, jumpLabel);
-                if (targetProperty.SetMethod != default)
-                {
-                    generator.Emit(OpCodes.Ldarg_2);
-                    generator.Emit(OpCodes.Ldarg_0);
-                    generator.Emit(OpCodes.Callvirt, _listTypeConstructorCache.CreateIfNotExist(targetProperty.PropertyType, targetItemType!));
-                    generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
-                }
-                else
-                {
-                    generator.Emit(OpCodes.Ldstr, $"Entity type: {targetType}, property name: {targetProperty.Name}, value is empty and the property doesn't have a setter.");
-                    generator.Emit(OpCodes.Newobj, MissingSetting);
-                    generator.Emit(OpCodes.Throw);
-                }
-
-                generator.MarkLabel(jumpLabel);
-
-                generator.Emit(OpCodes.Ldarg_0);
-                generator.Emit(OpCodes.Ldarg_1);
-                generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
-                generator.Emit(OpCodes.Ldarg_2);
-                generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
-                generator.Emit(OpCodes.Ldarg_3);
-                generator.Emit(OpCodes.Callvirt, _entityListPropertyMapperCache.CreateIfNotExist(sourceItemType!, targetItemType!));
-            }
-        }
-
-        generator.Emit(OpCodes.Ret);
-
-        return new MethodMetaData(typeof(Utilities.MapListProperties<,,>).MakeGenericType(sourceType, targetType, typeof(int)), method.Name);
+        return null;
     }
 
     public MethodMetaData BuildUpKeyEqualComparerMethod(
@@ -271,7 +141,7 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         return BuildUpKeyEqualComparerMethod(sourceType, targetType, sourceKeyProperty, targetKeyProperty, keyType == KeyType.Id ? CompareIdMethod : CompareConcurrencyTokenMethod);
     }
 
-    public MethodMetaData BuildUpGetIdMethod(KeyType keyType, Type type, PropertyInfo identityProperty)
+    public MethodMetaData BuildUpGetIdMethod(Type type, PropertyInfo identityProperty)
     {
         return BuildUpGetKeyMethod(type, identityProperty, GetId);
     }
@@ -281,14 +151,55 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         return BuildUpKeyIsEmptyMethod(type, identityProperty, keyType == KeyType.Id ? IdEmpty : ConcurrencyTokenEmpty);
     }
 
+    public MethodMetaData BuildUpBuildExistingTargetTrackerMethod(Type targetType, PropertyInfo identityProperty)
+    {
+        var methodName = BuildMethodName(BuildExistingTargetTracker, targetType);
+        var identityType = identityProperty.PropertyType;
+        var classType = typeof(ExistingTargetTracker<>).MakeGenericType(identityType);
+        var constructor = classType.GetConstructor(new Type[] { _delegateType })!;
+        var method = BuildMethod(methodName, new[] { _delegateType }, typeof(IExistingTargetTracker));
+        var generator = method.GetILGenerator();
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Newobj, constructor);
+        generator.Emit(OpCodes.Ret);
+        return new MethodMetaData(typeof(Utilities.BuildExistingTargetTracker), method.Name);
+    }
+
+    public MethodMetaData BuildUpStartTrackExistingTargetMethod(Type targetType, PropertyInfo identityProperty)
+    {
+        var methodName = BuildMethodName(StartTrackExistingTarget, targetType);
+        var identityType = identityProperty.PropertyType;
+        var keySetType = typeof(ISet<>).MakeGenericType(identityType);
+        var addMethod = keySetType.GetMethod("Add")!;
+        var method = BuildMethod(methodName, new[] { keySetType, targetType }, typeof(bool));
+        var generator = method.GetILGenerator();
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, identityProperty.GetMethod!);
+        generator.Emit(OpCodes.Callvirt, addMethod);
+        generator.Emit(OpCodes.Ret);
+        return new MethodMetaData(typeof(Utilities.StartTrackingNewTarget<,>).MakeGenericType(targetType, identityType), method.Name);
+    }
+
+    public MethodMetaData BuildUpConstructorMethod(Type type)
+    {
+        var methodName = BuildMethodName(Construct, type);
+        var method = BuildMethod(methodName, Array.Empty<Type>(), type);
+        var generator = method.GetILGenerator();
+        var constructorInfo = type.GetConstructor(Utilities.PublicInstance, null, Array.Empty<Type>(), null);
+        if (constructorInfo == null)
+        {
+            throw new UnconstructableTypeException(type);
+        }
+
+        generator.Emit(OpCodes.Newobj, constructorInfo);
+        generator.Emit(OpCodes.Ret);
+        return new MethodMetaData(typeof(Func<>).MakeGenericType(type), method.Name);
+    }
+
     private static string GetTypeName(Type type)
     {
         return $"{type.Namespace}_{type.Name}".Replace(".", "_").Replace("`", "_");
-    }
-
-    private static string BuildMethodName(char prefix, Type entityType)
-    {
-        return $"_{prefix}__{GetTypeName(entityType)}";
     }
 
     private static string BuildMapperMethodName(char type, Type sourceType, Type targetType)
@@ -296,9 +207,182 @@ internal sealed class DynamicMethodBuilder : IDynamicMethodBuilder
         return $"_{type}_{GetTypeName(sourceType)}__MapTo__{GetTypeName(targetType)}";
     }
 
+    private static string BuildMethodName(char prefix, Type entityType)
+    {
+        return $"_{prefix}__{GetTypeName(entityType)}";
+    }
+
+    private static string BuildMapperMethodName(Type sourceType, Type targetType)
+    {
+        return $"_{GetTypeName(sourceType)}__MapTo__{GetTypeName(targetType)}";
+    }
+
     private static string BuildPropertyCompareMethodName(char type, Type sourceType, Type targetType)
     {
         return $"_{type}_{GetTypeName(sourceType)}__CompareTo__{GetTypeName(targetType)}";
+    }
+
+    private void GenerateKeyPropertiesMappingCode(
+        ILGenerator generator,
+        PropertyInfo sourceIdentityProperty,
+        PropertyInfo targetIdentityProperty,
+        PropertyInfo? sourceConcurrencyTokenProperty,
+        PropertyInfo? targetConcurrencyTokenProperty)
+    {
+        GenerateScalarPropertyValueAssignmentIL(generator, sourceIdentityProperty!, targetIdentityProperty!);
+
+        if (sourceConcurrencyTokenProperty != default && targetConcurrencyTokenProperty != default)
+        {
+            GenerateScalarPropertyValueAssignmentIL(generator, sourceConcurrencyTokenProperty!, targetConcurrencyTokenProperty!);
+        }
+    }
+
+    private IList<(PropertyInfo, PropertyInfo)> ExtractScalarProperties(IList<PropertyInfo> sourceProperties, IList<PropertyInfo> targetProperties)
+    {
+        var sourceScalarProperties = sourceProperties.Where(p => _scalarMapperTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
+        var targetScalarProperties = targetProperties.Where(p => _scalarMapperTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
+
+        var matchedProperties = new List<(PropertyInfo, PropertyInfo)>(sourceScalarProperties.Count());
+        foreach (var sourceProperty in sourceScalarProperties)
+        {
+            if (targetScalarProperties.TryGetValue(sourceProperty.Name, out var targetProperty)
+                && (sourceProperty.PropertyType == targetProperty.PropertyType || _scalarMapperTypeValidator.CanConvert(sourceProperty.PropertyType, targetProperty.PropertyType)))
+            {
+                matchedProperties.Add((sourceProperty, targetProperty));
+            }
+        }
+
+        foreach (var match in matchedProperties)
+        {
+            sourceProperties.Remove(match.Item1);
+            targetProperties.Remove(match.Item2);
+        }
+
+        return matchedProperties;
+    }
+
+    private void GenerateScalarPropertiesMappingCode(
+        ILGenerator generator,
+        IList<(PropertyInfo, PropertyInfo)> matchedProperties)
+    {
+        foreach (var match in matchedProperties)
+        {
+            GenerateScalarPropertyValueAssignmentIL(generator, match.Item1, match.Item2);
+        }
+    }
+
+    private IList<(PropertyInfo, Type, PropertyInfo, Type)> ExtractEntityProperties(
+        IList<PropertyInfo> sourceProperties,
+        IList<PropertyInfo> targetProperties,
+        IRecursiveRegister recursiveRegister,
+        RecursiveRegisterContext context,
+        ISet<string>? keepEntityOnMappingRemovedProperties)
+    {
+        var sourceEntityProperties = sourceProperties.Where(p => _entityMapperTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
+        var targetEntityProperties = targetProperties.Where(p => _entityMapperTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
+
+        var matchedProperties = new List<(PropertyInfo, Type, PropertyInfo, Type)>(sourceEntityProperties.Count());
+        foreach (var sourceProperty in sourceEntityProperties)
+        {
+            if (targetEntityProperties.TryGetValue(sourceProperty.Name, out var targetProperty))
+            {
+                var sourcePropertyType = sourceProperty.PropertyType;
+                var targetPropertyType = targetProperty.PropertyType;
+
+                // cascading mapper creation: if entity mapper doesn't exist, create it
+                context.RegisterIf(recursiveRegister, sourcePropertyType, targetPropertyType, _entityMapperTypeValidator.CanConvert(sourcePropertyType, targetPropertyType));
+                matchedProperties.Add((sourceProperty, sourcePropertyType, targetProperty, targetPropertyType));
+                keepEntityOnMappingRemovedProperties?.Remove(sourceProperty.Name);
+            }
+        }
+
+        foreach (var match in matchedProperties)
+        {
+            sourceProperties.Remove(match.Item1);
+            targetProperties.Remove(match.Item3);
+        }
+
+        return matchedProperties;
+    }
+
+    private void GenerateEntityPropertiesMappingCode(
+        ILGenerator generator,
+        IList<(PropertyInfo, Type, PropertyInfo, Type)> matchedProperties)
+    {
+        foreach (var matched in matchedProperties)
+        {
+            // now it's made sure that mapper between entities exists, emit the entity property mapping code
+            generator.Emit(OpCodes.Ldarg_1);
+            generator.Emit(OpCodes.Ldarg_3);
+            generator.Emit(OpCodes.Ldarg_0);
+            generator.Emit(OpCodes.Callvirt, matched.Item1.GetMethod!);
+            generator.Emit(OpCodes.Ldarg_1);
+            generator.Emit(OpCodes.Callvirt, matched.Item3.GetMethod!);
+            generator.Emit(OpCodes.Ldarg, 4);
+            generator.Emit(OpCodes.Ldarg, 5);
+            generator.Emit(OpCodes.Ldstr, matched.Item3.Name);
+            generator.Emit(OpCodes.Ldarg, 6);
+            generator.Emit(OpCodes.Callvirt, _entityPropertyMapperCache.CreateIfNotExist(matched.Item2, matched.Item4));
+            generator.Emit(OpCodes.Callvirt, matched.Item3.SetMethod!);
+        }
+    }
+
+    private IList<(PropertyInfo, Type, PropertyInfo, Type)> ExtractEntityListProperties(
+        IList<PropertyInfo> sourceProperties,
+        IList<PropertyInfo> targetProperties,
+        IRecursiveRegister recursiveRegister,
+        RecursiveRegisterContext context,
+        ISet<string>? keepEntityOnMappingRemovedProperties)
+    {
+        var sourceEntityListProperties = sourceProperties.Where(p => _entityListMapperTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
+        var targetEntityListProperties = targetProperties.Where(p => _entityListMapperTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
+        var matchedProperties = new List<(PropertyInfo, Type, PropertyInfo, Type)>(sourceEntityListProperties.Count());
+        foreach (var sourceProperty in sourceEntityListProperties)
+        {
+            if (targetEntityListProperties.TryGetValue(sourceProperty.Name, out var targetProperty))
+            {
+                var targetType = targetProperty.PropertyType;
+                var sourceItemType = sourceProperty.PropertyType.GetListItemType()!;
+                var targetItemType = targetType.GetListItemType()!;
+
+                // cascading mapper creation: if list item mapper doesn't exist, create it
+                context.RegisterIf(recursiveRegister, sourceItemType, targetItemType, _entityListMapperTypeValidator.CanConvert(sourceItemType, targetItemType));
+                recursiveRegister.RegisterEntityListDefaultConstructorMethod(targetType);
+                matchedProperties.Add((sourceProperty, sourceItemType, targetProperty, targetItemType));
+                keepEntityOnMappingRemovedProperties?.Remove(sourceProperty.Name);
+            }
+        }
+
+        return matchedProperties;
+    }
+
+    private void GenerateEntityListPropertiesMappingCode(
+        ILGenerator generator,
+        IList<(PropertyInfo, Type, PropertyInfo, Type)> matchedProperties)
+    {
+        foreach (var match in matchedProperties)
+        {
+            // now it's made sure that mapper between list items exists, emit the list property mapping code
+            generator.Emit(OpCodes.Ldarg_1);
+            generator.Emit(OpCodes.Callvirt, match.Item3.GetMethod!);
+            var jumpLabel = generator.DefineLabel();
+            generator.Emit(OpCodes.Brtrue_S, jumpLabel);
+            generator.Emit(OpCodes.Ldarg_1);
+            generator.Emit(OpCodes.Ldarg_3);
+            generator.Emit(OpCodes.Callvirt, _listTypeConstructorCache.CreateIfNotExist(match.Item3.PropertyType, match.Item4));
+            generator.Emit(OpCodes.Callvirt, match.Item3.SetMethod!);
+            generator.MarkLabel(jumpLabel);
+            generator.Emit(OpCodes.Ldarg_3);
+            generator.Emit(OpCodes.Ldarg_0);
+            generator.Emit(OpCodes.Callvirt, match.Item1.GetMethod!);
+            generator.Emit(OpCodes.Ldarg_1);
+            generator.Emit(OpCodes.Callvirt, match.Item3.GetMethod!);
+            generator.Emit(OpCodes.Ldarg, 4);
+            generator.Emit(OpCodes.Ldarg, 5);
+            generator.Emit(OpCodes.Ldstr, match.Item3.Name);
+            generator.Emit(OpCodes.Ldarg, 6);
+            generator.Emit(OpCodes.Callvirt, _entityListPropertyMapperCache.CreateIfNotExist(match.Item2, match.Item4));
+        }
     }
 
     private MethodMetaData BuildUpKeyEqualComparerMethod(

@@ -2,20 +2,40 @@
 
 using System.Linq.Expressions;
 
-public interface ICustomPropertyMapperBuilder<TSource, TTarget>
-    where TSource : class
-    where TTarget : class
+public interface IPropertyEntityRemover
 {
-    ICustomPropertyMapperBuilder<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value);
+    bool? MappingKeepEntityOnMappingRemoved { get; }
 
-    ICustomPropertyMapper<TSource, TTarget> Build();
+    IReadOnlyDictionary<string, bool>? PropertyKeepEntityOnMappingRemoved { get; }
 }
 
-public interface ICustomPropertyMapper<TSource, TTarget>
-    where TSource : class
-    where TTarget : class
+public interface ICustomPropertyMapper
 {
     IEnumerable<PropertyInfo> MappedTargetProperties { get; }
 
-    void MapProperties(TSource source, TTarget target);
+    Delegate MapProperties { get; }
+}
+
+public interface ICustomTypeMapperConfiguration
+{
+    ICustomPropertyMapper? CustomPropertyMapper { get; }
+
+    IPropertyEntityRemover? PropertyEntityRemover { get; }
+
+    string[]? ExcludedProperties { get; }
+}
+
+public interface ICustomTypeMapperConfigurationBuilder<TSource, TTarget>
+    where TSource : class
+    where TTarget : class
+{
+    ICustomTypeMapperConfigurationBuilder<TSource, TTarget> SetMappingKeepEntityOnMappingRemoved(bool keep);
+
+    ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value);
+
+    ICustomTypeMapperConfigurationBuilder<TSource, TTarget> PropertyKeepEntityOnMappingRemoved(string propertyName, bool keep);
+
+    ICustomTypeMapperConfigurationBuilder<TSource, TTarget> ExcludePropertyByName(params string[] names);
+
+    ICustomTypeMapperConfiguration Build();
 }

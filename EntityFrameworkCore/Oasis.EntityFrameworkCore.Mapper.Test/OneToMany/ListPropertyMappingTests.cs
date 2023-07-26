@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
-using static System.Collections.Specialized.BitVector32;
 
 public class ListPropertyMappingTests : TestBase
 {

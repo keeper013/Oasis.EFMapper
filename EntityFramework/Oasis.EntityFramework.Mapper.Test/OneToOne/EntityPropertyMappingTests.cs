@@ -4,7 +4,6 @@ using System.Data.Entity;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-[TestFixture]
 public sealed class EntityPropertyMappingTests : TestBase
 {
     [Test]
@@ -13,36 +12,36 @@ public sealed class EntityPropertyMappingTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-        mapperBuilder.Register<Outer1, Outer2>();
+        mapperBuilder.Register<PrincipalOptional1, PrincipalOptional2>();
         var mapper = mapperBuilder.Build();
 
-        var outer1 = new Outer1(1);
-        var inner1 = new Inner1_1(1);
-        var inner2 = new Inner1_2("1");
-        outer1.Inner1 = inner1;
-        outer1.Inner2 = inner2;
+        var principalOptional1 = new PrincipalOptional1(1);
+        var inner1 = new DependentOptional1_1(1);
+        var inner2 = new DependentOptional1_2("1");
+        principalOptional1.Inner1 = inner1;
+        principalOptional1.Inner2 = inner2;
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            databaseContext.Set<Outer1>().Add(outer1);
+            databaseContext.Set<PrincipalOptional1>().Add(principalOptional1);
             await databaseContext.SaveChangesAsync();
         });
 
         // act
-        Outer1 entity = null!;
+        PrincipalOptional1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            entity = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
+            entity = await databaseContext.Set<PrincipalOptional1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
         });
 
-        var outer2 = mapper.Map<Outer1, Outer2>(entity);
+        var principalOptional2 = mapper.Map<PrincipalOptional1, PrincipalOptional2>(entity);
 
         // assert
-        Assert.AreEqual(1, outer2.IntProp);
-        Assert.NotNull(outer2.Inner1);
-        Assert.AreEqual(1, outer2.Inner1!.LongProp);
-        Assert.NotNull(outer2.Inner2);
-        Assert.AreEqual("1", outer2.Inner2!.StringProp);
+        Assert.AreEqual(1, principalOptional2.IntProp);
+        Assert.NotNull(principalOptional2.Inner1);
+        Assert.AreEqual(1, principalOptional2.Inner1!.LongProp);
+        Assert.NotNull(principalOptional2.Inner2);
+        Assert.AreEqual("1", principalOptional2.Inner2!.StringProp);
     }
 
     [Test]
@@ -51,40 +50,40 @@ public sealed class EntityPropertyMappingTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-        mapperBuilder.RegisterTwoWay<Outer1, Outer2>();
+        mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
         var mapper = mapperBuilder.Build();
 
-        var outer1 = new Outer1(1);
-        var inner1 = new Inner1_1(1);
-        var inner2 = new Inner1_2("1");
-        outer1.Inner1 = inner1;
-        outer1.Inner2 = inner2;
+        var principalOptional1 = new PrincipalOptional1(1);
+        var inner1 = new DependentOptional1_1(1);
+        var inner2 = new DependentOptional1_2("1");
+        principalOptional1.Inner1 = inner1;
+        principalOptional1.Inner2 = inner2;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            databaseContext.Set<Outer1>().Add(outer1);
+            databaseContext.Set<PrincipalOptional1>().Add(principalOptional1);
             await databaseContext.SaveChangesAsync();
         });
 
         // act
-        Outer1 entity = null!;
+        PrincipalOptional1 entity = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            entity = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
+            entity = await databaseContext.Set<PrincipalOptional1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
         });
 
-        var outer2 = mapper.Map<Outer1, Outer2>(entity);
-        outer2.Inner1 = new Inner2_1(2);
-        outer2.Inner2 = new Inner2_2("2");
+        var principalOptional2 = mapper.Map<PrincipalOptional1, PrincipalOptional2>(entity);
+        principalOptional2.Inner1 = new Dependent2_1(2);
+        principalOptional2.Inner2 = new Dependent2_2("2");
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result1 = await mapper.MapAsync<Outer2, Outer1>(outer2, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
+            var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
             await databaseContext.SaveChangesAsync();
         });
 
-        Outer1 result2 = null!;
+        PrincipalOptional1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result2 = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
+            result2 = await databaseContext.Set<PrincipalOptional1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
         });
 
         // assert
@@ -96,25 +95,53 @@ public sealed class EntityPropertyMappingTests : TestBase
     }
 
     [Test]
-    [Ignore("EF6 doesn't seems to handle replacing one to one relation entity very well, it updates first, and cause a unique constraint problem, deleting should come first.")]
-    public async Task UpdateOneToOneEntityWithExisting_ShouldSucceed()
+    public async Task UpdateOneToOneRequiredEntityWithExisting_ShouldSucceed()
     {
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-        mapperBuilder.RegisterTwoWay<Outer1, Outer2>();
+        mapperBuilder
+            .WithConfiguration<DependentRequired1_1>(new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), false))
+            .WithConfiguration<DependentRequired1_2>(new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), false))
+            .RegisterTwoWay<PrincipalRequired1, PrincipalRequired2>();
         var mapper = mapperBuilder.Build();
 
-        await ReplaceOneToOneMapping(mapper);
-
-        Outer1 result2 = null!;
+        var principalRequired1 = new PrincipalRequired1(1);
+        var inner1 = new DependentRequired1_1(1);
+        var inner2 = new DependentRequired1_2("1");
+        principalRequired1.Inner1 = inner1;
+        principalRequired1.Inner2 = inner2;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result2 = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
+            databaseContext.Set<PrincipalRequired1>().Add(principalRequired1);
+            await databaseContext.SaveChangesAsync();
+        });
+
+        // act
+        PrincipalRequired2 principalRequired2 = null!;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var entity = await databaseContext.Set<PrincipalRequired1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
+            var session1 = mapper.CreateMappingSession();
+            principalRequired2 = session1.Map<PrincipalRequired1, PrincipalRequired2>(entity);
+            principalRequired2.Inner1 = session1.Map<DependentRequired1_1, Dependent2_1>(new DependentRequired1_1(2));
+            principalRequired2.Inner2 = session1.Map<DependentRequired1_2, Dependent2_2>(new DependentRequired1_2("2"));
+        });
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var result1 = await mapper.MapAsync<PrincipalRequired2, PrincipalRequired1>(principalRequired2, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
+            await databaseContext.SaveChangesAsync();
+        });
+
+        PrincipalRequired1 result2 = null!;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            result2 = await databaseContext.Set<PrincipalRequired1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
 
             // assert
-            Assert.AreEqual(1, await databaseContext.Set<Inner1_1>().CountAsync());
-            Assert.AreEqual(1, await databaseContext.Set<Inner1_2>().CountAsync());
+            Assert.AreEqual(1, await databaseContext.Set<DependentRequired1_1>().CountAsync());
+            Assert.AreEqual(1, await databaseContext.Set<DependentRequired1_2>().CountAsync());
         });
 
         Assert.AreEqual(1, result2.IntProp);
@@ -125,48 +152,68 @@ public sealed class EntityPropertyMappingTests : TestBase
     }
 
     [Test]
-    [Ignore("EF6 doesn't seems to handle replacing one to one relation entity very well, it updates first, and cause a unique constraint problem, deleting should come first.")]
+    public async Task UpdateOptionalOneToOneEntityWithExisting_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
+        var mapper = mapperBuilder.Build();
+
+        await ReplaceOptinoalOneToOneMapping(mapper);
+
+        PrincipalOptional1 result2 = null!;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            result2 = await databaseContext.Set<PrincipalOptional1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
+
+            // assert
+            Assert.AreEqual(2, await databaseContext.Set<DependentOptional1_1>().CountAsync());
+            Assert.AreEqual(2, await databaseContext.Set<DependentOptional1_2>().CountAsync());
+        });
+
+        Assert.AreEqual(1, result2.IntProp);
+        Assert.NotNull(result2.Inner1);
+        Assert.AreEqual(2, result2.Inner1!.LongProp);
+        Assert.NotNull(result2.Inner2);
+        Assert.AreEqual("2", result2.Inner2!.StringProp);
+    }
+
+    [Test]
     public async Task UpdateOneToOneEntityKeepEntityOnMappingRemoved_ShouldSucceed()
     {
         // arrange
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-        mapperBuilder
-            .WithConfiguration<Inner1_1>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), true))
-            .WithConfiguration<Inner1_2>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), true))
-            .RegisterTwoWay<Outer1, Outer2>();
+        mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
         var mapper = mapperBuilder.Build();
 
-        await ReplaceOneToOneMapping(mapper);
+        await ReplaceOptinoalOneToOneMapping(mapper);
 
         // assert
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            Assert.AreEqual(2, await databaseContext.Set<Inner1_1>().CountAsync());
-            Assert.AreEqual(2, await databaseContext.Set<Inner1_2>().CountAsync());
+            Assert.AreEqual(2, await databaseContext.Set<DependentOptional1_1>().CountAsync());
+            Assert.AreEqual(2, await databaseContext.Set<DependentOptional1_2>().CountAsync());
         });
     }
 
     [Test]
-    [Ignore("EF6 doesn't seems to handle replacing one to one relation entity very well, it updates first, and cause a unique constraint problem, deleting should come first.")]
     public async Task UpdateOneToOneEntity_WithDefaultKeepEntityOnMappingRemoved_ShouldSucceed()
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), true));
-        mapperBuilder
-            .WithConfiguration<Inner1_1>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), false))
-            .WithConfiguration<Inner1_2>(new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), false))
-            .RegisterTwoWay<Outer1, Outer2>();
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
         var mapper = mapperBuilder.Build();
 
-        await ReplaceOneToOneMapping(mapper);
+        await ReplaceOptinoalOneToOneMapping(mapper);
 
         // assert
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            Assert.AreEqual(1, await databaseContext.Set<Inner1_1>().CountAsync());
-            Assert.AreEqual(2, await databaseContext.Set<Inner1_2>().CountAsync());
+            Assert.AreEqual(2, await databaseContext.Set<DependentOptional1_1>().CountAsync());
+            Assert.AreEqual(2, await databaseContext.Set<DependentOptional1_2>().CountAsync());
         });
     }
 
@@ -202,7 +249,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         Assert.Null(r2.Parent);
         Assert.NotNull(r2.Child);
         Assert.NotNull(r2.Child!.Parent);
-        Assert.AreEqual(r2.Id, r2.Child.Parent!.Id);
+        Assert.AreEqual(r2.Id, r2.Child.ParentId);
 
         r2.StringProperty = "parent 1";
         r2.Child.StringProperty = "child 1";
@@ -217,39 +264,39 @@ public sealed class EntityPropertyMappingTests : TestBase
         Assert.Null(r3.Parent);
         Assert.NotNull(r3.Child);
         Assert.NotNull(r3.Child!.Parent);
-        Assert.AreEqual(r3.Id, r3.Child.Parent!.Id);
+        Assert.AreEqual(r3.Id, r3.Child.ParentId);
         Assert.AreEqual("child 1", r3.Child.StringProperty);
     }
 
-    private async Task ReplaceOneToOneMapping(IMapper mapper)
+    private async Task ReplaceOptinoalOneToOneMapping(IMapper mapper)
     {
-        var outer1 = new Outer1(1);
-        var inner1 = new Inner1_1(1);
-        var inner2 = new Inner1_2("1");
-        outer1.Inner1 = inner1;
-        outer1.Inner2 = inner2;
+        var principalOptional1 = new PrincipalOptional1(1);
+        var inner1 = new DependentOptional1_1(1);
+        var inner2 = new DependentOptional1_2("1");
+        principalOptional1.Inner1 = inner1;
+        principalOptional1.Inner2 = inner2;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            databaseContext.Set<Inner1_1>().Add(new Inner1_1(2));
-            databaseContext.Set<Inner1_2>().Add(new Inner1_2("2"));
-            databaseContext.Set<Outer1>().Add(outer1);
+            databaseContext.Set<DependentOptional1_1>().Add(new DependentOptional1_1(2));
+            databaseContext.Set<DependentOptional1_2>().Add(new DependentOptional1_2("2"));
+            databaseContext.Set<PrincipalOptional1>().Add(principalOptional1);
             await databaseContext.SaveChangesAsync();
         });
 
         // act
-        Outer2 outer2 = null!;
+        PrincipalOptional2 principalOptional2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await databaseContext.Set<Outer1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
+            var entity = await databaseContext.Set<PrincipalOptional1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
             var session1 = mapper.CreateMappingSession();
-            outer2 = session1.Map<Outer1, Outer2>(entity);
-            outer2.Inner1 = session1.Map<Inner1_1, Inner2_1>(await databaseContext.Set<Inner1_1>().FirstAsync(i => i.LongProp == 2));
-            outer2.Inner2 = session1.Map<Inner1_2, Inner2_2>(await databaseContext.Set<Inner1_2>().FirstAsync(i => i.StringProp == "2"));
+            principalOptional2 = session1.Map<PrincipalOptional1, PrincipalOptional2>(entity);
+            principalOptional2.Inner1 = session1.Map<DependentOptional1_1, Dependent2_1>(await databaseContext.Set<DependentOptional1_1>().FirstAsync(i => i.LongProp == 2));
+            principalOptional2.Inner2 = session1.Map<DependentOptional1_2, Dependent2_2>(await databaseContext.Set<DependentOptional1_2>().FirstAsync(i => i.StringProp == "2"));
         });
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result1 = await mapper.MapAsync<Outer2, Outer1>(outer2, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
+            var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
             await databaseContext.SaveChangesAsync();
         });
     }

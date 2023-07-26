@@ -1,16 +1,17 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
 using Oasis.EntityFramework.Mapper.Exceptions;
-using System.Data.Entity;
 
 internal interface IIdPropertyTracker
 {
     PropertyInfo GetIdProperty<TEntity>();
 }
 
+/// <summary>
+/// This class stores generated functions that handles entity id and concurrency token related matters.
+/// </summary>
 internal sealed class EntityBaseProxy : IIdPropertyTracker
 {
-    private readonly bool _defaultKeepEntityOnMappingRemoved;
     private readonly IReadOnlyDictionary<Type, TypeKeyProxy> _entityIdProxies;
     private readonly IReadOnlyDictionary<Type, TypeKeyProxy> _entityConcurrencyTokenProxies;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _entityIdComparers;
@@ -23,15 +24,12 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         Dictionary<Type, Dictionary<Type, MethodMetaData>> entityIdComparers,
         Dictionary<Type, Dictionary<Type, MethodMetaData>> entityConcurrencyTokenComparers,
         Type type,
-        IScalarTypeConverter scalarConverter,
-        bool defaultKeepEntityOnMappingRemoved)
+        IScalarTypeConverter scalarConverter)
     {
-        _defaultKeepEntityOnMappingRemoved = defaultKeepEntityOnMappingRemoved;
         _entityIdProxies = MakeTypeKeyProxyDictionary(entityIdProxies, type);
         _entityConcurrencyTokenProxies = MakeTypeKeyProxyDictionary(entityConcurrencyTokenProxies, type);
         _entityIdComparers = MakeComparerDictionary(entityIdComparers, type);
         _entityConcurrencyTokenComparers = MakeComparerDictionary(entityConcurrencyTokenComparers, type);
-
         _scalarConverter = scalarConverter;
     }
 
@@ -109,16 +107,6 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         }
 
         throw new KeyPropertyMissingException(sourceType, targetType, "concurrency token");
-    }
-
-    public void HandleRemove<TEntity>(DbContext databaseContext, TEntity entity)
-        where TEntity : class
-    {
-        var type = typeof(TEntity);
-        if (!_defaultKeepEntityOnMappingRemoved)
-        {
-            databaseContext.Set<TEntity>().Remove(entity);
-        }
     }
 
     public PropertyInfo GetIdProperty<TEntity>()

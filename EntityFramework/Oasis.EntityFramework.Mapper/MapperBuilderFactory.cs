@@ -4,15 +4,15 @@ using Oasis.EntityFramework.Mapper.InternalLogic;
 
 public sealed class MapperBuilderFactory : IMapperBuilderFactory
 {
-    public IMapperBuilder MakeMapperBuilder(string assemblyName, TypeConfiguration? defaultConfiguration)
+    public IMapperBuilder MakeMapperBuilder(string assemblyName, EntityConfiguration? defaultConfiguration = null)
     {
-        return new MapperBuilder(assemblyName, defaultConfiguration ?? new TypeConfiguration("Id"));
+        return new MapperBuilder(assemblyName, defaultConfiguration ?? new EntityConfiguration("Id"));
     }
 
-    public ICustomPropertyMapperBuilder<TSource, TTarget> MakeCustomPropertyMapperBuilder<TSource, TTarget>()
+    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MakeCustomTypeMapperBuilder<TSource, TTarget>()
         where TSource : class
         where TTarget : class
     {
-        return new CustomPropertyMapper<TSource, TTarget>();
+        return new CustomTypeMapperBuilder<TSource, TTarget>();
     }
 }

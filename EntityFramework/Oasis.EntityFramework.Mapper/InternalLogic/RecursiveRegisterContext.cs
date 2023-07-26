@@ -1,38 +1,94 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
-internal interface IRecursiveRegisterTrigger
+internal abstract class RecursiveContext
 {
-    void RegisterIf(Type sourceType, Type targetType, bool condition);
+    protected Stack<(Type, Type)> Stack { get; } = new ();
+
+    public void Push(Type sourceType, Type targetType) => Stack.Push((sourceType, targetType));
+
+    public void Pop() => Stack.Pop();
+
+    public bool Contains(Type sourceType, Type targetType) => Stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType);
 }
 
-internal sealed class RecursiveRegisterContext : IRecursiveRegisterTrigger
+internal sealed class RecursiveContextPopper : IDisposable
 {
-    private static readonly MethodInfo RecursivelyRegisterMethod = typeof(MapperRegistry).GetMethod("RecursivelyRegister", BindingFlags.NonPublic | BindingFlags.Instance)!;
-    private readonly Stack<(Type, Type)> _stack = new ();
-    private readonly MapperRegistry _mapperRegistry;
+    private readonly RecursiveContext? _context;
 
-    public RecursiveRegisterContext(MapperRegistry mapperRegistry, IDynamicMethodBuilder methodBuilder)
+    public RecursiveContextPopper(RecursiveContext? context, Type sourceType, Type targetType)
     {
-        _mapperRegistry = mapperRegistry;
-        MethodBuilder = methodBuilder;
+        _context = context;
+        _context?.Push(sourceType, targetType);
     }
 
-    public IDynamicMethodBuilder MethodBuilder { get; }
-
-    public void Push(Type sourceType, Type targetType) => _stack.Push((sourceType, targetType));
-
-    public void Pop() => _stack.Pop();
-
-    public bool Contains(Type sourceType, Type targetType) => _stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType);
-
-    public void RegisterIf(Type sourceType, Type targetType, bool condition)
+    public void Dispose()
     {
-        if (condition && !_stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
+        _context?.Pop();
+    }
+}
+
+internal interface IRecursiveRegister
+{
+    void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context);
+
+    void RegisterEntityListDefaultConstructorMethod(Type type);
+}
+
+internal sealed class RecursiveRegisterContext : RecursiveContext
+{
+    private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping;
+    private readonly ISet<Type> _targetsToBeTracked;
+
+    public RecursiveRegisterContext(Dictionary<Type, ISet<Type>> loopDependencyMapping, ISet<Type> targetsToBeTracked)
+    {
+        _loopDependencyMapping = loopDependencyMapping;
+        _targetsToBeTracked = targetsToBeTracked;
+    }
+
+    public void DumpLoopDependency()
+    {
+        foreach (var mappingTuple in Stack)
         {
-            // there is no way to get generic arguments that user defined for the source and target,
-            // so though reflection is slow, it's the only way that works here.
-            // considering registering is a one-time-job, it's acceptable.
-            RecursivelyRegisterMethod.Invoke(_mapperRegistry, new object?[] { sourceType, targetType, this, null });
+            if (_loopDependencyMapping.TryGetValue(mappingTuple.Item1, out var set))
+            {
+                set.Add(mappingTuple.Item2);
+            }
+            else
+            {
+                _loopDependencyMapping.Add(mappingTuple.Item1, new HashSet<Type> { mappingTuple.Item2 });
+            }
         }
+    }
+
+    public void DumpTargetsToBeTracked()
+    {
+        foreach (var mappingTuple in Stack)
+        {
+            _targetsToBeTracked.Add(mappingTuple.Item2);
+        }
+    }
+
+    public void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered)
+    {
+        if (hasRegistered)
+        {
+            if (_loopDependencyMapping.TryGetValue(sourceType, out var set) && set.Contains(targetType))
+            {
+                DumpLoopDependency();
+            }
+        }
+        else
+        {
+            recursiveRegister.RecursivelyRegister(sourceType, targetType, this);
+        }
+    }
+}
+
+internal sealed class MappingToDatabaseContext : RecursiveContext
+{
+    public EntityPropertyMappingData MakeMappingData(string propertyName)
+    {
+        var tuple = Stack.Peek();
+        return new EntityPropertyMappingData(tuple.Item1, tuple.Item2, propertyName);
     }
 }

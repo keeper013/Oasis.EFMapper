@@ -2,9 +2,9 @@
 
 public interface IMapperBuilderFactory
 {
-    IMapperBuilder MakeMapperBuilder(string assemblyName, TypeConfiguration? defaultConfiguration);
+    IMapperBuilder MakeMapperBuilder(string assemblyName, EntityConfiguration? defaultConfiguration = null);
 
-    ICustomPropertyMapperBuilder<TSource, TTarget> MakeCustomPropertyMapperBuilder<TSource, TTarget>()
+    ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MakeCustomTypeMapperBuilder<TSource, TTarget>()
         where TSource : class
         where TTarget : class;
 }

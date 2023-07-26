@@ -11,25 +11,26 @@ public interface IMapperBuilder
     IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod, bool throwIfRedundant = false)
         where TEntity : class;
 
-    IMapperBuilder WithConfiguration<TEntity>(TypeConfiguration configuration, bool throwIfRedundant = false)
+    IMapperBuilder WithConfiguration<TEntity>(EntityConfiguration configuration, bool throwIfRedundant = false)
         where TEntity : class;
 
     IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression, bool throwIfRedundant = false);
 
-    IMapperBuilder Register<TSource, TTarget>(ICustomPropertyMapper<TSource, TTarget>? customPropertyMapper = null)
+    IMapperBuilder Register<TSource, TTarget>(ICustomTypeMapperConfiguration? configuration = null)
         where TSource : class
         where TTarget : class;
 
     IMapperBuilder RegisterTwoWay<TSource, TTarget>(
-        ICustomPropertyMapper<TSource, TTarget>? customPropertyMapperSourceToTarget = null,
-        ICustomPropertyMapper<TTarget, TSource>? customPropertyMapperTargetToSource = null)
+        ICustomTypeMapperConfiguration? sourceToTargetConfiguration = null,
+        ICustomTypeMapperConfiguration? targetToSourceConfiguration = null)
         where TSource : class
         where TTarget : class;
 
     IMapper Build();
 }
 
-public record struct TypeConfiguration(
+public record struct EntityConfiguration(
     string identityPropertyName,
     string? concurrencyTokenPropertyName = default,
-    bool keepEntityOnMappingRemoved = false);
+    bool? keepEntityOnMappingRemoved = default,
+    string[]? excludedProperties = default);

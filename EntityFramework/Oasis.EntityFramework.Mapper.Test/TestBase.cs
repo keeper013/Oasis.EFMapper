@@ -14,7 +14,7 @@ public abstract class TestBase
 
     protected TestBase()
     {
-        DefaultConfiguration = new TypeConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
+        DefaultConfiguration = new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
     }
 
     [SetUp]
@@ -35,7 +35,7 @@ public abstract class TestBase
         _connection?.Dispose();
     }
 
-    protected TypeConfiguration DefaultConfiguration { get; }
+    protected EntityConfiguration DefaultConfiguration { get; }
 
     protected DbContext CreateDatabaseContext()
     {

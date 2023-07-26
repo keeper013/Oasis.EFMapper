@@ -8,9 +8,50 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using System.Data.Entity;
 
-[TestFixture]
 public class ListPropertyMappingTests : TestBase
 {
+    [Test]
+    public void MapListProperties_ToMemory_SameInstance_ShouldThrowException()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        mapperBuilder.Register<CollectionEntity1, CollectionEntity2>();
+        var mapper = mapperBuilder.Build();
+        var sc1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
+        var entity1 = new CollectionEntity1(1, new[] { sc1, sc1 });
+
+        // Assert
+        Assert.Throws<DuplicatedListItemException>(() =>
+        {
+            // Act
+            mapper.Map<CollectionEntity1, CollectionEntity2>(entity1);
+        });
+    }
+
+    [Test]
+    public async Task MapListProperties_ToDatabase_SameInstance_ShouldThrowException()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        mapperBuilder.Register<CollectionEntity2, CollectionEntity1>();
+        var mapper = mapperBuilder.Build();
+        var sc2 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
+        var entity2 = new CollectionEntity2(1, new[] { sc2, sc2 });
+
+        // Assert
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            await Task.FromResult(0);
+            Assert.ThrowsAsync<DuplicatedListItemException>(async () =>
+            {
+                // Act
+                await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, databaseContext);
+            });
+        });
+    }
+
     [Test]
     public async Task MapListProperties_ICollection_MappingShouldSucceed()
     {
@@ -143,7 +184,7 @@ public class ListPropertyMappingTests : TestBase
 
         var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity);
 
-        result1.IntProp = 2;
+        result1!.IntProp = 2;
         var item0 = result1.Scs![0];
         item0.IntProp = 2;
         item0.LongNullableProp = 3;
@@ -296,7 +337,7 @@ public class ListPropertyMappingTests : TestBase
             var listEntity2_2 = new ListEntity2(2);
             var subEntity2 = new SubEntity2("1");
             subEntity2.ListEntity = listEntity2_1;
-            databaseContext.Set<ListEntity2>().AddRange(new[] { listEntity2_1, listEntity2_2 });
+            databaseContext.Set<ListEntity2>().AddRange(new ListEntity2[] { listEntity2_1, listEntity2_2 });
             databaseContext.Set<SubEntity2>().Add(subEntity2);
             await databaseContext.SaveChangesAsync();
         });
@@ -321,7 +362,7 @@ public class ListPropertyMappingTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var l1 = await databaseContext.Set<ListEntity2>().AsNoTracking().Include(l => l.SubEntities).FirstAsync(l => l.IntProp == 1);
-            Assert.IsEmpty(l1.SubEntities!);
+            Assert.IsEmpty(l1.SubEntities);
             var l2 = await databaseContext.Set<ListEntity2>().AsNoTracking().Include(l => l.SubEntities).FirstAsync(l => l.IntProp == 2);
             Assert.AreEqual(1, l2.SubEntities!.Count);
         });
@@ -349,7 +390,6 @@ public class ListPropertyMappingTests : TestBase
             await session.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2);
             await databaseContext.SaveChangesAsync();
         });
-
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             Assert.AreEqual(1, await databaseContext.Set<ScalarItem1>().CountAsync());
@@ -511,11 +551,12 @@ public class ListPropertyMappingTests : TestBase
         item0.LongNullableProp = 3;
         item0.StringProp = "4";
         item0.ByteArrayProp = new byte[] { 2 };
-        using (var databaseContext = CreateDatabaseContext())
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
+            await Task.FromResult(0);
             Assert.ThrowsAsync<AsNoTrackingNotAllowedException>(
                 async () => await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, databaseContext, c => c.AsNoTracking().Include(c => c.Scs)));
-        }
+        });
     }
 
     [Test]
@@ -523,47 +564,7 @@ public class ListPropertyMappingTests : TestBase
     {
         var sc1_1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
         var sc1_2 = new SubScalarEntity1(2, default, "4", new byte[] { 2, 3, 4 });
-        Assert.ThrowsAsync<UnknownListTypeException>(async () => await MapListProperties_ICollection<CollectionEntity3WithWrapper>(new List<SubScalarEntity1> { sc1_1, sc1_2 }));
-    }
-
-    [Test]
-    public void ListWrapperWithNoSetter_ShouldFail()
-    {
-        var sc1_1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
-        var sc1_2 = new SubScalarEntity1(2, default, "4", new byte[] { 2, 3, 4 });
-        Assert.ThrowsAsync<SetterMissingException>(async () => await MapListProperties_ICollection<CollectionEntity4WithWrapper>(new List<SubScalarEntity1> { sc1_1, sc1_2 }));
-    }
-
-    [Test]
-    public void ScalarAsEntity_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidEntityTypeException>(() =>
-        {
-            mapperBuilder
-                .WithScalarConverter<ListEntity2, int>(e => 1)
-                .Register<ListEntity2, ListEntity3>();
-        });
-    }
-
-    [Test]
-    public void EntityAsScalar_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidScalarTypeException>(() =>
-        {
-            mapperBuilder
-                .Register<ListEntity2, ListEntity3>()
-                .WithScalarConverter<ListEntity2, int>(e => 1);
-        });
+        Assert.ThrowsAsync<UnconstructableTypeException>(async () => await MapListProperties_ICollection<CollectionEntity3WithWrapper>(new List<SubScalarEntity1> { sc1_1, sc1_2 }));
     }
 
     [Test]
@@ -576,8 +577,7 @@ public class ListPropertyMappingTests : TestBase
         // act and assert
         Assert.Throws<FactoryMethodException>(() =>
         {
-            mapperBuilder
-                .WithFactoryMethod<ScalarEntity2ListWrapper>(() => new ScalarEntity2ListWrapper());
+            mapperBuilder.WithFactoryMethod(() => new ScalarEntity2ListWrapper());
         });
     }
 
@@ -593,52 +593,6 @@ public class ListPropertyMappingTests : TestBase
         {
             mapperBuilder
                 .WithFactoryMethod<StringListNoDefaultConstructor, string>(() => new StringListNoDefaultConstructor(1));
-        });
-    }
-
-    [Test]
-    public void CustomFactoryMethodForNonEntityList_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidEntityListTypeException>(() =>
-        {
-            mapperBuilder
-                .WithScalarConverter<ScalarEntity2Item, int>(s => 1)
-                .WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2Item>(() => new ScalarEntity2NoDefaultConstructorListWrapper(1));
-        });
-    }
-
-    [Test]
-    public void EntityInListForScalar_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidScalarTypeException>(() =>
-        {
-            mapperBuilder
-                .WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2Item>(() => new ScalarEntity2NoDefaultConstructorListWrapper(1))
-                .WithScalarConverter<ScalarEntity2Item, int>(s => 1);
-        });
-    }
-
-    [Test]
-    public void EntityListForScalar_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
-
-        // act and assert
-        Assert.Throws<InvalidScalarTypeException>(() =>
-        {
-            mapperBuilder.WithScalarConverter<ScalarEntity2ListWrapper, int>(s => 1);
         });
     }
 
