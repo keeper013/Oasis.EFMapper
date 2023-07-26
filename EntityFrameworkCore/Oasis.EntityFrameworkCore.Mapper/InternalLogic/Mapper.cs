@@ -10,9 +10,9 @@ internal sealed class Mapper : IMapper
     private readonly IListTypeConstructor _listTypeConstructor;
     private readonly IEntityFactory _entityFactory;
     private readonly MapperSetLookUp _lookup;
-    private readonly ExistingTargetTracker _existingTargetTracker;
+    private readonly ExistingTargetTrackerFactory _existingTargetTrackerFactory;
     private readonly EntityBaseProxy _entityBaseProxy;
-    private readonly TargetTrackerProvider _targetTrackerProvider;
+    private readonly NewTargetTrackerProvider _newTargetTrackerProvider;
     private readonly EntityRemover _entityRemover;
     private readonly ToMemoryRecursiveMapper _toMemoryRecursiveMapper;
 
@@ -20,9 +20,9 @@ internal sealed class Mapper : IMapper
         IScalarTypeConverter scalarConverter,
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
-        ExistingTargetTracker existingTargetTracker,
+        ExistingTargetTrackerFactory existingTargetTrackerFactory,
         EntityBaseProxy entityBaseProxy,
-        TargetTrackerProvider targetTrackerProvider,
+        NewTargetTrackerProvider newTargetTrackerProvider,
         EntityRemover entityRemover,
         IEntityFactory entityFactory)
     {
@@ -30,30 +30,31 @@ internal sealed class Mapper : IMapper
         _listTypeConstructor = listTypeConstructor;
         _entityFactory = entityFactory;
         _lookup = lookup;
-        _existingTargetTracker = existingTargetTracker;
+        _existingTargetTrackerFactory = existingTargetTrackerFactory;
         _entityBaseProxy = entityBaseProxy;
-        _targetTrackerProvider = targetTrackerProvider;
+        _newTargetTrackerProvider = newTargetTrackerProvider;
         _entityRemover = entityRemover;
-        _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(scalarConverter, listTypeConstructor, lookup, existingTargetTracker, entityBaseProxy, entityFactory);
+        _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, entityFactory);
     }
 
     public IMappingSession CreateMappingSession()
     {
-        return new MappingSession(_entityFactory, _targetTrackerProvider, _toMemoryRecursiveMapper);
+        return new MappingSession(_entityFactory, _existingTargetTrackerFactory.Make(), _newTargetTrackerProvider.Provide<int>(), _toMemoryRecursiveMapper);
     }
 
     public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
     {
-        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _lookup, _existingTargetTracker, _entityBaseProxy, _entityRemover, _entityFactory, _targetTrackerProvider, databaseContext);
+        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _lookup, _existingTargetTrackerFactory.Make(), _entityBaseProxy, _entityRemover, _entityFactory, _newTargetTrackerProvider.Provide<int>(), databaseContext);
     }
 
     public TTarget Map<TSource, TTarget>(TSource source)
         where TSource : class
         where TTarget : class
     {
-        var newEntityTracker = _targetTrackerProvider.Provide<TSource, TTarget, int>();
+        var newEntityTracker = _newTargetTrackerProvider.Provide<TSource, TTarget, int>();
+        var existingDataTracker = _existingTargetTrackerFactory.Make();
         var target = _entityFactory.Make<TTarget>();
-        _toMemoryRecursiveMapper.Map(source, target, true, newEntityTracker);
+        _toMemoryRecursiveMapper.Map(source, target, true, existingDataTracker, newEntityTracker);
         return target;
     }
 
@@ -61,9 +62,10 @@ internal sealed class Mapper : IMapper
         where TSource : class
         where TTarget : class
     {
-        var newEntityTracker = _targetTrackerProvider.Provide<TSource, TTarget, int>();
-        var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _existingTargetTracker, _entityBaseProxy, _entityRemover, _entityFactory, databaseContext);
-        return await toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, newEntityTracker, keepUnmatched);
+        var newEntityTracker = _newTargetTrackerProvider.Provide<TSource, TTarget, int>();
+        var existingTargetTracker = _existingTargetTrackerFactory.Make();
+        var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy, _entityRemover, _entityFactory, databaseContext);
+        return await toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, existingTargetTracker, newEntityTracker, keepUnmatched);
     }
 }
 
@@ -71,15 +73,18 @@ internal sealed class MappingSession : IMappingSession
 {
     private readonly IEntityFactory _entityFactory;
     private readonly INewTargetTracker<int>? _entityTracker;
+    private readonly IExistingTargetTracker _existingTargetTracker;
     private readonly ToMemoryRecursiveMapper _toMemoryRecursiveMapper;
 
     public MappingSession(
         IEntityFactory entityFactory,
-        TargetTrackerProvider targetTrackerProvider,
+        IExistingTargetTracker existingTargetTracker,
+        INewTargetTracker<int>? entityTracker,
         ToMemoryRecursiveMapper toMemoryRecursiveMapper)
     {
         _entityFactory = entityFactory;
-        _entityTracker = targetTrackerProvider.Provide<int>();
+        _existingTargetTracker = existingTargetTracker;
+        _entityTracker = entityTracker;
         _toMemoryRecursiveMapper = toMemoryRecursiveMapper;
     }
 
@@ -88,7 +93,7 @@ internal sealed class MappingSession : IMappingSession
         where TTarget : class
     {
         var target = _entityFactory.Make<TTarget>();
-        _toMemoryRecursiveMapper.Map(source, target, true, _entityTracker);
+        _toMemoryRecursiveMapper.Map(source, target, true, _existingTargetTracker, _entityTracker);
 
         return target;
     }
@@ -96,38 +101,40 @@ internal sealed class MappingSession : IMappingSession
 
 internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
 {
-    private readonly INewTargetTracker<int>? _newEntityTracker;
+    private readonly IExistingTargetTracker _existingTargetTracker;
+    private readonly INewTargetTracker<int> _newEntityTracker;
     private readonly ToDatabaseRecursiveMapper _toDatabaseRecursiveMapper;
 
     public MappingToDatabaseSession(
         IScalarTypeConverter scalarConverter,
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
-        ExistingTargetTracker existingTargetTracker,
+        IExistingTargetTracker existingTargetTracker,
         EntityBaseProxy entityBaseProxy,
         EntityRemover entityRemover,
         IEntityFactory entityFactory,
-        TargetTrackerProvider targetTrackerProvider,
+        INewTargetTracker<int> newEntityTracker,
         DbContext databaseContext)
     {
-        _newEntityTracker = targetTrackerProvider.Provide<int>();
-        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, existingTargetTracker, entityBaseProxy, entityRemover, entityFactory, databaseContext);
+        _existingTargetTracker = existingTargetTracker;
+        _newEntityTracker = newEntityTracker;
+        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, entityRemover, entityFactory, databaseContext);
     }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default, MapToDatabaseType mappingType = MapToDatabaseType.Upsert, bool? keepUnmatched = null)
         where TSource : class
         where TTarget : class
     {
-        return await _toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, _newEntityTracker, keepUnmatched);
+        return await _toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, _existingTargetTracker, _newEntityTracker, keepUnmatched);
     }
 }
 
-internal sealed class TargetTrackerProvider
+internal sealed class NewTargetTrackerProvider
 {
     private readonly IReadOnlyDictionary<Type, ISet<Type>> _loopDependencyMappings;
     private readonly IEntityFactory _entityFactory;
 
-    public TargetTrackerProvider(IReadOnlyDictionary<Type, ISet<Type>> loopDependencyMappings, IEntityFactory entityFactory)
+    public NewTargetTrackerProvider(IReadOnlyDictionary<Type, ISet<Type>> loopDependencyMappings, IEntityFactory entityFactory)
     {
         _loopDependencyMappings = loopDependencyMappings;
         _entityFactory = entityFactory;

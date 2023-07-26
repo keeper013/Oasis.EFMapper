@@ -17,11 +17,11 @@ public sealed class ExistingTargetTracker<TKeyType> : IExistingTargetTracker
     }
 }
 
-internal sealed class ExistingTargetTracker
+internal sealed class ExistingTargetTrackerFactory
 {
     private readonly Dictionary<Type, ExistingTargetTrackerSet> _dict = new ();
 
-    public ExistingTargetTracker(IReadOnlyDictionary<Type, ExistingTargetTrackerMetaDataSet> dict, Type type)
+    public ExistingTargetTrackerFactory(IReadOnlyDictionary<Type, ExistingTargetTrackerMetaDataSet> dict, Type type)
     {
         foreach (var kvp in dict)
         {
@@ -33,9 +33,33 @@ internal sealed class ExistingTargetTracker
         }
     }
 
-    public IExistingTargetTracker GetTargetTracker(Type type)
+    public IExistingTargetTracker Make()
     {
-        var set = _dict[type];
-        return ((Utilities.BuildExistingTargetTracker)set.buildExistingTargetTracker)(set.startTrackingTarget);
+        return new ExistingTargetTracker(_dict);
+    }
+
+    internal sealed class ExistingTargetTracker : IExistingTargetTracker
+    {
+        private readonly IReadOnlyDictionary<Type, ExistingTargetTrackerSet> _dict;
+        private readonly Dictionary<Type, IExistingTargetTracker> _cache = new ();
+
+        public ExistingTargetTracker(IReadOnlyDictionary<Type, ExistingTargetTrackerSet> dict)
+        {
+            _dict = dict;
+        }
+
+        public bool StartTracking<TTarget>(TTarget target)
+            where TTarget : class
+        {
+            var type = typeof(TTarget);
+            if (!_cache.TryGetValue(type, out var result))
+            {
+                var set = _dict[type];
+                result = ((Utilities.BuildExistingTargetTracker)set.buildExistingTargetTracker)(set.startTrackingTarget);
+                _cache.Add(type, result);
+            }
+
+            return result.StartTracking(target);
+        }
     }
 }

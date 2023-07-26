@@ -102,7 +102,10 @@ internal sealed class DynamicMethodBuilder
         if (generateScalarPropertyMappingCode || generateEntityPropertyMappingCode || generateEntityListPropertyMappingCode)
         {
             var methodName = BuildMapperMethodName(sourceType, targetType);
-            var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter), typeof(IRecursiveMapper<int>), typeof(INewTargetTracker<int>), typeof(bool?) }, typeof(void));
+            var method = BuildMethod(
+                methodName,
+                new[] { sourceType, targetType, typeof(IScalarTypeConverter), typeof(IRecursiveMapper<int>), typeof(IExistingTargetTracker), typeof(INewTargetTracker<int>), typeof(bool?) },
+                typeof(void));
             var generator = method.GetILGenerator();
 
             if (generateScalarPropertyMappingCode)
@@ -299,8 +302,9 @@ internal sealed class DynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg_1);
             generator.Emit(OpCodes.Callvirt, matched.Item3.GetMethod!);
             generator.Emit(OpCodes.Ldarg, 4);
-            generator.Emit(OpCodes.Ldstr, matched.Item3.Name);
             generator.Emit(OpCodes.Ldarg, 5);
+            generator.Emit(OpCodes.Ldstr, matched.Item3.Name);
+            generator.Emit(OpCodes.Ldarg, 6);
             generator.Emit(OpCodes.Callvirt, _entityPropertyMapperCache.CreateIfNotExist(matched.Item2, matched.Item4));
             generator.Emit(OpCodes.Callvirt, matched.Item3.SetMethod!);
         }
@@ -355,8 +359,9 @@ internal sealed class DynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg_1);
             generator.Emit(OpCodes.Callvirt, match.Item3.GetMethod!);
             generator.Emit(OpCodes.Ldarg, 4);
-            generator.Emit(OpCodes.Ldstr, match.Item3.Name);
             generator.Emit(OpCodes.Ldarg, 5);
+            generator.Emit(OpCodes.Ldstr, match.Item3.Name);
+            generator.Emit(OpCodes.Ldarg, 6);
             generator.Emit(OpCodes.Callvirt, _entityListPropertyMapperCache.CreateIfNotExist(match.Item2, match.Item4));
         }
     }

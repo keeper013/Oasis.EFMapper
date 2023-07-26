@@ -4,7 +4,7 @@ using Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 public sealed class MapperBuilderFactory : IMapperBuilderFactory
 {
-    public IMapperBuilder MakeMapperBuilder(string assemblyName, EntityConfiguration? defaultConfiguration)
+    public IMapperBuilder MakeMapperBuilder(string assemblyName, EntityConfiguration? defaultConfiguration = null)
     {
         return new MapperBuilder(assemblyName, defaultConfiguration ?? new EntityConfiguration("Id"));
     }

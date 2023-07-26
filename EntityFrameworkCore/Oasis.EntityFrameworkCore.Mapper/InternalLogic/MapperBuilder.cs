@@ -24,14 +24,14 @@ internal sealed class MapperBuilder : IMapperBuilder
         var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
         var proxy = _mapperRegistry.MakeEntityBaseProxy(type, scalarTypeConverter);
         var entityFactory = _mapperRegistry.MakeEntityFactory();
-        var targetTrackerProvider = _mapperRegistry.MakeTargetTrackerProvider(entityFactory);
+        var newTargetTrackerProvider = _mapperRegistry.MakeNewTargetTrackerProvider(entityFactory);
         var entityRemover = _mapperRegistry.MakeEntityRemover();
-        var existingTargetTracker = _mapperRegistry.MakeExistingTargetTracker(type);
+        var existingTargetTrackerFactory = _mapperRegistry.MakeExistingTargetTrackerFactory(type);
 
         // release some memory ahead
         _mapperRegistry.Clear();
 
-        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTracker, proxy, targetTrackerProvider, entityRemover, entityFactory);
+        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTrackerFactory, proxy, newTargetTrackerProvider, entityRemover, entityFactory);
     }
 
     public IMapperBuilder Register<TSource, TTarget>(ICustomTypeMapperConfiguration? configuration = null)

@@ -249,9 +249,9 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new MapperSetLookUp(_mapper, type);
     }
 
-    public ExistingTargetTracker MakeExistingTargetTracker(Type type)
+    public ExistingTargetTrackerFactory MakeExistingTargetTrackerFactory(Type type)
     {
-        return new ExistingTargetTracker(_existingTargetTrackers, type);
+        return new ExistingTargetTrackerFactory(_existingTargetTrackers, type);
     }
 
     public EntityBaseProxy MakeEntityBaseProxy(Type type, IScalarTypeConverter scalarTypeConverter)
@@ -264,9 +264,9 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new EntityFactory(_factoryMethods);
     }
 
-    public TargetTrackerProvider MakeTargetTrackerProvider(IEntityFactory entityFactory)
+    public NewTargetTrackerProvider MakeNewTargetTrackerProvider(IEntityFactory entityFactory)
     {
-        return new TargetTrackerProvider(_loopDependencyMapping, entityFactory);
+        return new NewTargetTrackerProvider(_loopDependencyMapping, entityFactory);
     }
 
     public EntityRemover MakeEntityRemover()
