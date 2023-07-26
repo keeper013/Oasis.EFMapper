@@ -20,9 +20,11 @@ public sealed class ExistingTargetTracker<TKeyType> : IExistingTargetTracker
 internal sealed class ExistingTargetTrackerFactory
 {
     private readonly Dictionary<Type, ExistingTargetTrackerSet> _dict = new ();
+    private readonly IReadOnlySet<Type> _targetsToBeTracked;
 
-    public ExistingTargetTrackerFactory(IReadOnlyDictionary<Type, ExistingTargetTrackerMetaDataSet> dict, Type type)
+    public ExistingTargetTrackerFactory(IReadOnlyDictionary<Type, ExistingTargetTrackerMetaDataSet> dict, IReadOnlySet<Type> targetsToBeTracked, Type type)
     {
+        _targetsToBeTracked = targetsToBeTracked;
         foreach (var kvp in dict)
         {
             _dict.Add(
@@ -36,6 +38,12 @@ internal sealed class ExistingTargetTrackerFactory
     public IExistingTargetTracker Make()
     {
         return new ExistingTargetTracker(_dict);
+    }
+
+    public IExistingTargetTracker? Make<TTarget>()
+        where TTarget : class
+    {
+        return _targetsToBeTracked.Contains(typeof(TTarget)) ? new ExistingTargetTracker(_dict) : null;
     }
 
     internal sealed class ExistingTargetTracker : IExistingTargetTracker

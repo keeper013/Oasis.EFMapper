@@ -35,10 +35,12 @@ internal interface IRecursiveRegister
 internal sealed class RecursiveRegisterContext : RecursiveContext
 {
     private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping;
+    private readonly ISet<Type> _targetsToBeTracked;
 
-    public RecursiveRegisterContext(Dictionary<Type, ISet<Type>> loopDependencyMapping)
+    public RecursiveRegisterContext(Dictionary<Type, ISet<Type>> loopDependencyMapping, ISet<Type> targetsToBeTracked)
     {
         _loopDependencyMapping = loopDependencyMapping;
+        _targetsToBeTracked = targetsToBeTracked;
     }
 
     public void DumpLoopDependency()
@@ -53,6 +55,14 @@ internal sealed class RecursiveRegisterContext : RecursiveContext
             {
                 _loopDependencyMapping.Add(mappingTuple.Item1, new HashSet<Type> { mappingTuple.Item2 });
             }
+        }
+    }
+
+    public void DumpTargetsToBeTracked()
+    {
+        foreach (var mappingTuple in Stack)
+        {
+            _targetsToBeTracked.Add(mappingTuple.Item2);
         }
     }
 

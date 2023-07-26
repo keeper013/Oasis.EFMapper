@@ -52,7 +52,7 @@ internal sealed class Mapper : IMapper
         where TTarget : class
     {
         var newEntityTracker = _newTargetTrackerProvider.Provide<TSource, TTarget, int>();
-        var existingDataTracker = _existingTargetTrackerFactory.Make();
+        var existingDataTracker = _existingTargetTrackerFactory.Make<TTarget>();
         var target = _entityFactory.Make<TTarget>();
         _toMemoryRecursiveMapper.Map(source, target, true, existingDataTracker, newEntityTracker);
         return target;
@@ -63,7 +63,7 @@ internal sealed class Mapper : IMapper
         where TTarget : class
     {
         var newEntityTracker = _newTargetTrackerProvider.Provide<TSource, TTarget, int>();
-        var existingTargetTracker = _existingTargetTrackerFactory.Make();
+        var existingTargetTracker = _existingTargetTrackerFactory.Make<TTarget>();
         var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy, _entityRemover, _entityFactory, databaseContext);
         return await toDatabaseRecursiveMapper.MapAsync(source, includer, mappingType, existingTargetTracker, newEntityTracker, keepUnmatched);
     }

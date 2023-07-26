@@ -24,6 +24,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Delegate> _typeListFactoryMethods = new ();
     private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
     private readonly Dictionary<Type, ExistingTargetTrackerMetaDataSet> _existingTargetTrackers = new ();
+    private readonly HashSet<Type> _targetsToBeTracked = new ();
     private readonly IMapperTypeValidator _scalarMapperTypeValidator;
     private readonly IMapperTypeValidator _entityMapperTypeValidator;
     private readonly KeyPropertyNameManager _keyPropertyNames;
@@ -251,7 +252,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
 
     public ExistingTargetTrackerFactory MakeExistingTargetTrackerFactory(Type type)
     {
-        return new ExistingTargetTrackerFactory(_existingTargetTrackers, type);
+        return new ExistingTargetTrackerFactory(_existingTargetTrackers, _targetsToBeTracked, type);
     }
 
     public EntityBaseProxy MakeEntityBaseProxy(Type type, IScalarTypeConverter scalarTypeConverter)
@@ -305,7 +306,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
             RegisterKeyProperty(sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder, _typeConcurrencyTokenProxies, KeyType.ConcurrencyToken);
             RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder);
             RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder);
-            RegisterExistingTargetTracker(targetType, targetIdentityProperty);
+            RegisterExistingTargetTracker(targetType, targetIdentityProperty, context);
 
             if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet?>? innerMapper))
             {
@@ -409,7 +410,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
             throw new InvalidEntityTypeException(targetType);
         }
 
-        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping));
+        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping, _targetsToBeTracked));
     }
 
     private (PropertyInfo?, PropertyInfo?, PropertyInfo?, PropertyInfo?) ExtractKeyProperties(
@@ -509,7 +510,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
     }
 
-    private void RegisterExistingTargetTracker(Type targetType, PropertyInfo? targetIdentityProperty)
+    private void RegisterExistingTargetTracker(Type targetType, PropertyInfo? targetIdentityProperty, RecursiveRegisterContext context)
     {
         if (targetIdentityProperty != default && !_existingTargetTrackers.ContainsKey(targetType))
         {
@@ -518,6 +519,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
                 new ExistingTargetTrackerMetaDataSet(
                     _dynamicMethodBuilder.BuildUpBuildExistingTargetTrackerMethod(targetType, targetIdentityProperty),
                     _dynamicMethodBuilder.BuildUpStartTrackExistingTargetMethod(targetType, targetIdentityProperty)));
+            context.DumpTargetsToBeTracked();
         }
     }
 }

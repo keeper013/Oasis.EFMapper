@@ -40,7 +40,7 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
         return _listTypeConstructor.Construct<TList, TItem>();
     }
 
-    internal void Map<TSource, TTarget>(TSource source, TTarget target, bool mapKeyProperties, IExistingTargetTracker existingTargetTracker, INewTargetTracker<int>? newTargetTracker, MappingToDatabaseContext? context = null, bool? keepUnmatched = null)
+    internal void Map<TSource, TTarget>(TSource source, TTarget target, bool mapKeyProperties, IExistingTargetTracker? existingTargetTracker, INewTargetTracker<int>? newTargetTracker, MappingToDatabaseContext? context = null, bool? keepUnmatched = null)
         where TSource : class
         where TTarget : class
     {
@@ -49,7 +49,7 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
 
         if (EntityBaseProxy.HasId<TTarget>() && !EntityBaseProxy.IdIsEmpty(target))
         {
-            if (!existingTargetTracker.StartTracking(target))
+            if (existingTargetTracker != null && !existingTargetTracker.StartTracking(target))
             {
                 // Only do mapping if the target hasn't been mapped.
                 // This will be useful to break from infinite loop caused by navigation properties.
@@ -114,7 +114,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         TSource source,
         Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer,
         MapToDatabaseType mappingType,
-        IExistingTargetTracker existingTargetTracker,
+        IExistingTargetTracker? existingTargetTracker,
         INewTargetTracker<int>? newTargetTracker,
         bool? keepUnmatched)
         where TSource : class
@@ -284,7 +284,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         return Expression.Lambda<Func<TEntity, bool>>(equal, parameter);
     }
 
-    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, bool mapKeyProperties, IExistingTargetTracker existingTargetTracker, INewTargetTracker<int>? newTargetTracker, bool? keepUnmatched)
+    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, bool mapKeyProperties, IExistingTargetTracker? existingTargetTracker, INewTargetTracker<int>? newTargetTracker, bool? keepUnmatched)
         where TSource : class
         where TTarget : class
     {
