@@ -21,9 +21,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Dictionary<Type, IReadOnlyDictionary<string, bool>>> _propertyKeepEntityOnMappingRemoved = new ();
     private readonly Dictionary<Type, Dictionary<Type, ICustomTypeMapperConfiguration?>> _toBeRegistered = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
-    private readonly Dictionary<Type, Delegate> _typeListFactoryMethods = new ();
+    private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
     private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
     private readonly Dictionary<Type, ExistingTargetTrackerMetaDataSet> _existingTargetTrackers = new ();
+    private readonly Dictionary<Type, MethodMetaData> _entityDefaultConstructors = new ();
+    private readonly Dictionary<Type, MethodMetaData> _entityListDefaultConstructors = new ();
     private readonly HashSet<Type> _targetsToBeTracked = new ();
     private readonly IMapperTypeValidator _scalarMapperTypeValidator;
     private readonly IMapperTypeValidator _entityMapperTypeValidator;
@@ -105,7 +107,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
             throw new InvalidEntityListTypeException(type);
         }
 
-        if (_typeListFactoryMethods.ContainsKey(type))
+        if (_entityListFactoryMethods.ContainsKey(type))
         {
             if (throwIfRedundant)
             {
@@ -114,7 +116,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
         else
         {
-            _typeListFactoryMethods.Add(type, factoryMethod);
+            _entityListFactoryMethods.Add(type, factoryMethod);
             _knownEntityTypes.Add(itemType);
         }
     }
@@ -240,9 +242,9 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new ScalarTypeConverter(_scalarConverterDictionary);
     }
 
-    public IListTypeConstructor MakeListTypeConstructor()
+    public IListTypeConstructor MakeListTypeConstructor(Type type)
     {
-        return new ListTypeConstructor(_typeListFactoryMethods);
+        return new ListTypeConstructor(_entityListFactoryMethods, _entityListDefaultConstructors, type);
     }
 
     public MapperSetLookUp MakeMapperSetLookUp(Type type)
@@ -260,9 +262,9 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new EntityBaseProxy(_typeIdProxies, _typeConcurrencyTokenProxies, _idComparers, _concurrencyTokenComparers, type, scalarTypeConverter);
     }
 
-    public EntityFactory MakeEntityFactory()
+    public IEntityFactory MakeEntityFactory(Type type)
     {
-        return new EntityFactory(_factoryMethods);
+        return new EntityFactory(_factoryMethods, _entityDefaultConstructors, type);
     }
 
     public NewTargetTrackerProvider MakeNewTargetTrackerProvider(IEntityFactory entityFactory)
@@ -275,6 +277,14 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new EntityRemover(_defaultKeepEntityOnMappingRemoved, _typeKeepEntityOnMappingRemovedConfiguration, _mappingKeepEntityOnMappingRemoved, _propertyKeepEntityOnMappingRemoved);
     }
 
+    public void RegisterEntityListDefaultConstructorMethod(Type listType)
+    {
+        if (listType.IsConstructable() && !listType.IsList() && !_entityListDefaultConstructors.ContainsKey(listType) && !_entityListFactoryMethods.ContainsKey(listType))
+        {
+            _entityListDefaultConstructors.Add(listType, _dynamicMethodBuilder.BuildUpConstructorMethod(listType));
+        }
+    }
+
     public void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context)
     {
         if (!context.Contains(sourceType, targetType))
@@ -283,6 +293,8 @@ internal sealed class MapperRegistry : IRecursiveRegister
             {
                 throw new FactoryMethodException(targetType, true);
             }
+
+            RegisterEntityDefaultConstructorMethod(targetType);
 
             var configuration = _toBeRegistered.Pop(sourceType, targetType);
 
@@ -411,6 +423,14 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
 
         RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping, _targetsToBeTracked));
+    }
+
+    private void RegisterEntityDefaultConstructorMethod(Type type)
+    {
+        if (!_entityDefaultConstructors.ContainsKey(type) && !_factoryMethods.ContainsKey(type))
+        {
+            _entityDefaultConstructors.Add(type, _dynamicMethodBuilder.BuildUpConstructorMethod(type));
+        }
     }
 
     private (PropertyInfo?, PropertyInfo?, PropertyInfo?, PropertyInfo?) ExtractKeyProperties(

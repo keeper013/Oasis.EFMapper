@@ -30,6 +30,8 @@ internal sealed class RecursiveContextPopper : IDisposable
 internal interface IRecursiveRegister
 {
     void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context);
+
+    void RegisterEntityListDefaultConstructorMethod(Type type);
 }
 
 internal sealed class RecursiveRegisterContext : RecursiveContext

@@ -26,6 +26,7 @@ internal sealed class DynamicMethodBuilder
     private const char ConcurrencyTokenEmpty = 'n';
     private const char BuildExistingTargetTracker = 'u';
     private const char StartTrackExistingTarget = 's';
+    private const char Construct = 'c';
 
     private static readonly MethodInfo ObjectEqual = typeof(object).GetMethod(nameof(object.Equals), new[] { typeof(object) })!;
     private static readonly Type _delegateType = typeof(Delegate);
@@ -180,6 +181,22 @@ internal sealed class DynamicMethodBuilder
         return new MethodMetaData(typeof(Utilities.StartTrackingNewTarget<,>).MakeGenericType(targetType, identityType), method.Name);
     }
 
+    public MethodMetaData BuildUpConstructorMethod(Type type)
+    {
+        var methodName = BuildMethodName(Construct, type);
+        var method = BuildMethod(methodName, Array.Empty<Type>(), type);
+        var generator = method.GetILGenerator();
+        var constructorInfo = type.GetConstructor(Utilities.PublicInstance, Array.Empty<Type>());
+        if (constructorInfo == null)
+        {
+            throw new UnconstructableTypeException(type);
+        }
+
+        generator.Emit(OpCodes.Newobj, constructorInfo);
+        generator.Emit(OpCodes.Ret);
+        return new MethodMetaData(typeof(Func<>).MakeGenericType(type), method.Name);
+    }
+
     private static string GetTypeName(Type type)
     {
         return $"{type.Namespace}_{type.Name}".Replace(".", "_").Replace("`", "_");
@@ -324,11 +341,13 @@ internal sealed class DynamicMethodBuilder
         {
             if (targetEntityListProperties.TryGetValue(sourceProperty.Name, out var targetProperty))
             {
+                var targetType = targetProperty.PropertyType;
                 var sourceItemType = sourceProperty.PropertyType.GetListItemType()!;
-                var targetItemType = targetProperty.PropertyType.GetListItemType()!;
+                var targetItemType = targetType.GetListItemType()!;
 
                 // cascading mapper creation: if list item mapper doesn't exist, create it
-                context.RegisterIf(recursiveRegister, sourceItemType!, targetItemType!, _entityListMapperTypeValidator.CanConvert(sourceItemType!, targetItemType!));
+                context.RegisterIf(recursiveRegister, sourceItemType, targetItemType, _entityListMapperTypeValidator.CanConvert(sourceItemType, targetItemType));
+                recursiveRegister.RegisterEntityListDefaultConstructorMethod(targetType);
                 matchedProperties.Add((sourceProperty, sourceItemType, targetProperty, targetItemType));
                 keepEntityOnMappingRemovedProperties?.Remove(sourceProperty.Name);
             }

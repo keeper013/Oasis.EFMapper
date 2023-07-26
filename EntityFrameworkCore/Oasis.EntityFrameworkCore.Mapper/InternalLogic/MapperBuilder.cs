@@ -20,10 +20,10 @@ internal sealed class MapperBuilder : IMapperBuilder
     {
         var type = _mapperRegistry.Build();
         var scalarTypeConverter = _mapperRegistry.MakeScalarTypeConverter();
-        var listTypeConstructor = _mapperRegistry.MakeListTypeConstructor();
+        var listTypeConstructor = _mapperRegistry.MakeListTypeConstructor(type);
         var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
         var proxy = _mapperRegistry.MakeEntityBaseProxy(type, scalarTypeConverter);
-        var entityFactory = _mapperRegistry.MakeEntityFactory();
+        var entityFactory = _mapperRegistry.MakeEntityFactory(type);
         var newTargetTrackerProvider = _mapperRegistry.MakeNewTargetTrackerProvider(entityFactory);
         var entityRemover = _mapperRegistry.MakeEntityRemover();
         var existingTargetTrackerFactory = _mapperRegistry.MakeExistingTargetTrackerFactory(type);

@@ -5,7 +5,7 @@ using Oasis.EntityFrameworkCore.Mapper;
 
 internal static class ScalarTests
 {
-    internal const int Rounds = 10000000;
+    internal const int Rounds = 100000;
 
     public static void EfMapper_Scalar(IDictionary<string, TimeSpan> dict)
     {

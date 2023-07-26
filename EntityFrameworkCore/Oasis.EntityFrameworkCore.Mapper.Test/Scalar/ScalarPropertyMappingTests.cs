@@ -217,7 +217,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         var factory = new MapperBuilderFactory();
         var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
         mapperBuilder
-            .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(100))
+            .WithFactoryMethod(() => new EntityWithoutDefaultConstructor(100))
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>();
         var mapper = mapperBuilder.Build();
 

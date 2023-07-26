@@ -59,6 +59,10 @@ internal static class Utilities
         return default;
     }
 
+    public static bool IsConstructable(this Type type) => type.IsClass && !type.IsAbstract;
+
+    public static bool IsList(this Type listType) => listType.IsGenericType && listType.GetGenericTypeDefinition() == typeof(List<>);
+
     internal static MapperMetaDataSet? BuildMapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData? keyMapper, MethodMetaData? contentMapper)
     {
         return customPropertiesMapper == null && !keyMapper.HasValue && !contentMapper.HasValue

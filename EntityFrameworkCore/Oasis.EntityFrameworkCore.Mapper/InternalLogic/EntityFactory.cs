@@ -10,11 +10,16 @@ internal interface IEntityFactory
 
 internal class EntityFactory : IEntityFactory
 {
-    private readonly IDictionary<Type, Delegate> _factoryMethods;
+    private readonly IReadOnlyDictionary<Type, Delegate> _factoryMethods;
+    private readonly Dictionary<Type, Delegate> _generatedConstructors = new ();
 
-    public EntityFactory(IDictionary<Type, Delegate> factoryMethods)
+    public EntityFactory(IReadOnlyDictionary<Type, Delegate> factoryMethods, IReadOnlyDictionary<Type, MethodMetaData> generatedConstructors, Type type)
     {
         _factoryMethods = factoryMethods;
+        foreach (var kvp in generatedConstructors)
+        {
+            _generatedConstructors.Add(kvp.Key, Delegate.CreateDelegate(kvp.Value.type, type.GetMethod(kvp.Value.name)!));
+        }
     }
 
     public TEntity Make<TEntity>()
@@ -25,18 +30,11 @@ internal class EntityFactory : IEntityFactory
         {
             return ((Func<TEntity>)factoryMethod)();
         }
-        else
+        else if (_generatedConstructors.TryGetValue(type, out var generatedConstructor))
         {
-            var constructorInfo = type.GetConstructor(Utilities.PublicInstance, Array.Empty<Type>());
-
-            if (constructorInfo != null)
-            {
-                Func<TEntity> func = () => (TEntity)constructorInfo.Invoke(Array.Empty<object>());
-                _factoryMethods.Add(type, func);
-                return func();
-            }
+            return ((Func<TEntity>)generatedConstructor)();
         }
 
-        throw new UnconstructableTypeException(type);
+        throw new InvalidOperationException($"Type {type} doesn't have custom either factory method or a generated construct method.");
     }
 }

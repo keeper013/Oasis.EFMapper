@@ -72,14 +72,14 @@ internal sealed class Mapper : IMapper
 internal sealed class MappingSession : IMappingSession
 {
     private readonly IEntityFactory _entityFactory;
-    private readonly INewTargetTracker<int>? _entityTracker;
+    private readonly INewTargetTracker<int> _entityTracker;
     private readonly IExistingTargetTracker _existingTargetTracker;
     private readonly ToMemoryRecursiveMapper _toMemoryRecursiveMapper;
 
     public MappingSession(
         IEntityFactory entityFactory,
         IExistingTargetTracker existingTargetTracker,
-        INewTargetTracker<int>? entityTracker,
+        INewTargetTracker<int> entityTracker,
         ToMemoryRecursiveMapper toMemoryRecursiveMapper)
     {
         _entityFactory = entityFactory;
