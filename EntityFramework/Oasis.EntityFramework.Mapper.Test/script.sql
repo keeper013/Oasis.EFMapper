@@ -62,6 +62,12 @@ CREATE TABLE "LongSourceEntity" (
 );
 
 
+CREATE TABLE "MappingRemovedPrincipal1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_MappingRemovedPrincipal1" PRIMARY KEY AUTOINCREMENT,
+    "ConcurrencyToken" INTEGER NULL
+);
+
+
 CREATE TABLE "NByteSourceEntity" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_NByteSourceEntity" PRIMARY KEY AUTOINCREMENT,
     "ConcurrencyToken" INTEGER NULL,
@@ -90,8 +96,8 @@ CREATE TABLE "NShortSourceEntity" (
 );
 
 
-CREATE TABLE "Outer1" (
-    "Id" INTEGER NOT NULL CONSTRAINT "PK_Outer1" PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE "PrincipalOptional1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_PrincipalOptional1" PRIMARY KEY AUTOINCREMENT,
     "IntProp" INTEGER NOT NULL,
     "ConcurrencyToken" INTEGER NULL
 );
@@ -142,6 +148,12 @@ CREATE TABLE "ToDatabaseEntity1" (
 );
 
 
+CREATE TABLE "UnmatchedPrincipal1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_UnmatchedPrincipal1" PRIMARY KEY AUTOINCREMENT,
+    "ConcurrencyToken" INTEGER NULL
+);
+
+
 CREATE TABLE "ScalarEntity1Item" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_ScalarEntity1Item" PRIMARY KEY AUTOINCREMENT,
     "IntProp" INTEGER NOT NULL,
@@ -181,21 +193,36 @@ CREATE TABLE "SubScalarEntity1" (
 );
 
 
-CREATE TABLE "Inner1_1" (
-    "Id" INTEGER NOT NULL CONSTRAINT "PK_Inner1_1" PRIMARY KEY AUTOINCREMENT,
-    "LongProp" INTEGER NOT NULL,
-    "Outer_Id" INTEGER NULL,
+CREATE TABLE "MappingRemovedDependant1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_MappingRemovedDependant1" PRIMARY KEY AUTOINCREMENT,
+    "PrincipalForEntity_Id" INTEGER NULL,
+    "PrincipalIdForList" INTEGER NULL,
+    "IntProp" INTEGER NOT NULL,
+    "PrincipalForEntityId" INTEGER NULL,
+    "PrincipalForListId" INTEGER NULL,
     "ConcurrencyToken" INTEGER NULL,
-    CONSTRAINT "FK_Inner1_1_Outer1_Outer_Id" FOREIGN KEY ("Outer_Id") REFERENCES "Outer1" ("Id") ON DELETE SET NULL
+    CONSTRAINT "FK_MappingRemovedDependant1_MappingRemovedPrincipal1_PrincipalForEntity_Id" FOREIGN KEY ("PrincipalForEntity_Id") REFERENCES "MappingRemovedPrincipal1" ("Id") ON DELETE SET NULL,
+    CONSTRAINT "FK_MappingRemovedDependant1_MappingRemovedPrincipal1_PrincipalForEntityId" FOREIGN KEY ("PrincipalForEntityId") REFERENCES "MappingRemovedPrincipal1" ("Id"),
+    CONSTRAINT "FK_MappingRemovedDependant1_MappingRemovedPrincipal1_PrincipalForListId" FOREIGN KEY ("PrincipalForListId") REFERENCES "MappingRemovedPrincipal1" ("Id"),
+    CONSTRAINT "FK_MappingRemovedDependant1_MappingRemovedPrincipal1_PrincipalIdForList" FOREIGN KEY ("PrincipalIdForList") REFERENCES "MappingRemovedPrincipal1" ("Id")
 );
 
 
-CREATE TABLE "Inner1_2" (
-    "Id" INTEGER NOT NULL CONSTRAINT "PK_Inner1_2" PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE "DependentOptional1_1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_DependentOptional1_1" PRIMARY KEY AUTOINCREMENT,
+    "LongProp" INTEGER NOT NULL,
+    "Outer_Id" INTEGER NULL,
+    "ConcurrencyToken" INTEGER NULL,
+    CONSTRAINT "FK_DependentOptional1_1_PrincipalOptional1_Outer_Id" FOREIGN KEY ("Outer_Id") REFERENCES "PrincipalOptional1" ("Id") ON DELETE SET NULL
+);
+
+
+CREATE TABLE "DependentOptional1_2" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_DependentOptional1_2" PRIMARY KEY AUTOINCREMENT,
     "StringProp" TEXT NULL,
     "Outer_Id" INTEGER NULL,
     "ConcurrencyToken" INTEGER NULL,
-    CONSTRAINT "FK_Inner1_2_Outer1_Outer_Id" FOREIGN KEY ("Outer_Id") REFERENCES "Outer1" ("Id") ON DELETE SET NULL
+    CONSTRAINT "FK_DependentOptional1_2_PrincipalOptional1_Outer_Id" FOREIGN KEY ("Outer_Id") REFERENCES "PrincipalOptional1" ("Id") ON DELETE SET NULL
 );
 
 
@@ -210,10 +237,31 @@ CREATE TABLE "ScalarItem1" (
 );
 
 
-CREATE UNIQUE INDEX "IX_Inner1_1_Outer_Id" ON "Inner1_1" ("Outer_Id");
+CREATE TABLE "UnmatchedDependant1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_UnmatchedDependant1" PRIMARY KEY AUTOINCREMENT,
+    "PrincipalId" INTEGER NULL,
+    "IntProp" INTEGER NOT NULL,
+    "ConcurrencyToken" INTEGER NULL,
+    CONSTRAINT "FK_UnmatchedDependant1_UnmatchedPrincipal1_PrincipalId" FOREIGN KEY ("PrincipalId") REFERENCES "UnmatchedPrincipal1" ("Id")
+);
 
 
-CREATE UNIQUE INDEX "IX_Inner1_2_Outer_Id" ON "Inner1_2" ("Outer_Id");
+CREATE UNIQUE INDEX "IX_DependentOptional1_1_Outer_Id" ON "DependentOptional1_1" ("Outer_Id");
+
+
+CREATE UNIQUE INDEX "IX_DependentOptional1_2_Outer_Id" ON "DependentOptional1_2" ("Outer_Id");
+
+
+CREATE UNIQUE INDEX "IX_MappingRemovedDependant1_PrincipalForEntity_Id" ON "MappingRemovedDependant1" ("PrincipalForEntity_Id");
+
+
+CREATE INDEX "IX_MappingRemovedDependant1_PrincipalForEntityId" ON "MappingRemovedDependant1" ("PrincipalForEntityId");
+
+
+CREATE INDEX "IX_MappingRemovedDependant1_PrincipalForListId" ON "MappingRemovedDependant1" ("PrincipalForListId");
+
+
+CREATE INDEX "IX_MappingRemovedDependant1_PrincipalIdForList" ON "MappingRemovedDependant1" ("PrincipalIdForList");
 
 
 CREATE UNIQUE INDEX "IX_RecursiveEntity1_Parent_Id" ON "RecursiveEntity1" ("Parent_Id");
@@ -241,5 +289,8 @@ CREATE INDEX "IX_SubScalarEntity1_ListEntityId" ON "SubScalarEntity1" ("ListEnti
 
 
 CREATE INDEX "IX_SubScalarEntity1_ListIEntityId" ON "SubScalarEntity1" ("ListIEntityId");
+
+
+CREATE INDEX "IX_UnmatchedDependant1_PrincipalId" ON "UnmatchedDependant1" ("PrincipalId");
 
 

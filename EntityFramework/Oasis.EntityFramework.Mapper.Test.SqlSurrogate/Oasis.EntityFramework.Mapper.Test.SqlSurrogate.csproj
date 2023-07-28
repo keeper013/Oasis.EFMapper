@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -8,6 +8,9 @@
 
   <ItemGroup>
     <Compile Include="..\Oasis.EntityFramework.Mapper.Test\EntityBase.cs" Link="EntityBase.cs" />
+    <Compile Include="..\Oasis.EntityFramework.Mapper.Test\Custom\CustomEntities.cs" Link="Database\Custom\CustomEntities.cs" />
+    <Compile Include="..\Oasis.EntityFramework.Mapper.Test\ExcludedProperties\ExcludedPropertyEntities.cs" Link="Database\ExcludedProperties\ExcludedPropertyEntities.cs" />
+    <Compile Include="..\Oasis.EntityFramework.Mapper.Test\KeepUnmatched\KeepUnmatchedEntities.cs" Link="Database\KeepUnmatched\KeepUnmatchedEntities.cs" />
     <Compile Include="..\Oasis.EntityFramework.Mapper.Test\KeyPropertyType\KeyPropertyTypeEntities.cs" Link="Database\KeyPropertyType\KeyPropertyTypeEntities.cs" />
     <Compile Include="..\Oasis.EntityFramework.Mapper.Test\OneToMany\BaseDerivedEntities.cs" Link="Database\OneToMany\BaseDerivedEntities.cs" />
     <Compile Include="..\Oasis.EntityFramework.Mapper.Test\OneToMany\ListEntities.cs" Link="Database\OneToMany\ListEntities.cs" />

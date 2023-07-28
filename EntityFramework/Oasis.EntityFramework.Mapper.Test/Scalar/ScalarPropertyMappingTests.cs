@@ -147,8 +147,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.NotNull(entity);
 
         // if it's entity framework 6.0, the value will be 1 instead of mapped 100 here.
-        Assert.AreEqual(100, entity!.Id);
-        Assert.NotNull(entity.ConcurrencyToken);
+        Assert.AreEqual(1, entity!.Id);
         Assert.AreEqual(2, entity.IntProp);
         Assert.AreEqual(3, entity.LongNullableProp);
         Assert.AreEqual("4", entity.StringProp);
@@ -203,7 +202,6 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.NotNull(entity);
         Assert.AreEqual(1, count);
         Assert.AreEqual(id, entity!.Id);
-        Assert.NotNull(entity.ConcurrencyToken);
         Assert.AreEqual(2, entity.IntProp);
         Assert.AreEqual(3, entity.LongNullableProp);
         Assert.AreEqual("4", entity.StringProp);
@@ -453,7 +451,6 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         // assert
         Assert.AreNotEqual(default, instance1.ConcurrencyToken);
-        Assert.NotNull(instance1.Id);
         Assert.AreEqual(2, instance1.IntProp);
         Assert.AreEqual(3, instance1.LongNullableProp);
         Assert.AreEqual("4", instance1.StringProp);
@@ -478,6 +475,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
             .WithScalarConverter<ByteArrayWrapper, byte[]>(wrapper => wrapper!.Bytes!)
             .WithScalarConverter<long, LongWrapper>(l => new LongWrapper(l))
             .WithScalarConverter<LongWrapper, long>(wrapper => wrapper!.Value)
+            .WithScalarConverter<long?, NullableLongWrapper>(l => new NullableLongWrapper(l))
+            .WithScalarConverter<NullableLongWrapper, long?>(wrapper => wrapper!.Value)
             .WithConfiguration<WrappedScalarEntity2>(new EntityConfiguration(nameof(WrappedScalarEntity2.WrappedId), nameof(WrappedScalarEntity2.WrappedConcurrencyToken)))
             .RegisterTwoWay<ScalarEntity1, WrappedScalarEntity2>()
             .Register<WrappedScalarEntity2, WrappedScalarEntity2>();

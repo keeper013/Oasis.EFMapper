@@ -31,8 +31,6 @@ public class DependentOptional1_1 : EntityBase
 
     public long LongProp { get; set; }
 
-    public long? OuterId { get; set; }
-
     public PrincipalOptional1? Outer { get; set; }
 }
 
@@ -48,8 +46,6 @@ public class DependentOptional1_2 : EntityBase
     }
 
     public string? StringProp { get; set; }
-
-    public long? OuterId { get; set; }
 
     public PrincipalOptional1? Outer { get; set; }
 }
@@ -103,8 +99,6 @@ public class DependentRequired1_1 : EntityBase
 
     public long LongProp { get; set; }
 
-    public long? OuterId { get; set; }
-
     public PrincipalRequired1 Outer { get; set; } = null!;
 }
 
@@ -120,8 +114,6 @@ public class DependentRequired1_2 : EntityBase
     }
 
     public string? StringProp { get; set; }
-
-    public long OuterId { get; set; }
 
     public PrincipalRequired1 Outer { get; set; } = null!;
 }
@@ -185,8 +177,6 @@ public class RecursiveEntity1 : EntityBase
 
     public string? StringProperty { get; set; }
 
-    public long? ParentId { get; set; }
-
     public RecursiveEntity1? Parent { get; set; }
 
     public RecursiveEntity1? Child { get; set; }
@@ -204,8 +194,6 @@ public class RecursiveEntity2 : EntityBase
     }
 
     public string? StringProperty { get; set; }
-
-    public long? ParentId { get; set; }
 
     public RecursiveEntity2? Parent { get; set; }
 

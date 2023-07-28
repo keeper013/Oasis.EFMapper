@@ -11,6 +11,8 @@ public sealed class MappingRemovedPrincipal1 : EntityBase
 
 public sealed class MappingRemovedDependant1 : EntityBase
 {
+    public long? PrincipalIdForEntity { get; set; }
+
     public long? PrincipalIdForList { get; set; }
 
     public int IntProp { get; set; }
@@ -29,6 +31,8 @@ public sealed class MappingRemovedPrincipal2 : EntityBase
 
 public sealed class MappingRemovedDependant2 : EntityBase
 {
+    public long? PrincipalIdForEntity { get; set; }
+
     public long? PrincipalIdForList { get; set; }
 
     public int IntProp { get; set; }
