@@ -4,8 +4,14 @@ using Oasis.EntityFramework.Mapper.Exceptions;
 
 internal class ExcludedPropertyManager
 {
+    private readonly ISet<string> _excludedProperties;
     private readonly Dictionary<Type, ISet<string>> _typeExcludedProperties = new ();
     private readonly Dictionary<Type, Dictionary<Type, ISet<string>>> _mappingExcludedProperties = new ();
+
+    public ExcludedPropertyManager(ISet<string>? excludedProperties)
+    {
+        _excludedProperties = excludedProperties ?? new HashSet<string>();
+    }
 
     public bool ContainsTypeConfiguration(Type type)
     {
@@ -15,33 +21,50 @@ internal class ExcludedPropertyManager
     public (ISet<string>?, ISet<string>?) GetExcludedPropertyNames(Type sourceType, Type targetType)
     {
         var mappingProperties = _mappingExcludedProperties.Find(sourceType, targetType);
+        ISet<string>? source = default;
+        ISet<string>? target = default;
         if (mappingProperties == null)
         {
-            return (_typeExcludedProperties.TryGetValue(sourceType, out var sourceExcludedProperties) ? sourceExcludedProperties : default,
-                _typeExcludedProperties.TryGetValue(targetType, out var targetExcludedProperties) ? targetExcludedProperties : default);
+            if (_typeExcludedProperties.TryGetValue(sourceType, out var sourceExcludedProperties))
+            {
+                source = new HashSet<string>(sourceExcludedProperties);
+                source.UnionWith(_excludedProperties);
+            }
+
+            if (_typeExcludedProperties.TryGetValue(targetType, out var targetExcludedProperties))
+            {
+                target = new HashSet<string>(targetExcludedProperties);
+                target.UnionWith(_excludedProperties);
+            }
         }
         else
         {
             if (_typeExcludedProperties.TryGetValue(sourceType, out var sourceExcludedProperties))
             {
-                sourceExcludedProperties.UnionWith(mappingProperties);
+                source = new HashSet<string>(sourceExcludedProperties);
+                source.UnionWith(mappingProperties);
+                source.UnionWith(_excludedProperties);
             }
             else
             {
-                sourceExcludedProperties = mappingProperties;
+                source = new HashSet<string>(mappingProperties);
+                source.UnionWith(_excludedProperties);
             }
 
             if (_typeExcludedProperties.TryGetValue(targetType, out var targetExcludedProperties))
             {
-                targetExcludedProperties.UnionWith(mappingProperties);
+                target = new HashSet<string>(targetExcludedProperties);
+                target.UnionWith(mappingProperties);
+                target.UnionWith(_excludedProperties);
             }
             else
             {
-                targetExcludedProperties = mappingProperties;
+                target = new HashSet<string>(mappingProperties);
+                target.UnionWith(_excludedProperties);
             }
-
-            return (sourceExcludedProperties, targetExcludedProperties);
         }
+
+        return (source, target);
     }
 
     public void Add(Type type, ISet<string> excludedProperties)

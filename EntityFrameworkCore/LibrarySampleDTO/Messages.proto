@@ -87,8 +87,9 @@ message BorrowerReferenceDTO {
 }
 
 message NewBorrowerDTO {
-    string Name = 1;
-    NewContactDTO Contact = 2;
+    string IdentityNumber = 1;
+    string Name = 2;
+    NewContactDTO Contact = 3;
 }
 
 message UpdateBorrowerDTO {

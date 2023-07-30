@@ -2,7 +2,11 @@
 
 public interface IMapperBuilderFactory
 {
-    IMapperBuilder MakeMapperBuilder(EntityConfiguration? defaultConfiguration = null);
+    IMapperBuilder MakeMapperBuilder(
+        string? identityPropertyName = default,
+        string? concurrencyTokenPropertyName = default,
+        string[]? excludedProperties = default,
+        bool? keepEntityOnMappingRemoved = default);
 
     ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MakeCustomTypeMapperBuilder<TSource, TTarget>()
         where TSource : class

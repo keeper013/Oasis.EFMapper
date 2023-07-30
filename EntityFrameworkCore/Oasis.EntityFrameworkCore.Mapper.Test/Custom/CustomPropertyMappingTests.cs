@@ -1,22 +1,14 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Test.Custom;
 
-using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using Xunit;
 
 public class CustomPropertyMappingTests
 {
-    public CustomPropertyMappingTests()
-    {
-        DefaultConfiguration = new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
-    }
-
-    private EntityConfiguration DefaultConfiguration { get; }
-
     [Fact]
     public void TestMappingCustomProperty()
     {
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
         var custom = factory.MakeCustomTypeMapperBuilder<CustomEntity1, CustomEntity2>()
             .MapProperty(c2 => c2.InternalIntProperty, c1 => c1.InternalProperty.IntProperty)
             .Build();
@@ -37,7 +29,7 @@ public class CustomPropertyMappingTests
     public void TestMappingCustomPropertyOverridingOriginal()
     {
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
         var custom = factory.MakeCustomTypeMapperBuilder<CustomEntity3, CustomEntity2>()
             .MapProperty(c2 => c2.InternalIntProperty, c3 => c3.InternalProperty.IntProperty)
             .Build();
@@ -53,5 +45,10 @@ public class CustomPropertyMappingTests
         var c2 = mapper.Map<CustomEntity3, CustomEntity2>(c3);
         Assert.Equal("a", c2.StringProperty);
         Assert.Equal(100, c2.InternalIntProperty);
+    }
+
+    private static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory)
+    {
+        return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
     }
 }

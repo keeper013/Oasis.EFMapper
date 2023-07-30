@@ -10,7 +10,7 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
         var config = factory.MakeCustomTypeMapperBuilder<ExcludedPropertyEntity2, ExcludedPropertyEntity1>()
             .MapProperty(e1 => e1.IntProp, e2 => e2.IntProp + 1)
             .ExcludePropertyByName("IntProp");
@@ -24,8 +24,8 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
-        mapperBuilder.WithConfiguration<ExcludedPropertyEntity2>(new EntityConfiguration { excludedProperties = new[] { nameof(EntityBase.Id) } });
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
+        mapperBuilder.WithConfiguration<ExcludedPropertyEntity2>(null, null, new[] { nameof(EntityBase.Id) });
         mapperBuilder.Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>();
 
         // act & assert
@@ -37,10 +37,10 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
 
         // act & assert
-        Assert.Throws<UselessExcludeException>(() => mapperBuilder.WithConfiguration<ExcludedPropertyEntity2>(new EntityConfiguration { excludedProperties = new[] { "NonExistProperty" } }));
+        Assert.Throws<UselessExcludeException>(() => mapperBuilder.WithConfiguration<ExcludedPropertyEntity2>(null, null, new[] { "NonExistProperty" }));
     }
 
     [Test]
@@ -48,7 +48,7 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
         var config = factory.MakeCustomTypeMapperBuilder<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().ExcludePropertyByName("NonExistProperty");
 
         // act & assert
@@ -60,9 +60,9 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
         var mapper = mapperBuilder
-            .WithConfiguration<ExcludedPropertyEntity2>(new EntityConfiguration { excludedProperties = new[] { nameof(ExcludedPropertyEntity2.StringProp) } })
+            .WithConfiguration<ExcludedPropertyEntity2>(null, null, new[] { nameof(ExcludedPropertyEntity2.StringProp) })
             .Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().Build();
 
         // act
@@ -82,9 +82,9 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
         var mapper = mapperBuilder
-            .WithConfiguration<ExcludedPropertyEntity1>(new EntityConfiguration { excludedProperties = new[] { nameof(ExcludedPropertyEntity1.StringProp) } })
+            .WithConfiguration<ExcludedPropertyEntity1>(null, null, new[] { nameof(ExcludedPropertyEntity1.StringProp) })
             .Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().Build();
 
         // act
@@ -104,7 +104,7 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
         var config = factory.MakeCustomTypeMapperBuilder<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().ExcludePropertyByName(nameof(ExcludedPropertyEntity1.StringProp));
         var mapper = mapperBuilder.Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>(config.Build()).Build();
 

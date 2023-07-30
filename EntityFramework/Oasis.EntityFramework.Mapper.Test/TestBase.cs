@@ -12,11 +12,6 @@ public abstract class TestBase
 {
     private DbConnection? _connection;
 
-    protected TestBase()
-    {
-        DefaultConfiguration = new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
-    }
-
     [SetUp]
     public void Setup()
     {
@@ -35,7 +30,15 @@ public abstract class TestBase
         _connection?.Dispose();
     }
 
-    protected EntityConfiguration DefaultConfiguration { get; }
+    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory)
+    {
+        return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
+    }
+
+    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory, bool keepEntityOnMappingRemoved)
+    {
+        return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), null, keepEntityOnMappingRemoved);
+    }
 
     protected DbContext CreateDatabaseContext()
     {

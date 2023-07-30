@@ -16,11 +16,17 @@ public abstract class TestBase
         _options = new DbContextOptionsBuilder<DatabaseContext>()
             .UseSqlite(connection)
             .Options;
-
-        DefaultConfiguration = new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
     }
 
-    protected EntityConfiguration DefaultConfiguration { get; }
+    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory)
+    {
+        return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
+    }
+
+    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory, bool keepEntityOnMappingRemoved)
+    {
+        return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), null, keepEntityOnMappingRemoved);
+    }
 
     protected DbContext CreateDatabaseContext()
     {

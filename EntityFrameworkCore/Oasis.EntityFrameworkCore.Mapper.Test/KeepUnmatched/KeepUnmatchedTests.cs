@@ -15,7 +15,7 @@ public sealed class KeepUnmatchedTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapper = factory.MakeMapperBuilder(DefaultConfiguration)
+        var mapper = MakeDefaultMapperBuilder(factory)
             .RegisterTwoWay<UnmatchedPrincipal1, UnmatchedPrincipal2>()
             .Build();
 

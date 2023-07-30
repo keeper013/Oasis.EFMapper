@@ -5,9 +5,14 @@ using System.Security.Cryptography;
 
 public sealed class MapperBuilderFactory : IMapperBuilderFactory
 {
-    public IMapperBuilder MakeMapperBuilder(EntityConfiguration? defaultConfiguration = null)
+    public IMapperBuilder MakeMapperBuilder(
+        string? identityPropertyName = default,
+        string? concurrencyTokenPropertyName = default,
+        string[]? excludedProperties = default,
+        bool? keepEntityOnMappingRemoved = default)
     {
-        return new MapperBuilder(GenerateRandomTypeName(16), defaultConfiguration ?? new EntityConfiguration("Id"));
+        var excludedProps = excludedProperties != null && excludedProperties.Any() ? new HashSet<string>(excludedProperties) : null;
+        return new MapperBuilder(GenerateRandomTypeName(16), identityPropertyName, concurrencyTokenPropertyName, excludedProps, keepEntityOnMappingRemoved);
     }
 
     public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MakeCustomTypeMapperBuilder<TSource, TTarget>()

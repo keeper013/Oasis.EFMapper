@@ -15,7 +15,7 @@ public sealed class TestCase2_MapEntityWithConcurrencyTokenToDatabase : TestBase
     {
         // initialize mapper
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
         var mapper = mapperBuilder
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .Register<NewBookDTO, Book>()
@@ -64,7 +64,7 @@ public sealed class TestCase2_MapEntityWithConcurrencyTokenToDatabase : TestBase
     {
         // initialize mapper
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
         var mapper = mapperBuilder
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
@@ -86,19 +86,19 @@ public sealed class TestCase2_MapEntityWithConcurrencyTokenToDatabase : TestBase
 
         // update existint book dto
         const string UpdatedBookName = "Updated Book 1";
-        var updateBookNameDto = mapper.Map<Book, UpdateBookDTO>(book);
-        Assert.NotNull(updateBookNameDto.ConcurrencyToken);
-        Assert.NotEmpty(updateBookNameDto.ConcurrencyToken);
-        updateBookNameDto.Name = UpdatedBookName;
+        var updateBookDto = mapper.Map<Book, UpdateBookDTO>(book);
+        Assert.NotNull(updateBookDto.ConcurrencyToken);
+        Assert.NotEmpty(updateBookDto.ConcurrencyToken);
+        updateBookDto.Name = UpdatedBookName;
 
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookNameDto, databaseContext);
+            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, databaseContext);
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().FirstAsync();
             Assert.Equal(UpdatedBookName, book.Name);
         });
 
-        return (mapper, updateBookNameDto);
+        return (mapper, updateBookDto);
     }
 }

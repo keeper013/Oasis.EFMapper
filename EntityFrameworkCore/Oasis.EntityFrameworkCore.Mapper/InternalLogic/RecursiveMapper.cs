@@ -189,9 +189,9 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             return default;
         }
 
-        if (EntityBaseProxy.IdIsEmpty(source))
+        if (EntityBaseProxy.HasId<TSource>() && EntityBaseProxy.IdIsEmpty(source))
         {
-            if (target != default && !EntityBaseProxy.IdIsEmpty(target))
+            if (target != default && EntityBaseProxy.HasId<TTarget>() && !EntityBaseProxy.IdIsEmpty(target))
             {
                 _entityRemover.RemoveIfConfigured(_databaseContext, target, _mappingContext.MakeMappingData(propertyName));
             }

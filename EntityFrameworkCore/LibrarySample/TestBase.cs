@@ -1,9 +1,9 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Oasis.EntityFrameworkCore.Mapper;
 using Oasis.EntityFrameworkCore.Mapper.Sample;
 using System.Threading.Tasks;
 using System;
+using Oasis.EntityFrameworkCore.Mapper;
 
 namespace LibrarySample;
 
@@ -20,8 +20,6 @@ public abstract class TestBase
             .Options;
     }
 
-    protected EntityConfiguration DefaultConfiguration = new EntityConfiguration(nameof(IEntityBaseWithId.Id), nameof(IEntityBaseWithConcurrencyToken.ConcurrencyToken));
-
     protected DbContext CreateDatabaseContext()
     {
         var databaseContext = new DatabaseContext(_options);
@@ -36,5 +34,10 @@ public abstract class TestBase
         {
             await action(databaseContext);
         }
+    }
+
+    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory)
+    {
+        return factory.MakeMapperBuilder(nameof(IEntityBaseWithId.Id), nameof(IEntityBaseWithConcurrencyToken.ConcurrencyToken));
     }
 }

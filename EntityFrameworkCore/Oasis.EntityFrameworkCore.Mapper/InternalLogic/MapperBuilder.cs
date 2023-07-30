@@ -8,12 +8,17 @@ internal sealed class MapperBuilder : IMapperBuilder
 {
     private readonly MapperRegistry _mapperRegistry;
 
-    public MapperBuilder(string assemblyName, EntityConfiguration defaultConfiguration)
+    public MapperBuilder(
+        string assemblyName,
+        string? identityPropertyName = default,
+        string? concurrencyTokenPropertyName = default,
+        IReadOnlySet<string>? excludedProperties = default,
+        bool? keepEntityOnMappingRemoved = default)
     {
         var name = new AssemblyName($"{assemblyName}.Oasis.EntityFrameworkCore.Mapper.Generated");
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
-        _mapperRegistry = new (module, defaultConfiguration);
+        _mapperRegistry = new (module, identityPropertyName, concurrencyTokenPropertyName, excludedProperties, keepEntityOnMappingRemoved);
     }
 
     public IMapper Build()
@@ -74,10 +79,22 @@ internal sealed class MapperBuilder : IMapperBuilder
         return this;
     }
 
-    public IMapperBuilder WithConfiguration<TEntity>(EntityConfiguration configuration, bool throwIfRedundant = false)
+    public IMapperBuilder WithConfiguration<TEntity>(
+        string? identityPropertyName,
+        string? concurrencyTokenPropertyName = default,
+        string[]? excludedProperties = default,
+        bool? keepEntityOnMappingRemoved = default,
+        bool throwIfRedundant = false)
         where TEntity : class
     {
-        _mapperRegistry.WithConfiguration(typeof(TEntity), configuration, throwIfRedundant);
+        var excludedProps = excludedProperties != null && excludedProperties.Any() ? new HashSet<string>(excludedProperties) : null;
+        _mapperRegistry.WithConfiguration(
+            typeof(TEntity),
+            identityPropertyName,
+            concurrencyTokenPropertyName,
+            excludedProps,
+            keepEntityOnMappingRemoved,
+            throwIfRedundant);
         return this;
     }
 

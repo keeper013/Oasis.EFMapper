@@ -56,25 +56,25 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             "b250YWN0RFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiAB",
             "KAwSEAoIQm9ycm93ZXIYAyABKAkSEwoLUGhvbmVOdW1iZXIYBCABKAkSDwoH",
             "QWRkcmVzcxgFIAEoCSIuChRCb3Jyb3dlclJlZmVyZW5jZURUTxIWCg5JZGVu",
-            "dGl0eU51bWJlchgBIAEoCSJnCg5OZXdCb3Jyb3dlckRUTxIMCgROYW1lGAEg",
-            "ASgJEkcKB0NvbnRhY3QYAiABKAsyNi5PYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
-            "b3JlLk1hcHBlci5TYW1wbGUuTmV3Q29udGFjdERUTyK5AgoRVXBkYXRlQm9y",
-            "cm93ZXJEVE8SFgoOSWRlbnRpdHlOdW1iZXIYASABKAkSGAoQQ29uY3VycmVu",
-            "Y3lUb2tlbhgCIAEoDBIMCgROYW1lGAMgASgJEkoKB0NvbnRhY3QYBCABKAsy",
-            "OS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVXBk",
-            "YXRlQ29udGFjdERUTxJHCghSZXNlcnZlZBgFIAEoCzIwLk9hc2lzLkVudGl0",
-            "eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPSACIAQESQgoI",
-            "Qm9ycm93ZWQYBiADKAsyMC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1h",
-            "cHBlci5TYW1wbGUuQ29weURUT0ILCglfUmVzZXJ2ZWQivwIKC0JvcnJvd2Vy",
-            "RFRPEhYKDklkZW50aXR5TnVtYmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9r",
-            "ZW4YAiABKAwSDAoETmFtZRgDIAEoCRJECgdDb250YWN0GAQgASgLMjMuT2Fz",
-            "aXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvbnRhY3RE",
-            "VE8SUAoIUmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
-            "b3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0gAiAEBEksKCEJv",
-            "cnJvd2VkGAYgAygLMjkuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBw",
-            "ZXIuU2FtcGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJX1Jlc2VydmVkQiqqAidP",
-            "YXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGViBnByb3Rv",
-            "Mw=="));
+            "dGl0eU51bWJlchgBIAEoCSJ/Cg5OZXdCb3Jyb3dlckRUTxIWCg5JZGVudGl0",
+            "eU51bWJlchgBIAEoCRIMCgROYW1lGAIgASgJEkcKB0NvbnRhY3QYAyABKAsy",
+            "Ni5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuTmV3",
+            "Q29udGFjdERUTyK5AgoRVXBkYXRlQm9ycm93ZXJEVE8SFgoOSWRlbnRpdHlO",
+            "dW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIMCgROYW1l",
+            "GAMgASgJEkoKB0NvbnRhY3QYBCABKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdv",
+            "cmtDb3JlLk1hcHBlci5TYW1wbGUuVXBkYXRlQ29udGFjdERUTxJHCghSZXNl",
+            "cnZlZBgFIAEoCzIwLk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVy",
+            "LlNhbXBsZS5Db3B5RFRPSACIAQESQgoIQm9ycm93ZWQYBiADKAsyMC5PYXNp",
+            "cy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29weURUT0IL",
+            "CglfUmVzZXJ2ZWQivwIKC0JvcnJvd2VyRFRPEhYKDklkZW50aXR5TnVtYmVy",
+            "GAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgDIAEo",
+            "CRJECgdDb250YWN0GAQgASgLMjMuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29y",
+            "ZS5NYXBwZXIuU2FtcGxlLkNvbnRhY3REVE8SUAoIUmVzZXJ2ZWQYBSABKAsy",
+            "OS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29w",
+            "eVJlZmVyZW5jZURUT0gAiAEBEksKCEJvcnJvd2VkGAYgAygLMjkuT2FzaXMu",
+            "RW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvcHlSZWZlcmVu",
+            "Y2VEVE9CCwoJX1Jlc2VydmVkQiqqAidPYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
+            "b3JlLk1hcHBlci5TYW1wbGViBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -92,7 +92,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO.Parser, new[]{ "Id", "ConcurrencyToken", "PhoneNumber", "Address" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Borrower", "PhoneNumber", "Address" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerReferenceDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerReferenceDTO.Parser, new[]{ "IdentityNumber" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBorrowerDTO.Parser, new[]{ "Name", "Contact" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBorrowerDTO.Parser, new[]{ "IdentityNumber", "Name", "Contact" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBorrowerDTO.Parser, new[]{ "IdentityNumber", "ConcurrencyToken", "Name", "Contact", "Reserved", "Borrowed" }, new[]{ "Reserved" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO.Parser, new[]{ "IdentityNumber", "ConcurrencyToken", "Name", "Contact", "Reserved", "Borrowed" }, new[]{ "Reserved" }, null, null, null)
           }));
@@ -3788,6 +3788,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NewBorrowerDTO(NewBorrowerDTO other) : this() {
+      identityNumber_ = other.identityNumber_;
       name_ = other.name_;
       contact_ = other.contact_ != null ? other.contact_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -3799,8 +3800,20 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       return new NewBorrowerDTO(this);
     }
 
+    /// <summary>Field number for the "IdentityNumber" field.</summary>
+    public const int IdentityNumberFieldNumber = 1;
+    private string identityNumber_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string IdentityNumber {
+      get { return identityNumber_; }
+      set {
+        identityNumber_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     /// <summary>Field number for the "Name" field.</summary>
-    public const int NameFieldNumber = 1;
+    public const int NameFieldNumber = 2;
     private string name_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -3812,7 +3825,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     }
 
     /// <summary>Field number for the "Contact" field.</summary>
-    public const int ContactFieldNumber = 2;
+    public const int ContactFieldNumber = 3;
     private global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO contact_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -3838,6 +3851,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (ReferenceEquals(other, this)) {
         return true;
       }
+      if (IdentityNumber != other.IdentityNumber) return false;
       if (Name != other.Name) return false;
       if (!object.Equals(Contact, other.Contact)) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -3847,6 +3861,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
+      if (IdentityNumber.Length != 0) hash ^= IdentityNumber.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
       if (contact_ != null) hash ^= Contact.GetHashCode();
       if (_unknownFields != null) {
@@ -3867,12 +3882,16 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (Name.Length != 0) {
+      if (IdentityNumber.Length != 0) {
         output.WriteRawTag(10);
+        output.WriteString(IdentityNumber);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(18);
         output.WriteString(Name);
       }
       if (contact_ != null) {
-        output.WriteRawTag(18);
+        output.WriteRawTag(26);
         output.WriteMessage(Contact);
       }
       if (_unknownFields != null) {
@@ -3885,12 +3904,16 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Name.Length != 0) {
+      if (IdentityNumber.Length != 0) {
         output.WriteRawTag(10);
+        output.WriteString(IdentityNumber);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(18);
         output.WriteString(Name);
       }
       if (contact_ != null) {
-        output.WriteRawTag(18);
+        output.WriteRawTag(26);
         output.WriteMessage(Contact);
       }
       if (_unknownFields != null) {
@@ -3903,6 +3926,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
+      if (IdentityNumber.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(IdentityNumber);
+      }
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
       }
@@ -3920,6 +3946,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     public void MergeFrom(NewBorrowerDTO other) {
       if (other == null) {
         return;
+      }
+      if (other.IdentityNumber.Length != 0) {
+        IdentityNumber = other.IdentityNumber;
       }
       if (other.Name.Length != 0) {
         Name = other.Name;
@@ -3946,10 +3975,14 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            Name = input.ReadString();
+            IdentityNumber = input.ReadString();
             break;
           }
           case 18: {
+            Name = input.ReadString();
+            break;
+          }
+          case 26: {
             if (contact_ == null) {
               Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO();
             }
@@ -3972,10 +4005,14 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 10: {
-            Name = input.ReadString();
+            IdentityNumber = input.ReadString();
             break;
           }
           case 18: {
+            Name = input.ReadString();
+            break;
+          }
+          case 26: {
             if (contact_ == null) {
               Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO();
             }
