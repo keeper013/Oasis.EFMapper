@@ -13,7 +13,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<ScalarEntity2, ScalarEntity1>();
         var mapper = mapperBuilder.Build();
         var byteArray = new byte[] { 2, 3, 4 };
@@ -45,7 +45,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<ScalarEntity1, ScalarEntity2>();
         var mapper = mapperBuilder.Build();
         var byteArray = new byte[] { 2, 3, 4 };
@@ -92,7 +92,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder
             .Register<ScalarEntityNoBase1, ScalarEntity1>();
         var mapper = mapperBuilder.Build();
@@ -118,7 +118,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<ScalarEntity2, ScalarEntity1>();
         var mapper = mapperBuilder.Build();
         var byteArray = new byte[] { 2, 3, 4 };
@@ -160,7 +160,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<ScalarEntity2, ScalarEntity1>();
         var mapper = mapperBuilder.Build();
 
@@ -215,7 +215,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder
             .WithFactoryMethod(() => new EntityWithoutDefaultConstructor(100))
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>();
@@ -245,7 +245,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.Register<ScalarEntity1, ScalarEntity3>();
         var mapper = mapperBuilder.Build();
 
@@ -276,7 +276,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.Register<ScalarEntity1, ScalarEntity4>();
 
         var mapper = mapperBuilder.Build();
@@ -305,7 +305,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder
             .WithScalarConverter((ByteArrayWrapper? wrapper) => wrapper!.Bytes)
             .WithScalarConverter((byte[]? array) => new ByteArrayWrapper(array!))
@@ -344,7 +344,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder
             .WithScalarConverter((ByteArrayWrapper? wrapper) => ByteArrayWrapper.ConvertStatic(wrapper!))
             .WithScalarConverter((byte[]? array) => ByteArrayWrapper.ConvertStatic(array!))
@@ -383,7 +383,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder
             .Register<ScalarEntity1, ScalarEntityNoBase1>()
             .Register<ScalarEntityNoBase1, ScalarEntityNoBase2>();
@@ -426,7 +426,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder
             .WithConfiguration<ScalarEntityCustomKeyProperties1>(new EntityConfiguration(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id)))
             .WithConfiguration<ScalarEntityNoConcurrencyToken1>(new EntityConfiguration(nameof(EntityBaseNoConcurrencyToken.AnotherId)))
@@ -472,7 +472,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder
             .WithScalarConverter<byte[], ByteArrayWrapper>(arr => new ByteArrayWrapper(arr!))
             .WithScalarConverter<ByteArrayWrapper, byte[]>(wrapper => wrapper!.Bytes!)
@@ -529,7 +529,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder
             .WithScalarConverter<int, int?>(i => i)
             .WithScalarConverter<int?, int>(ni => ni.HasValue ? ni.Value : 0)
@@ -581,7 +581,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
 
         // assert
         Assert.Throws<ScalarMapperExistsException>(() => mapperBuilder
@@ -594,7 +594,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
 
         // act & assert
         Assert.Throws<FactoryMethodException>(() => mapperBuilder.Register<ScalarEntity1, EntityWithoutDefaultConstructor>().Build());
@@ -605,7 +605,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
 
         // act & assert
         Assert.Throws<FactoryMethodException>(() => mapperBuilder
@@ -618,7 +618,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
 
         // act & assert
         Assert.Throws<FactoryMethodExistsException>(() => mapperBuilder
@@ -632,7 +632,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
 
         // act & assert
         Assert.Throws<TypeConfiguratedException>(() => mapperBuilder

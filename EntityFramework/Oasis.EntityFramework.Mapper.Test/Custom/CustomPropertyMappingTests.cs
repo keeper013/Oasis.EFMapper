@@ -17,7 +17,7 @@ public class CustomPropertyMappingTests
     public void TestMappingCustomProperty()
     {
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         var custom = factory.MakeCustomTypeMapperBuilder<CustomEntity1, CustomEntity2>()
             .MapProperty(c2 => c2.InternalIntProperty, c1 => c1.InternalProperty.IntProperty)
             .Build();
@@ -38,7 +38,7 @@ public class CustomPropertyMappingTests
     public void TestMappingCustomPropertyOverridingOriginal()
     {
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         var custom = factory.MakeCustomTypeMapperBuilder<CustomEntity3, CustomEntity2>()
             .MapProperty(c2 => c2.InternalIntProperty, c3 => c3.InternalProperty.IntProperty)
             .Build();

@@ -17,7 +17,7 @@ public sealed class MappingRemovedTests : TestBase
             .SetMappingKeepEntityOnMappingRemoved(false)
             .PropertyKeepEntityOnMappingRemoved("NoneExistingPropertyName", true)
             .Build();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(false));
+        var mapperBuilder = factory.MakeMapperBuilder(BuildEntityConfiguration(false));
         var mapper = mapperBuilder
             .WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(false))
             .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config);
@@ -33,7 +33,7 @@ public sealed class MappingRemovedTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(defaultKeep));
+        var mapperBuilder = factory.MakeMapperBuilder(BuildEntityConfiguration(defaultKeep));
         var mapper = mapperBuilder.RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
@@ -47,7 +47,7 @@ public sealed class MappingRemovedTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(defaultKeep));
+        var mapperBuilder = factory.MakeMapperBuilder(BuildEntityConfiguration(defaultKeep));
         var mapper = mapperBuilder.RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
@@ -61,7 +61,7 @@ public sealed class MappingRemovedTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
+        var mapperBuilder = factory.MakeMapperBuilder(BuildEntityConfiguration(!defaultKeep));
         var mapper = mapperBuilder.WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(defaultKeep)).RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
@@ -75,7 +75,7 @@ public sealed class MappingRemovedTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
+        var mapperBuilder = factory.MakeMapperBuilder(BuildEntityConfiguration(!defaultKeep));
         var mapper = mapperBuilder.WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(defaultKeep)).RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
@@ -90,7 +90,7 @@ public sealed class MappingRemovedTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().SetMappingKeepEntityOnMappingRemoved(defaultKeep).Build();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
+        var mapperBuilder = factory.MakeMapperBuilder(BuildEntityConfiguration(!defaultKeep));
         var mapper = mapperBuilder
             .WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(!defaultKeep))
             .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
@@ -107,7 +107,7 @@ public sealed class MappingRemovedTests : TestBase
         // arrange
         var factory = new MapperBuilderFactory();
         var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().SetMappingKeepEntityOnMappingRemoved(defaultKeep).Build();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
+        var mapperBuilder = factory.MakeMapperBuilder(BuildEntityConfiguration(!defaultKeep));
         var mapper = mapperBuilder
             .WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(!defaultKeep))
             .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
@@ -127,7 +127,7 @@ public sealed class MappingRemovedTests : TestBase
             .SetMappingKeepEntityOnMappingRemoved(!defaultKeep)
             .PropertyKeepEntityOnMappingRemoved(nameof(MappingRemovedPrincipal1.OptionalDependant), defaultKeep)
             .Build();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
+        var mapperBuilder = factory.MakeMapperBuilder(BuildEntityConfiguration(!defaultKeep));
         var mapper = mapperBuilder
             .WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(!defaultKeep))
             .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
@@ -147,7 +147,7 @@ public sealed class MappingRemovedTests : TestBase
             .SetMappingKeepEntityOnMappingRemoved(!defaultKeep)
             .PropertyKeepEntityOnMappingRemoved(nameof(MappingRemovedPrincipal1.DependantList), defaultKeep)
             .Build();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, BuildEntityConfiguration(!defaultKeep));
+        var mapperBuilder = factory.MakeMapperBuilder(BuildEntityConfiguration(!defaultKeep));
         var mapper = mapperBuilder
             .WithConfiguration<MappingRemovedDependant1>(BuildEntityConfiguration(!defaultKeep))
             .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();

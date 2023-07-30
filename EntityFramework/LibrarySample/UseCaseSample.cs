@@ -30,16 +30,16 @@ public class UseCaseSample
         command.CommandText = sql;
         command.ExecuteNonQuery();
 
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, new TypeConfiguration(nameof(EntityBase.Id)));
-        var bookCustomMapper = factory.MakeCustomPropertyMapperBuilder<Book, BookDTO>()
+        /*var factory = new MapperBuilderFactory();
+        var mapperBuilder = factory.MakeMapperBuilder(new EntityConfiguration(nameof(EntityBase.Id)));
+        var bookCustomMapper = factory.MakeCustomTypeMapperBuilder<Book, BookDTO>()
             .MapProperty(dto => dto.CurrentBorrower, book => book.BorrowRecord != null && book.BorrowRecord.Borrower != null ? book.BorrowRecord.Borrower.Name : string.Empty)
             .Build();
         mapperBuilder
             .RegisterTwoWay(bookCustomMapper)
             .RegisterTwoWay<Borrower, BorrowerDTO>()
             .Register<NewBookDTO, Book>();
-        Mapper = mapperBuilder.Build();
+        Mapper = mapperBuilder.Build();*/
     }
 
     [TearDown]

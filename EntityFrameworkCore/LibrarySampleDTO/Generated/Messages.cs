@@ -25,42 +25,92 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Cg5NZXNzYWdlcy5wcm90bxInT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5N",
-            "YXBwZXIuU2FtcGxlIpIBCgtCb3Jyb3dlckRUTxIKCgJJZBgBIAEoBRIYChBD",
-            "b25jdXJyZW5jeVRva2VuGAIgASgMEgwKBE5hbWUYAyABKAkSTwoNQm9ycm93",
-            "UmVjb3JkcxgEIAMoCzI4Lk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFw",
-            "cGVyLlNhbXBsZS5Cb3Jyb3dSZWNvcmREVE8ibwoHQm9va0RUTxIKCgJJZBgB",
-            "IAEoBRIYChBDb25jdXJyZW5jeVRva2VuGAIgASgMEgwKBE5hbWUYAyABKAkS",
-            "HAoPQ3VycmVudEJvcnJvd2VyGAQgASgJSACIAQFCEgoQX0N1cnJlbnRCb3Jy",
-            "b3dlciIaCgpOZXdCb29rRFRPEgwKBE5hbWUYASABKAkiWwoPQm9ycm93UmVj",
-            "b3JkRFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwS",
-            "EgoKQm9ycm93ZXJJZBgDIAEoBRIOCgZCb29rSWQYBCABKAUiTgoLQWxsQm9v",
-            "a3NEVE8SPwoFQm9va3MYASADKAsyMC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
-            "b3JlLk1hcHBlci5TYW1wbGUuQm9va0RUT0IqqgInT2FzaXMuRW50aXR5RnJh",
-            "bWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlYgZwcm90bzM="));
+            "YXBwZXIuU2FtcGxlIhwKDklkUmVmZXJlbmNlRFRPEgoKAklkGAEgASgFImEK",
+            "CU5ld1RhZ0RUTxIMCgROYW1lGAEgASgJEkYKBUJvb2tzGAIgAygLMjcuT2Fz",
+            "aXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLklkUmVmZXJl",
+            "bmNlRFRPImMKBlRhZ0RUTxIKCgJJZBgBIAEoBRIMCgROYW1lGAIgASgJEj8K",
+            "BUJvb2tzGAMgAygLMjAuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBw",
+            "ZXIuU2FtcGxlLkJvb2tEVE8iXwoKTmV3Qm9va0RUTxIMCgROYW1lGAEgASgJ",
+            "EkMKBkNvcGllcxgCIAMoCzIzLk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUu",
+            "TWFwcGVyLlNhbXBsZS5OZXdDb3B5RFRPItUBCg1VcGRhdGVCb29rRFRPEgoK",
+            "AklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgD",
+            "IAEoCRJJCgZDb3BpZXMYBCADKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
+            "b3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUTxJFCgRUYWdzGAUg",
+            "AygLMjcuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxl",
+            "LklkUmVmZXJlbmNlRFRPIr4BCgdCb29rRFRPEgoKAklkGAEgASgFEhgKEENv",
+            "bmN1cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgDIAEoCRJACgZDb3BpZXMY",
+            "BCADKAsyMC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1w",
+            "bGUuQ29weURUTxI9CgRUYWdzGAUgAygLMi8uT2FzaXMuRW50aXR5RnJhbWV3",
+            "b3JrQ29yZS5NYXBwZXIuU2FtcGxlLlRhZ0RUTyIiChBDb3B5UmVmZXJlbmNl",
+            "RFRPEg4KBk51bWJlchgBIAEoCSIsCgpOZXdDb3B5RFRPEg4KBk51bWJlchgB",
+            "IAEoCRIOCgZCb29rSWQYAiABKAUigQEKDVVwZGF0ZUNvcHlEVE8SDgoGTnVt",
+            "YmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSFQoIUmVzZXJ2",
+            "ZXIYAyABKAlIAIgBARIVCghCb3Jyb3dlchgEIAEoCUgBiAEBQgsKCV9SZXNl",
+            "cnZlckILCglfQm9ycm93ZXIiiwEKB0NvcHlEVE8SDgoGTnVtYmVyGAEgASgJ",
+            "EhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSFQoIUmVzZXJ2ZXIYAyABKAlI",
+            "AIgBARIVCghCb3Jyb3dlchgEIAEoCUgBiAEBEg4KBkJvb2tJZBgFIAEoBUIL",
+            "CglfUmVzZXJ2ZXJCCwoJX0JvcnJvd2VyIjUKDU5ld0NvbnRhY3REVE8SEwoL",
+            "UGhvbmVOdW1iZXIYASABKAkSDwoHQWRkcmVzcxgCIAEoCSJeChBVcGRhdGVD",
+            "b250YWN0RFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiAB",
+            "KAwSEwoLUGhvbmVOdW1iZXIYAyABKAkSDwoHQWRkcmVzcxgEIAEoCSJqCgpD",
+            "b250YWN0RFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiAB",
+            "KAwSEAoIQm9ycm93ZXIYAyABKAkSEwoLUGhvbmVOdW1iZXIYBCABKAkSDwoH",
+            "QWRkcmVzcxgFIAEoCSIuChRCb3Jyb3dlclJlZmVyZW5jZURUTxIWCg5JZGVu",
+            "dGl0eU51bWJlchgBIAEoCSJnCg5OZXdCb3Jyb3dlckRUTxIMCgROYW1lGAEg",
+            "ASgJEkcKB0NvbnRhY3QYAiABKAsyNi5PYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
+            "b3JlLk1hcHBlci5TYW1wbGUuTmV3Q29udGFjdERUTyK5AgoRVXBkYXRlQm9y",
+            "cm93ZXJEVE8SFgoOSWRlbnRpdHlOdW1iZXIYASABKAkSGAoQQ29uY3VycmVu",
+            "Y3lUb2tlbhgCIAEoDBIMCgROYW1lGAMgASgJEkoKB0NvbnRhY3QYBCABKAsy",
+            "OS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVXBk",
+            "YXRlQ29udGFjdERUTxJHCghSZXNlcnZlZBgFIAEoCzIwLk9hc2lzLkVudGl0",
+            "eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPSACIAQESQgoI",
+            "Qm9ycm93ZWQYBiADKAsyMC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1h",
+            "cHBlci5TYW1wbGUuQ29weURUT0ILCglfUmVzZXJ2ZWQivwIKC0JvcnJvd2Vy",
+            "RFRPEhYKDklkZW50aXR5TnVtYmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9r",
+            "ZW4YAiABKAwSDAoETmFtZRgDIAEoCRJECgdDb250YWN0GAQgASgLMjMuT2Fz",
+            "aXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvbnRhY3RE",
+            "VE8SUAoIUmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
+            "b3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0gAiAEBEksKCEJv",
+            "cnJvd2VkGAYgAygLMjkuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBw",
+            "ZXIuU2FtcGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJX1Jlc2VydmVkQiqqAidP",
+            "YXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGViBnByb3Rv",
+            "Mw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "BorrowRecords" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "CurrentBorrower" }, new[]{ "CurrentBorrower" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO.Parser, new[]{ "Name" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO.Parser, new[]{ "Id", "ConcurrencyToken", "BorrowerId", "BookId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.AllBooksDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.AllBooksDTO.Parser, new[]{ "Books" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO.Parser, new[]{ "Id" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO.Parser, new[]{ "Name", "Books" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO.Parser, new[]{ "Id", "Name", "Books" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO.Parser, new[]{ "Name", "Copies" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBookDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "Copies", "Tags" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "Copies", "Tags" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO.Parser, new[]{ "Number" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO.Parser, new[]{ "Number", "BookId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateCopyDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateCopyDTO.Parser, new[]{ "Number", "ConcurrencyToken", "Reserver", "Borrower" }, new[]{ "Reserver", "Borrower" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO.Parser, new[]{ "Number", "ConcurrencyToken", "Reserver", "Borrower", "BookId" }, new[]{ "Reserver", "Borrower" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO.Parser, new[]{ "PhoneNumber", "Address" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO.Parser, new[]{ "Id", "ConcurrencyToken", "PhoneNumber", "Address" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Borrower", "PhoneNumber", "Address" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerReferenceDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerReferenceDTO.Parser, new[]{ "IdentityNumber" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBorrowerDTO.Parser, new[]{ "Name", "Contact" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBorrowerDTO.Parser, new[]{ "IdentityNumber", "ConcurrencyToken", "Name", "Contact", "Reserved", "Borrowed" }, new[]{ "Reserved" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO.Parser, new[]{ "IdentityNumber", "ConcurrencyToken", "Name", "Contact", "Reserved", "Borrowed" }, new[]{ "Reserved" }, null, null, null)
           }));
     }
     #endregion
 
   }
   #region Messages
-  public sealed partial class BorrowerDTO : pb::IMessage<BorrowerDTO>
+  public sealed partial class IdReferenceDTO : pb::IMessage<IdReferenceDTO>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
   #endif
   {
-    private static readonly pb::MessageParser<BorrowerDTO> _parser = new pb::MessageParser<BorrowerDTO>(() => new BorrowerDTO());
+    private static readonly pb::MessageParser<IdReferenceDTO> _parser = new pb::MessageParser<IdReferenceDTO>(() => new IdReferenceDTO());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<BorrowerDTO> Parser { get { return _parser; } }
+    public static pb::MessageParser<IdReferenceDTO> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -76,7 +126,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public BorrowerDTO() {
+    public IdReferenceDTO() {
       OnConstruction();
     }
 
@@ -84,18 +134,890 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public BorrowerDTO(BorrowerDTO other) : this() {
+    public IdReferenceDTO(IdReferenceDTO other) : this() {
       id_ = other.id_;
-      concurrencyToken_ = other.concurrencyToken_;
-      name_ = other.name_;
-      borrowRecords_ = other.borrowRecords_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public BorrowerDTO Clone() {
-      return new BorrowerDTO(this);
+    public IdReferenceDTO Clone() {
+      return new IdReferenceDTO(this);
+    }
+
+    /// <summary>Field number for the "Id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private int id_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Id {
+      get { return id_; }
+      set {
+        id_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as IdReferenceDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(IdReferenceDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id != 0) hash ^= Id.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Id);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Id);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(IdReferenceDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id != 0) {
+        Id = other.Id;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Id = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Id = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class NewTagDTO : pb::IMessage<NewTagDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<NewTagDTO> _parser = new pb::MessageParser<NewTagDTO>(() => new NewTagDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<NewTagDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[1]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewTagDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewTagDTO(NewTagDTO other) : this() {
+      name_ = other.name_;
+      books_ = other.books_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewTagDTO Clone() {
+      return new NewTagDTO(this);
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 1;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Books" field.</summary>
+    public const int BooksFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO> _repeated_books_codec
+        = pb::FieldCodec.ForMessage(18, global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO> books_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO> Books {
+      get { return books_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as NewTagDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(NewTagDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Name != other.Name) return false;
+      if(!books_.Equals(other.books_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      hash ^= books_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      books_.WriteTo(output, _repeated_books_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      books_.WriteTo(ref output, _repeated_books_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      size += books_.CalculateSize(_repeated_books_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(NewTagDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      books_.Add(other.books_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            books_.AddEntriesFrom(input, _repeated_books_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            books_.AddEntriesFrom(ref input, _repeated_books_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class TagDTO : pb::IMessage<TagDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<TagDTO> _parser = new pb::MessageParser<TagDTO>(() => new TagDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<TagDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[2]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TagDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TagDTO(TagDTO other) : this() {
+      id_ = other.id_;
+      name_ = other.name_;
+      books_ = other.books_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public TagDTO Clone() {
+      return new TagDTO(this);
+    }
+
+    /// <summary>Field number for the "Id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private int id_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Id {
+      get { return id_; }
+      set {
+        id_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 2;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Books" field.</summary>
+    public const int BooksFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO> _repeated_books_codec
+        = pb::FieldCodec.ForMessage(26, global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO> books_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO> Books {
+      get { return books_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as TagDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(TagDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Name != other.Name) return false;
+      if(!books_.Equals(other.books_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id != 0) hash ^= Id.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      hash ^= books_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Id);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Name);
+      }
+      books_.WriteTo(output, _repeated_books_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Id);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Name);
+      }
+      books_.WriteTo(ref output, _repeated_books_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      size += books_.CalculateSize(_repeated_books_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(TagDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id != 0) {
+        Id = other.Id;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      books_.Add(other.books_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Id = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            Name = input.ReadString();
+            break;
+          }
+          case 26: {
+            books_.AddEntriesFrom(input, _repeated_books_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Id = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            Name = input.ReadString();
+            break;
+          }
+          case 26: {
+            books_.AddEntriesFrom(ref input, _repeated_books_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class NewBookDTO : pb::IMessage<NewBookDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<NewBookDTO> _parser = new pb::MessageParser<NewBookDTO>(() => new NewBookDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<NewBookDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[3]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewBookDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewBookDTO(NewBookDTO other) : this() {
+      name_ = other.name_;
+      copies_ = other.copies_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewBookDTO Clone() {
+      return new NewBookDTO(this);
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 1;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Copies" field.</summary>
+    public const int CopiesFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO> _repeated_copies_codec
+        = pb::FieldCodec.ForMessage(18, global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO> copies_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO> Copies {
+      get { return copies_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as NewBookDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(NewBookDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Name != other.Name) return false;
+      if(!copies_.Equals(other.copies_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      hash ^= copies_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      copies_.WriteTo(output, _repeated_copies_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      copies_.WriteTo(ref output, _repeated_copies_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      size += copies_.CalculateSize(_repeated_copies_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(NewBookDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      copies_.Add(other.copies_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            copies_.AddEntriesFrom(input, _repeated_copies_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            copies_.AddEntriesFrom(ref input, _repeated_copies_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class UpdateBookDTO : pb::IMessage<UpdateBookDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<UpdateBookDTO> _parser = new pb::MessageParser<UpdateBookDTO>(() => new UpdateBookDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<UpdateBookDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[4]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateBookDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateBookDTO(UpdateBookDTO other) : this() {
+      id_ = other.id_;
+      concurrencyToken_ = other.concurrencyToken_;
+      name_ = other.name_;
+      copies_ = other.copies_.Clone();
+      tags_ = other.tags_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateBookDTO Clone() {
+      return new UpdateBookDTO(this);
     }
 
     /// <summary>Field number for the "Id" field.</summary>
@@ -134,26 +1056,37 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
     }
 
-    /// <summary>Field number for the "BorrowRecords" field.</summary>
-    public const int BorrowRecordsFieldNumber = 4;
-    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO> _repeated_borrowRecords_codec
-        = pb::FieldCodec.ForMessage(34, global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO.Parser);
-    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO> borrowRecords_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO>();
+    /// <summary>Field number for the "Copies" field.</summary>
+    public const int CopiesFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO> _repeated_copies_codec
+        = pb::FieldCodec.ForMessage(34, global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO> copies_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowRecordDTO> BorrowRecords {
-      get { return borrowRecords_; }
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO> Copies {
+      get { return copies_; }
+    }
+
+    /// <summary>Field number for the "Tags" field.</summary>
+    public const int TagsFieldNumber = 5;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO> _repeated_tags_codec
+        = pb::FieldCodec.ForMessage(42, global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO> tags_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO> Tags {
+      get { return tags_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as BorrowerDTO);
+      return Equals(other as UpdateBookDTO);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(BorrowerDTO other) {
+    public bool Equals(UpdateBookDTO other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -163,7 +1096,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Id != other.Id) return false;
       if (ConcurrencyToken != other.ConcurrencyToken) return false;
       if (Name != other.Name) return false;
-      if(!borrowRecords_.Equals(other.borrowRecords_)) return false;
+      if(!copies_.Equals(other.copies_)) return false;
+      if(!tags_.Equals(other.tags_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -174,7 +1108,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Id != 0) hash ^= Id.GetHashCode();
       if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
-      hash ^= borrowRecords_.GetHashCode();
+      hash ^= copies_.GetHashCode();
+      hash ^= tags_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -205,7 +1140,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(26);
         output.WriteString(Name);
       }
-      borrowRecords_.WriteTo(output, _repeated_borrowRecords_codec);
+      copies_.WriteTo(output, _repeated_copies_codec);
+      tags_.WriteTo(output, _repeated_tags_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -228,7 +1164,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(26);
         output.WriteString(Name);
       }
-      borrowRecords_.WriteTo(ref output, _repeated_borrowRecords_codec);
+      copies_.WriteTo(ref output, _repeated_copies_codec);
+      tags_.WriteTo(ref output, _repeated_tags_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -248,7 +1185,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
       }
-      size += borrowRecords_.CalculateSize(_repeated_borrowRecords_codec);
+      size += copies_.CalculateSize(_repeated_copies_codec);
+      size += tags_.CalculateSize(_repeated_tags_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -257,7 +1195,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(BorrowerDTO other) {
+    public void MergeFrom(UpdateBookDTO other) {
       if (other == null) {
         return;
       }
@@ -270,7 +1208,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.Name.Length != 0) {
         Name = other.Name;
       }
-      borrowRecords_.Add(other.borrowRecords_);
+      copies_.Add(other.copies_);
+      tags_.Add(other.tags_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -299,7 +1238,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 34: {
-            borrowRecords_.AddEntriesFrom(input, _repeated_borrowRecords_codec);
+            copies_.AddEntriesFrom(input, _repeated_copies_codec);
+            break;
+          }
+          case 42: {
+            tags_.AddEntriesFrom(input, _repeated_tags_codec);
             break;
           }
         }
@@ -330,7 +1273,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 34: {
-            borrowRecords_.AddEntriesFrom(ref input, _repeated_borrowRecords_codec);
+            copies_.AddEntriesFrom(ref input, _repeated_copies_codec);
+            break;
+          }
+          case 42: {
+            tags_.AddEntriesFrom(ref input, _repeated_tags_codec);
             break;
           }
         }
@@ -354,7 +1301,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[1]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -377,7 +1324,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       id_ = other.id_;
       concurrencyToken_ = other.concurrencyToken_;
       name_ = other.name_;
-      currentBorrower_ = other.currentBorrower_;
+      copies_ = other.copies_.Clone();
+      tags_ = other.tags_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -423,28 +1371,26 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
     }
 
-    /// <summary>Field number for the "CurrentBorrower" field.</summary>
-    public const int CurrentBorrowerFieldNumber = 4;
-    private string currentBorrower_;
+    /// <summary>Field number for the "Copies" field.</summary>
+    public const int CopiesFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO> _repeated_copies_codec
+        = pb::FieldCodec.ForMessage(34, global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO> copies_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string CurrentBorrower {
-      get { return currentBorrower_ ?? ""; }
-      set {
-        currentBorrower_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO> Copies {
+      get { return copies_; }
     }
-    /// <summary>Gets whether the "CurrentBorrower" field is set</summary>
+
+    /// <summary>Field number for the "Tags" field.</summary>
+    public const int TagsFieldNumber = 5;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO> _repeated_tags_codec
+        = pb::FieldCodec.ForMessage(42, global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO> tags_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasCurrentBorrower {
-      get { return currentBorrower_ != null; }
-    }
-    /// <summary>Clears the value of the "CurrentBorrower" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearCurrentBorrower() {
-      currentBorrower_ = null;
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO> Tags {
+      get { return tags_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -465,7 +1411,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Id != other.Id) return false;
       if (ConcurrencyToken != other.ConcurrencyToken) return false;
       if (Name != other.Name) return false;
-      if (CurrentBorrower != other.CurrentBorrower) return false;
+      if(!copies_.Equals(other.copies_)) return false;
+      if(!tags_.Equals(other.tags_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -476,7 +1423,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Id != 0) hash ^= Id.GetHashCode();
       if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
-      if (HasCurrentBorrower) hash ^= CurrentBorrower.GetHashCode();
+      hash ^= copies_.GetHashCode();
+      hash ^= tags_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -507,10 +1455,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(26);
         output.WriteString(Name);
       }
-      if (HasCurrentBorrower) {
-        output.WriteRawTag(34);
-        output.WriteString(CurrentBorrower);
-      }
+      copies_.WriteTo(output, _repeated_copies_codec);
+      tags_.WriteTo(output, _repeated_tags_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -533,10 +1479,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(26);
         output.WriteString(Name);
       }
-      if (HasCurrentBorrower) {
-        output.WriteRawTag(34);
-        output.WriteString(CurrentBorrower);
-      }
+      copies_.WriteTo(ref output, _repeated_copies_codec);
+      tags_.WriteTo(ref output, _repeated_tags_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -556,9 +1500,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
       }
-      if (HasCurrentBorrower) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(CurrentBorrower);
-      }
+      size += copies_.CalculateSize(_repeated_copies_codec);
+      size += tags_.CalculateSize(_repeated_tags_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -580,9 +1523,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.Name.Length != 0) {
         Name = other.Name;
       }
-      if (other.HasCurrentBorrower) {
-        CurrentBorrower = other.CurrentBorrower;
-      }
+      copies_.Add(other.copies_);
+      tags_.Add(other.tags_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -611,7 +1553,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 34: {
-            CurrentBorrower = input.ReadString();
+            copies_.AddEntriesFrom(input, _repeated_copies_codec);
+            break;
+          }
+          case 42: {
+            tags_.AddEntriesFrom(input, _repeated_tags_codec);
             break;
           }
         }
@@ -642,7 +1588,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 34: {
-            CurrentBorrower = input.ReadString();
+            copies_.AddEntriesFrom(ref input, _repeated_copies_codec);
+            break;
+          }
+          case 42: {
+            tags_.AddEntriesFrom(ref input, _repeated_tags_codec);
             break;
           }
         }
@@ -652,21 +1602,21 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
   }
 
-  public sealed partial class NewBookDTO : pb::IMessage<NewBookDTO>
+  public sealed partial class CopyReferenceDTO : pb::IMessage<CopyReferenceDTO>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
   #endif
   {
-    private static readonly pb::MessageParser<NewBookDTO> _parser = new pb::MessageParser<NewBookDTO>(() => new NewBookDTO());
+    private static readonly pb::MessageParser<CopyReferenceDTO> _parser = new pb::MessageParser<CopyReferenceDTO>(() => new CopyReferenceDTO());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<NewBookDTO> Parser { get { return _parser; } }
+    public static pb::MessageParser<CopyReferenceDTO> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[2]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -677,7 +1627,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public NewBookDTO() {
+    public CopyReferenceDTO() {
       OnConstruction();
     }
 
@@ -685,45 +1635,45 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public NewBookDTO(NewBookDTO other) : this() {
-      name_ = other.name_;
+    public CopyReferenceDTO(CopyReferenceDTO other) : this() {
+      number_ = other.number_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public NewBookDTO Clone() {
-      return new NewBookDTO(this);
+    public CopyReferenceDTO Clone() {
+      return new CopyReferenceDTO(this);
     }
 
-    /// <summary>Field number for the "Name" field.</summary>
-    public const int NameFieldNumber = 1;
-    private string name_ = "";
+    /// <summary>Field number for the "Number" field.</summary>
+    public const int NumberFieldNumber = 1;
+    private string number_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string Name {
-      get { return name_; }
+    public string Number {
+      get { return number_; }
       set {
-        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        number_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as NewBookDTO);
+      return Equals(other as CopyReferenceDTO);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(NewBookDTO other) {
+    public bool Equals(CopyReferenceDTO other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (Name != other.Name) return false;
+      if (Number != other.Number) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -731,7 +1681,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (Number.Length != 0) hash ^= Number.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -750,9 +1700,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (Name.Length != 0) {
+      if (Number.Length != 0) {
         output.WriteRawTag(10);
-        output.WriteString(Name);
+        output.WriteString(Number);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -764,9 +1714,9 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Name.Length != 0) {
+      if (Number.Length != 0) {
         output.WriteRawTag(10);
-        output.WriteString(Name);
+        output.WriteString(Number);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -778,8 +1728,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (Name.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      if (Number.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Number);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -789,12 +1739,12 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(NewBookDTO other) {
+    public void MergeFrom(CopyReferenceDTO other) {
       if (other == null) {
         return;
       }
-      if (other.Name.Length != 0) {
-        Name = other.Name;
+      if (other.Number.Length != 0) {
+        Number = other.Number;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -812,7 +1762,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            Name = input.ReadString();
+            Number = input.ReadString();
             break;
           }
         }
@@ -831,7 +1781,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 10: {
-            Name = input.ReadString();
+            Number = input.ReadString();
             break;
           }
         }
@@ -841,21 +1791,21 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
   }
 
-  public sealed partial class BorrowRecordDTO : pb::IMessage<BorrowRecordDTO>
+  public sealed partial class NewCopyDTO : pb::IMessage<NewCopyDTO>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
   #endif
   {
-    private static readonly pb::MessageParser<BorrowRecordDTO> _parser = new pb::MessageParser<BorrowRecordDTO>(() => new BorrowRecordDTO());
+    private static readonly pb::MessageParser<NewCopyDTO> _parser = new pb::MessageParser<NewCopyDTO>(() => new NewCopyDTO());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<BorrowRecordDTO> Parser { get { return _parser; } }
+    public static pb::MessageParser<NewCopyDTO> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[3]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -866,7 +1816,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public BorrowRecordDTO() {
+    public NewCopyDTO() {
       OnConstruction();
     }
 
@@ -874,18 +1824,1155 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public BorrowRecordDTO(BorrowRecordDTO other) : this() {
-      id_ = other.id_;
-      concurrencyToken_ = other.concurrencyToken_;
-      borrowerId_ = other.borrowerId_;
+    public NewCopyDTO(NewCopyDTO other) : this() {
+      number_ = other.number_;
       bookId_ = other.bookId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public BorrowRecordDTO Clone() {
-      return new BorrowRecordDTO(this);
+    public NewCopyDTO Clone() {
+      return new NewCopyDTO(this);
+    }
+
+    /// <summary>Field number for the "Number" field.</summary>
+    public const int NumberFieldNumber = 1;
+    private string number_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Number {
+      get { return number_; }
+      set {
+        number_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "BookId" field.</summary>
+    public const int BookIdFieldNumber = 2;
+    private int bookId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int BookId {
+      get { return bookId_; }
+      set {
+        bookId_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as NewCopyDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(NewCopyDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Number != other.Number) return false;
+      if (BookId != other.BookId) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Number.Length != 0) hash ^= Number.GetHashCode();
+      if (BookId != 0) hash ^= BookId.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Number.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Number);
+      }
+      if (BookId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(BookId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Number.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Number);
+      }
+      if (BookId != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(BookId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Number.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Number);
+      }
+      if (BookId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(BookId);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(NewCopyDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Number.Length != 0) {
+        Number = other.Number;
+      }
+      if (other.BookId != 0) {
+        BookId = other.BookId;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Number = input.ReadString();
+            break;
+          }
+          case 16: {
+            BookId = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Number = input.ReadString();
+            break;
+          }
+          case 16: {
+            BookId = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class UpdateCopyDTO : pb::IMessage<UpdateCopyDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<UpdateCopyDTO> _parser = new pb::MessageParser<UpdateCopyDTO>(() => new UpdateCopyDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<UpdateCopyDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[8]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateCopyDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateCopyDTO(UpdateCopyDTO other) : this() {
+      number_ = other.number_;
+      concurrencyToken_ = other.concurrencyToken_;
+      reserver_ = other.reserver_;
+      borrower_ = other.borrower_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateCopyDTO Clone() {
+      return new UpdateCopyDTO(this);
+    }
+
+    /// <summary>Field number for the "Number" field.</summary>
+    public const int NumberFieldNumber = 1;
+    private string number_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Number {
+      get { return number_; }
+      set {
+        number_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ConcurrencyToken" field.</summary>
+    public const int ConcurrencyTokenFieldNumber = 2;
+    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ConcurrencyToken {
+      get { return concurrencyToken_; }
+      set {
+        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Reserver" field.</summary>
+    public const int ReserverFieldNumber = 3;
+    private string reserver_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Reserver {
+      get { return reserver_ ?? ""; }
+      set {
+        reserver_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "Reserver" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasReserver {
+      get { return reserver_ != null; }
+    }
+    /// <summary>Clears the value of the "Reserver" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearReserver() {
+      reserver_ = null;
+    }
+
+    /// <summary>Field number for the "Borrower" field.</summary>
+    public const int BorrowerFieldNumber = 4;
+    private string borrower_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Borrower {
+      get { return borrower_ ?? ""; }
+      set {
+        borrower_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "Borrower" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasBorrower {
+      get { return borrower_ != null; }
+    }
+    /// <summary>Clears the value of the "Borrower" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearBorrower() {
+      borrower_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as UpdateCopyDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(UpdateCopyDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Number != other.Number) return false;
+      if (ConcurrencyToken != other.ConcurrencyToken) return false;
+      if (Reserver != other.Reserver) return false;
+      if (Borrower != other.Borrower) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Number.Length != 0) hash ^= Number.GetHashCode();
+      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (HasReserver) hash ^= Reserver.GetHashCode();
+      if (HasBorrower) hash ^= Borrower.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Number.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Number);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConcurrencyToken);
+      }
+      if (HasReserver) {
+        output.WriteRawTag(26);
+        output.WriteString(Reserver);
+      }
+      if (HasBorrower) {
+        output.WriteRawTag(34);
+        output.WriteString(Borrower);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Number.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Number);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConcurrencyToken);
+      }
+      if (HasReserver) {
+        output.WriteRawTag(26);
+        output.WriteString(Reserver);
+      }
+      if (HasBorrower) {
+        output.WriteRawTag(34);
+        output.WriteString(Borrower);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Number.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Number);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      }
+      if (HasReserver) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Reserver);
+      }
+      if (HasBorrower) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Borrower);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(UpdateCopyDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Number.Length != 0) {
+        Number = other.Number;
+      }
+      if (other.ConcurrencyToken.Length != 0) {
+        ConcurrencyToken = other.ConcurrencyToken;
+      }
+      if (other.HasReserver) {
+        Reserver = other.Reserver;
+      }
+      if (other.HasBorrower) {
+        Borrower = other.Borrower;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Number = input.ReadString();
+            break;
+          }
+          case 18: {
+            ConcurrencyToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Reserver = input.ReadString();
+            break;
+          }
+          case 34: {
+            Borrower = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Number = input.ReadString();
+            break;
+          }
+          case 18: {
+            ConcurrencyToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Reserver = input.ReadString();
+            break;
+          }
+          case 34: {
+            Borrower = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class CopyDTO : pb::IMessage<CopyDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CopyDTO> _parser = new pb::MessageParser<CopyDTO>(() => new CopyDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<CopyDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[9]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CopyDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CopyDTO(CopyDTO other) : this() {
+      number_ = other.number_;
+      concurrencyToken_ = other.concurrencyToken_;
+      reserver_ = other.reserver_;
+      borrower_ = other.borrower_;
+      bookId_ = other.bookId_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CopyDTO Clone() {
+      return new CopyDTO(this);
+    }
+
+    /// <summary>Field number for the "Number" field.</summary>
+    public const int NumberFieldNumber = 1;
+    private string number_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Number {
+      get { return number_; }
+      set {
+        number_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ConcurrencyToken" field.</summary>
+    public const int ConcurrencyTokenFieldNumber = 2;
+    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ConcurrencyToken {
+      get { return concurrencyToken_; }
+      set {
+        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Reserver" field.</summary>
+    public const int ReserverFieldNumber = 3;
+    private string reserver_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Reserver {
+      get { return reserver_ ?? ""; }
+      set {
+        reserver_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "Reserver" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasReserver {
+      get { return reserver_ != null; }
+    }
+    /// <summary>Clears the value of the "Reserver" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearReserver() {
+      reserver_ = null;
+    }
+
+    /// <summary>Field number for the "Borrower" field.</summary>
+    public const int BorrowerFieldNumber = 4;
+    private string borrower_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Borrower {
+      get { return borrower_ ?? ""; }
+      set {
+        borrower_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+    /// <summary>Gets whether the "Borrower" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasBorrower {
+      get { return borrower_ != null; }
+    }
+    /// <summary>Clears the value of the "Borrower" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearBorrower() {
+      borrower_ = null;
+    }
+
+    /// <summary>Field number for the "BookId" field.</summary>
+    public const int BookIdFieldNumber = 5;
+    private int bookId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int BookId {
+      get { return bookId_; }
+      set {
+        bookId_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as CopyDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(CopyDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Number != other.Number) return false;
+      if (ConcurrencyToken != other.ConcurrencyToken) return false;
+      if (Reserver != other.Reserver) return false;
+      if (Borrower != other.Borrower) return false;
+      if (BookId != other.BookId) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Number.Length != 0) hash ^= Number.GetHashCode();
+      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (HasReserver) hash ^= Reserver.GetHashCode();
+      if (HasBorrower) hash ^= Borrower.GetHashCode();
+      if (BookId != 0) hash ^= BookId.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Number.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Number);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConcurrencyToken);
+      }
+      if (HasReserver) {
+        output.WriteRawTag(26);
+        output.WriteString(Reserver);
+      }
+      if (HasBorrower) {
+        output.WriteRawTag(34);
+        output.WriteString(Borrower);
+      }
+      if (BookId != 0) {
+        output.WriteRawTag(40);
+        output.WriteInt32(BookId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Number.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Number);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConcurrencyToken);
+      }
+      if (HasReserver) {
+        output.WriteRawTag(26);
+        output.WriteString(Reserver);
+      }
+      if (HasBorrower) {
+        output.WriteRawTag(34);
+        output.WriteString(Borrower);
+      }
+      if (BookId != 0) {
+        output.WriteRawTag(40);
+        output.WriteInt32(BookId);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Number.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Number);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      }
+      if (HasReserver) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Reserver);
+      }
+      if (HasBorrower) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Borrower);
+      }
+      if (BookId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(BookId);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(CopyDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Number.Length != 0) {
+        Number = other.Number;
+      }
+      if (other.ConcurrencyToken.Length != 0) {
+        ConcurrencyToken = other.ConcurrencyToken;
+      }
+      if (other.HasReserver) {
+        Reserver = other.Reserver;
+      }
+      if (other.HasBorrower) {
+        Borrower = other.Borrower;
+      }
+      if (other.BookId != 0) {
+        BookId = other.BookId;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Number = input.ReadString();
+            break;
+          }
+          case 18: {
+            ConcurrencyToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Reserver = input.ReadString();
+            break;
+          }
+          case 34: {
+            Borrower = input.ReadString();
+            break;
+          }
+          case 40: {
+            BookId = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Number = input.ReadString();
+            break;
+          }
+          case 18: {
+            ConcurrencyToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Reserver = input.ReadString();
+            break;
+          }
+          case 34: {
+            Borrower = input.ReadString();
+            break;
+          }
+          case 40: {
+            BookId = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class NewContactDTO : pb::IMessage<NewContactDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<NewContactDTO> _parser = new pb::MessageParser<NewContactDTO>(() => new NewContactDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<NewContactDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[10]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewContactDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewContactDTO(NewContactDTO other) : this() {
+      phoneNumber_ = other.phoneNumber_;
+      address_ = other.address_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewContactDTO Clone() {
+      return new NewContactDTO(this);
+    }
+
+    /// <summary>Field number for the "PhoneNumber" field.</summary>
+    public const int PhoneNumberFieldNumber = 1;
+    private string phoneNumber_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string PhoneNumber {
+      get { return phoneNumber_; }
+      set {
+        phoneNumber_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Address" field.</summary>
+    public const int AddressFieldNumber = 2;
+    private string address_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Address {
+      get { return address_; }
+      set {
+        address_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as NewContactDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(NewContactDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (PhoneNumber != other.PhoneNumber) return false;
+      if (Address != other.Address) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (PhoneNumber.Length != 0) hash ^= PhoneNumber.GetHashCode();
+      if (Address.Length != 0) hash ^= Address.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (PhoneNumber.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(PhoneNumber);
+      }
+      if (Address.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Address);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (PhoneNumber.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(PhoneNumber);
+      }
+      if (Address.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Address);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (PhoneNumber.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(PhoneNumber);
+      }
+      if (Address.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Address);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(NewContactDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.PhoneNumber.Length != 0) {
+        PhoneNumber = other.PhoneNumber;
+      }
+      if (other.Address.Length != 0) {
+        Address = other.Address;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            PhoneNumber = input.ReadString();
+            break;
+          }
+          case 18: {
+            Address = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            PhoneNumber = input.ReadString();
+            break;
+          }
+          case 18: {
+            Address = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class UpdateContactDTO : pb::IMessage<UpdateContactDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<UpdateContactDTO> _parser = new pb::MessageParser<UpdateContactDTO>(() => new UpdateContactDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<UpdateContactDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[11]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateContactDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateContactDTO(UpdateContactDTO other) : this() {
+      id_ = other.id_;
+      concurrencyToken_ = other.concurrencyToken_;
+      phoneNumber_ = other.phoneNumber_;
+      address_ = other.address_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateContactDTO Clone() {
+      return new UpdateContactDTO(this);
     }
 
     /// <summary>Field number for the "Id" field.</summary>
@@ -912,39 +2999,39 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
     }
 
-    /// <summary>Field number for the "BorrowerId" field.</summary>
-    public const int BorrowerIdFieldNumber = 3;
-    private int borrowerId_;
+    /// <summary>Field number for the "PhoneNumber" field.</summary>
+    public const int PhoneNumberFieldNumber = 3;
+    private string phoneNumber_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public int BorrowerId {
-      get { return borrowerId_; }
+    public string PhoneNumber {
+      get { return phoneNumber_; }
       set {
-        borrowerId_ = value;
+        phoneNumber_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
-    /// <summary>Field number for the "BookId" field.</summary>
-    public const int BookIdFieldNumber = 4;
-    private int bookId_;
+    /// <summary>Field number for the "Address" field.</summary>
+    public const int AddressFieldNumber = 4;
+    private string address_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public int BookId {
-      get { return bookId_; }
+    public string Address {
+      get { return address_; }
       set {
-        bookId_ = value;
+        address_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as BorrowRecordDTO);
+      return Equals(other as UpdateContactDTO);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(BorrowRecordDTO other) {
+    public bool Equals(UpdateContactDTO other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -953,8 +3040,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
       if (Id != other.Id) return false;
       if (ConcurrencyToken != other.ConcurrencyToken) return false;
-      if (BorrowerId != other.BorrowerId) return false;
-      if (BookId != other.BookId) return false;
+      if (PhoneNumber != other.PhoneNumber) return false;
+      if (Address != other.Address) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -964,8 +3051,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       int hash = 1;
       if (Id != 0) hash ^= Id.GetHashCode();
       if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
-      if (BorrowerId != 0) hash ^= BorrowerId.GetHashCode();
-      if (BookId != 0) hash ^= BookId.GetHashCode();
+      if (PhoneNumber.Length != 0) hash ^= PhoneNumber.GetHashCode();
+      if (Address.Length != 0) hash ^= Address.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -992,13 +3079,13 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(18);
         output.WriteBytes(ConcurrencyToken);
       }
-      if (BorrowerId != 0) {
-        output.WriteRawTag(24);
-        output.WriteInt32(BorrowerId);
+      if (PhoneNumber.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(PhoneNumber);
       }
-      if (BookId != 0) {
-        output.WriteRawTag(32);
-        output.WriteInt32(BookId);
+      if (Address.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Address);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1018,13 +3105,13 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(18);
         output.WriteBytes(ConcurrencyToken);
       }
-      if (BorrowerId != 0) {
-        output.WriteRawTag(24);
-        output.WriteInt32(BorrowerId);
+      if (PhoneNumber.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(PhoneNumber);
       }
-      if (BookId != 0) {
-        output.WriteRawTag(32);
-        output.WriteInt32(BookId);
+      if (Address.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Address);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -1042,11 +3129,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (ConcurrencyToken.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
       }
-      if (BorrowerId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(BorrowerId);
+      if (PhoneNumber.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(PhoneNumber);
       }
-      if (BookId != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(BookId);
+      if (Address.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Address);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1056,7 +3143,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(BorrowRecordDTO other) {
+    public void MergeFrom(UpdateContactDTO other) {
       if (other == null) {
         return;
       }
@@ -1066,11 +3153,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.ConcurrencyToken.Length != 0) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
-      if (other.BorrowerId != 0) {
-        BorrowerId = other.BorrowerId;
+      if (other.PhoneNumber.Length != 0) {
+        PhoneNumber = other.PhoneNumber;
       }
-      if (other.BookId != 0) {
-        BookId = other.BookId;
+      if (other.Address.Length != 0) {
+        Address = other.Address;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1095,12 +3182,12 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             ConcurrencyToken = input.ReadBytes();
             break;
           }
-          case 24: {
-            BorrowerId = input.ReadInt32();
+          case 26: {
+            PhoneNumber = input.ReadString();
             break;
           }
-          case 32: {
-            BookId = input.ReadInt32();
+          case 34: {
+            Address = input.ReadString();
             break;
           }
         }
@@ -1126,12 +3213,12 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             ConcurrencyToken = input.ReadBytes();
             break;
           }
-          case 24: {
-            BorrowerId = input.ReadInt32();
+          case 26: {
+            PhoneNumber = input.ReadString();
             break;
           }
-          case 32: {
-            BookId = input.ReadInt32();
+          case 34: {
+            Address = input.ReadString();
             break;
           }
         }
@@ -1141,21 +3228,21 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
   }
 
-  public sealed partial class AllBooksDTO : pb::IMessage<AllBooksDTO>
+  public sealed partial class ContactDTO : pb::IMessage<ContactDTO>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
   #endif
   {
-    private static readonly pb::MessageParser<AllBooksDTO> _parser = new pb::MessageParser<AllBooksDTO>(() => new AllBooksDTO());
+    private static readonly pb::MessageParser<ContactDTO> _parser = new pb::MessageParser<ContactDTO>(() => new ContactDTO());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<AllBooksDTO> Parser { get { return _parser; } }
+    public static pb::MessageParser<ContactDTO> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[4]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1166,7 +3253,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public AllBooksDTO() {
+    public ContactDTO() {
       OnConstruction();
     }
 
@@ -1174,44 +3261,101 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public AllBooksDTO(AllBooksDTO other) : this() {
-      books_ = other.books_.Clone();
+    public ContactDTO(ContactDTO other) : this() {
+      id_ = other.id_;
+      concurrencyToken_ = other.concurrencyToken_;
+      borrower_ = other.borrower_;
+      phoneNumber_ = other.phoneNumber_;
+      address_ = other.address_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public AllBooksDTO Clone() {
-      return new AllBooksDTO(this);
+    public ContactDTO Clone() {
+      return new ContactDTO(this);
     }
 
-    /// <summary>Field number for the "Books" field.</summary>
-    public const int BooksFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO> _repeated_books_codec
-        = pb::FieldCodec.ForMessage(10, global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser);
-    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO> books_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO>();
+    /// <summary>Field number for the "Id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private int id_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO> Books {
-      get { return books_; }
+    public int Id {
+      get { return id_; }
+      set {
+        id_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "ConcurrencyToken" field.</summary>
+    public const int ConcurrencyTokenFieldNumber = 2;
+    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ConcurrencyToken {
+      get { return concurrencyToken_; }
+      set {
+        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Borrower" field.</summary>
+    public const int BorrowerFieldNumber = 3;
+    private string borrower_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Borrower {
+      get { return borrower_; }
+      set {
+        borrower_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "PhoneNumber" field.</summary>
+    public const int PhoneNumberFieldNumber = 4;
+    private string phoneNumber_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string PhoneNumber {
+      get { return phoneNumber_; }
+      set {
+        phoneNumber_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Address" field.</summary>
+    public const int AddressFieldNumber = 5;
+    private string address_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Address {
+      get { return address_; }
+      set {
+        address_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
-      return Equals(other as AllBooksDTO);
+      return Equals(other as ContactDTO);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(AllBooksDTO other) {
+    public bool Equals(ContactDTO other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if(!books_.Equals(other.books_)) return false;
+      if (Id != other.Id) return false;
+      if (ConcurrencyToken != other.ConcurrencyToken) return false;
+      if (Borrower != other.Borrower) return false;
+      if (PhoneNumber != other.PhoneNumber) return false;
+      if (Address != other.Address) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1219,7 +3363,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      hash ^= books_.GetHashCode();
+      if (Id != 0) hash ^= Id.GetHashCode();
+      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (Borrower.Length != 0) hash ^= Borrower.GetHashCode();
+      if (PhoneNumber.Length != 0) hash ^= PhoneNumber.GetHashCode();
+      if (Address.Length != 0) hash ^= Address.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1238,7 +3386,26 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      books_.WriteTo(output, _repeated_books_codec);
+      if (Id != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Id);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConcurrencyToken);
+      }
+      if (Borrower.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Borrower);
+      }
+      if (PhoneNumber.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(PhoneNumber);
+      }
+      if (Address.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Address);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1249,7 +3416,26 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      books_.WriteTo(ref output, _repeated_books_codec);
+      if (Id != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Id);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConcurrencyToken);
+      }
+      if (Borrower.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Borrower);
+      }
+      if (PhoneNumber.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(PhoneNumber);
+      }
+      if (Address.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Address);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -1260,7 +3446,21 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      size += books_.CalculateSize(_repeated_books_codec);
+      if (Id != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      }
+      if (Borrower.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Borrower);
+      }
+      if (PhoneNumber.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(PhoneNumber);
+      }
+      if (Address.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Address);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -1269,11 +3469,246 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(AllBooksDTO other) {
+    public void MergeFrom(ContactDTO other) {
       if (other == null) {
         return;
       }
-      books_.Add(other.books_);
+      if (other.Id != 0) {
+        Id = other.Id;
+      }
+      if (other.ConcurrencyToken.Length != 0) {
+        ConcurrencyToken = other.ConcurrencyToken;
+      }
+      if (other.Borrower.Length != 0) {
+        Borrower = other.Borrower;
+      }
+      if (other.PhoneNumber.Length != 0) {
+        PhoneNumber = other.PhoneNumber;
+      }
+      if (other.Address.Length != 0) {
+        Address = other.Address;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Id = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            ConcurrencyToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Borrower = input.ReadString();
+            break;
+          }
+          case 34: {
+            PhoneNumber = input.ReadString();
+            break;
+          }
+          case 42: {
+            Address = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Id = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            ConcurrencyToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Borrower = input.ReadString();
+            break;
+          }
+          case 34: {
+            PhoneNumber = input.ReadString();
+            break;
+          }
+          case 42: {
+            Address = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class BorrowerReferenceDTO : pb::IMessage<BorrowerReferenceDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<BorrowerReferenceDTO> _parser = new pb::MessageParser<BorrowerReferenceDTO>(() => new BorrowerReferenceDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<BorrowerReferenceDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[13]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public BorrowerReferenceDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public BorrowerReferenceDTO(BorrowerReferenceDTO other) : this() {
+      identityNumber_ = other.identityNumber_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public BorrowerReferenceDTO Clone() {
+      return new BorrowerReferenceDTO(this);
+    }
+
+    /// <summary>Field number for the "IdentityNumber" field.</summary>
+    public const int IdentityNumberFieldNumber = 1;
+    private string identityNumber_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string IdentityNumber {
+      get { return identityNumber_; }
+      set {
+        identityNumber_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as BorrowerReferenceDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(BorrowerReferenceDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (IdentityNumber != other.IdentityNumber) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (IdentityNumber.Length != 0) hash ^= IdentityNumber.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (IdentityNumber.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(IdentityNumber);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (IdentityNumber.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(IdentityNumber);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (IdentityNumber.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(IdentityNumber);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(BorrowerReferenceDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.IdentityNumber.Length != 0) {
+        IdentityNumber = other.IdentityNumber;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -1290,7 +3725,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            books_.AddEntriesFrom(input, _repeated_books_codec);
+            IdentityNumber = input.ReadString();
             break;
           }
         }
@@ -1309,7 +3744,1004 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 10: {
-            books_.AddEntriesFrom(ref input, _repeated_books_codec);
+            IdentityNumber = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class NewBorrowerDTO : pb::IMessage<NewBorrowerDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<NewBorrowerDTO> _parser = new pb::MessageParser<NewBorrowerDTO>(() => new NewBorrowerDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<NewBorrowerDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[14]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewBorrowerDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewBorrowerDTO(NewBorrowerDTO other) : this() {
+      name_ = other.name_;
+      contact_ = other.contact_ != null ? other.contact_.Clone() : null;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewBorrowerDTO Clone() {
+      return new NewBorrowerDTO(this);
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 1;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Contact" field.</summary>
+    public const int ContactFieldNumber = 2;
+    private global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO contact_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO Contact {
+      get { return contact_; }
+      set {
+        contact_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as NewBorrowerDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(NewBorrowerDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Name != other.Name) return false;
+      if (!object.Equals(Contact, other.Contact)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (contact_ != null) hash ^= Contact.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      if (contact_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Contact);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      if (contact_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Contact);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (contact_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Contact);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(NewBorrowerDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.contact_ != null) {
+        if (contact_ == null) {
+          Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO();
+        }
+        Contact.MergeFrom(other.Contact);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (contact_ == null) {
+              Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO();
+            }
+            input.ReadMessage(Contact);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (contact_ == null) {
+              Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO();
+            }
+            input.ReadMessage(Contact);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class UpdateBorrowerDTO : pb::IMessage<UpdateBorrowerDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<UpdateBorrowerDTO> _parser = new pb::MessageParser<UpdateBorrowerDTO>(() => new UpdateBorrowerDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<UpdateBorrowerDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[15]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateBorrowerDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateBorrowerDTO(UpdateBorrowerDTO other) : this() {
+      identityNumber_ = other.identityNumber_;
+      concurrencyToken_ = other.concurrencyToken_;
+      name_ = other.name_;
+      contact_ = other.contact_ != null ? other.contact_.Clone() : null;
+      reserved_ = other.reserved_ != null ? other.reserved_.Clone() : null;
+      borrowed_ = other.borrowed_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public UpdateBorrowerDTO Clone() {
+      return new UpdateBorrowerDTO(this);
+    }
+
+    /// <summary>Field number for the "IdentityNumber" field.</summary>
+    public const int IdentityNumberFieldNumber = 1;
+    private string identityNumber_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string IdentityNumber {
+      get { return identityNumber_; }
+      set {
+        identityNumber_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ConcurrencyToken" field.</summary>
+    public const int ConcurrencyTokenFieldNumber = 2;
+    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ConcurrencyToken {
+      get { return concurrencyToken_; }
+      set {
+        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Contact" field.</summary>
+    public const int ContactFieldNumber = 4;
+    private global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO contact_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO Contact {
+      get { return contact_; }
+      set {
+        contact_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Reserved" field.</summary>
+    public const int ReservedFieldNumber = 5;
+    private global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO reserved_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO Reserved {
+      get { return reserved_; }
+      set {
+        reserved_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Borrowed" field.</summary>
+    public const int BorrowedFieldNumber = 6;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO> _repeated_borrowed_codec
+        = pb::FieldCodec.ForMessage(50, global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO> borrowed_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO> Borrowed {
+      get { return borrowed_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as UpdateBorrowerDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(UpdateBorrowerDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (IdentityNumber != other.IdentityNumber) return false;
+      if (ConcurrencyToken != other.ConcurrencyToken) return false;
+      if (Name != other.Name) return false;
+      if (!object.Equals(Contact, other.Contact)) return false;
+      if (!object.Equals(Reserved, other.Reserved)) return false;
+      if(!borrowed_.Equals(other.borrowed_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (IdentityNumber.Length != 0) hash ^= IdentityNumber.GetHashCode();
+      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (contact_ != null) hash ^= Contact.GetHashCode();
+      if (reserved_ != null) hash ^= Reserved.GetHashCode();
+      hash ^= borrowed_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (IdentityNumber.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(IdentityNumber);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConcurrencyToken);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (contact_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(Contact);
+      }
+      if (reserved_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Reserved);
+      }
+      borrowed_.WriteTo(output, _repeated_borrowed_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (IdentityNumber.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(IdentityNumber);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConcurrencyToken);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (contact_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(Contact);
+      }
+      if (reserved_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Reserved);
+      }
+      borrowed_.WriteTo(ref output, _repeated_borrowed_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (IdentityNumber.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(IdentityNumber);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (contact_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Contact);
+      }
+      if (reserved_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Reserved);
+      }
+      size += borrowed_.CalculateSize(_repeated_borrowed_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(UpdateBorrowerDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.IdentityNumber.Length != 0) {
+        IdentityNumber = other.IdentityNumber;
+      }
+      if (other.ConcurrencyToken.Length != 0) {
+        ConcurrencyToken = other.ConcurrencyToken;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.contact_ != null) {
+        if (contact_ == null) {
+          Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO();
+        }
+        Contact.MergeFrom(other.Contact);
+      }
+      if (other.reserved_ != null) {
+        if (reserved_ == null) {
+          Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO();
+        }
+        Reserved.MergeFrom(other.Reserved);
+      }
+      borrowed_.Add(other.borrowed_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            IdentityNumber = input.ReadString();
+            break;
+          }
+          case 18: {
+            ConcurrencyToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            if (contact_ == null) {
+              Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO();
+            }
+            input.ReadMessage(Contact);
+            break;
+          }
+          case 42: {
+            if (reserved_ == null) {
+              Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO();
+            }
+            input.ReadMessage(Reserved);
+            break;
+          }
+          case 50: {
+            borrowed_.AddEntriesFrom(input, _repeated_borrowed_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            IdentityNumber = input.ReadString();
+            break;
+          }
+          case 18: {
+            ConcurrencyToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            if (contact_ == null) {
+              Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO();
+            }
+            input.ReadMessage(Contact);
+            break;
+          }
+          case 42: {
+            if (reserved_ == null) {
+              Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO();
+            }
+            input.ReadMessage(Reserved);
+            break;
+          }
+          case 50: {
+            borrowed_.AddEntriesFrom(ref input, _repeated_borrowed_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class BorrowerDTO : pb::IMessage<BorrowerDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<BorrowerDTO> _parser = new pb::MessageParser<BorrowerDTO>(() => new BorrowerDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<BorrowerDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[16]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public BorrowerDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public BorrowerDTO(BorrowerDTO other) : this() {
+      identityNumber_ = other.identityNumber_;
+      concurrencyToken_ = other.concurrencyToken_;
+      name_ = other.name_;
+      contact_ = other.contact_ != null ? other.contact_.Clone() : null;
+      reserved_ = other.reserved_ != null ? other.reserved_.Clone() : null;
+      borrowed_ = other.borrowed_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public BorrowerDTO Clone() {
+      return new BorrowerDTO(this);
+    }
+
+    /// <summary>Field number for the "IdentityNumber" field.</summary>
+    public const int IdentityNumberFieldNumber = 1;
+    private string identityNumber_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string IdentityNumber {
+      get { return identityNumber_; }
+      set {
+        identityNumber_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ConcurrencyToken" field.</summary>
+    public const int ConcurrencyTokenFieldNumber = 2;
+    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pb::ByteString ConcurrencyToken {
+      get { return concurrencyToken_; }
+      set {
+        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 3;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Contact" field.</summary>
+    public const int ContactFieldNumber = 4;
+    private global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO contact_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO Contact {
+      get { return contact_; }
+      set {
+        contact_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Reserved" field.</summary>
+    public const int ReservedFieldNumber = 5;
+    private global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO reserved_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO Reserved {
+      get { return reserved_; }
+      set {
+        reserved_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Borrowed" field.</summary>
+    public const int BorrowedFieldNumber = 6;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO> _repeated_borrowed_codec
+        = pb::FieldCodec.ForMessage(50, global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO> borrowed_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO> Borrowed {
+      get { return borrowed_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as BorrowerDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(BorrowerDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (IdentityNumber != other.IdentityNumber) return false;
+      if (ConcurrencyToken != other.ConcurrencyToken) return false;
+      if (Name != other.Name) return false;
+      if (!object.Equals(Contact, other.Contact)) return false;
+      if (!object.Equals(Reserved, other.Reserved)) return false;
+      if(!borrowed_.Equals(other.borrowed_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (IdentityNumber.Length != 0) hash ^= IdentityNumber.GetHashCode();
+      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (contact_ != null) hash ^= Contact.GetHashCode();
+      if (reserved_ != null) hash ^= Reserved.GetHashCode();
+      hash ^= borrowed_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (IdentityNumber.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(IdentityNumber);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConcurrencyToken);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (contact_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(Contact);
+      }
+      if (reserved_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Reserved);
+      }
+      borrowed_.WriteTo(output, _repeated_borrowed_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (IdentityNumber.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(IdentityNumber);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConcurrencyToken);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Name);
+      }
+      if (contact_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(Contact);
+      }
+      if (reserved_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Reserved);
+      }
+      borrowed_.WriteTo(ref output, _repeated_borrowed_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (IdentityNumber.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(IdentityNumber);
+      }
+      if (ConcurrencyToken.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (contact_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Contact);
+      }
+      if (reserved_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Reserved);
+      }
+      size += borrowed_.CalculateSize(_repeated_borrowed_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(BorrowerDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.IdentityNumber.Length != 0) {
+        IdentityNumber = other.IdentityNumber;
+      }
+      if (other.ConcurrencyToken.Length != 0) {
+        ConcurrencyToken = other.ConcurrencyToken;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.contact_ != null) {
+        if (contact_ == null) {
+          Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO();
+        }
+        Contact.MergeFrom(other.Contact);
+      }
+      if (other.reserved_ != null) {
+        if (reserved_ == null) {
+          Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO();
+        }
+        Reserved.MergeFrom(other.Reserved);
+      }
+      borrowed_.Add(other.borrowed_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            IdentityNumber = input.ReadString();
+            break;
+          }
+          case 18: {
+            ConcurrencyToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            if (contact_ == null) {
+              Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO();
+            }
+            input.ReadMessage(Contact);
+            break;
+          }
+          case 42: {
+            if (reserved_ == null) {
+              Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO();
+            }
+            input.ReadMessage(Reserved);
+            break;
+          }
+          case 50: {
+            borrowed_.AddEntriesFrom(input, _repeated_borrowed_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            IdentityNumber = input.ReadString();
+            break;
+          }
+          case 18: {
+            ConcurrencyToken = input.ReadBytes();
+            break;
+          }
+          case 26: {
+            Name = input.ReadString();
+            break;
+          }
+          case 34: {
+            if (contact_ == null) {
+              Contact = new global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO();
+            }
+            input.ReadMessage(Contact);
+            break;
+          }
+          case 42: {
+            if (reserved_ == null) {
+              Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO();
+            }
+            input.ReadMessage(Reserved);
+            break;
+          }
+          case 50: {
+            borrowed_.AddEntriesFrom(ref input, _repeated_borrowed_codec);
             break;
           }
         }

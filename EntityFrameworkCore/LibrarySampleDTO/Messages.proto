@@ -2,31 +2,109 @@
 package Oasis.EntityFrameworkCore.Mapper.Sample;
 option csharp_namespace = "Oasis.EntityFrameworkCore.Mapper.Sample";
 
-message BorrowerDTO {
-	int32 Id = 1;
-	bytes ConcurrencyToken = 2;
-	string Name = 3;
-	repeated BorrowRecordDTO BorrowRecords = 4;
+message IdReferenceDTO {
+    int32 Id = 1;
 }
 
-message BookDTO {
+message NewTagDTO {
+    string Name = 1;
+    repeated IdReferenceDTO Books = 2;
+}
+
+message TagDTO {
 	int32 Id = 1;
-	bytes ConcurrencyToken = 2;
-	string Name = 3;
-	optional string CurrentBorrower = 4;
+	string Name = 2;
+	repeated BookDTO Books = 3;
 }
 
 message NewBookDTO {
-	string Name = 1;
+    string Name = 1;
+    repeated NewCopyDTO Copies = 2;
 }
 
-message BorrowRecordDTO {
+message UpdateBookDTO {
     int32 Id = 1;
-	bytes ConcurrencyToken = 2;
-	int32 BorrowerId = 3;
-	int32 BookId = 4;
+    bytes ConcurrencyToken = 2;
+    string Name = 3;
+    repeated CopyReferenceDTO Copies = 4;
+    repeated IdReferenceDTO Tags = 5;
 }
 
-message AllBooksDTO {
-	repeated BookDTO Books = 1;
+message BookDTO {
+    int32 Id = 1;
+    bytes ConcurrencyToken = 2;
+    string Name = 3;
+    repeated CopyDTO Copies = 4;
+    repeated TagDTO Tags = 5;
+}
+
+message CopyReferenceDTO {
+    string Number = 1;
+}
+
+message NewCopyDTO {
+    string Number = 1;
+    int32 BookId = 2;
+}
+
+message UpdateCopyDTO {
+    string Number = 1;
+    bytes ConcurrencyToken = 2;
+    optional string Reserver = 3;
+    optional string Borrower = 4;
+}
+
+message CopyDTO {
+    string Number = 1;
+    bytes ConcurrencyToken = 2;
+    optional string Reserver = 3;
+    optional string Borrower = 4;
+    int32 BookId = 5;
+}
+
+message NewContactDTO {
+    string PhoneNumber = 1;
+    string Address = 2;
+}
+
+message UpdateContactDTO {
+    int32 Id = 1;
+    bytes ConcurrencyToken = 2;
+    string PhoneNumber = 3;
+    string Address = 4;
+}
+
+message ContactDTO {
+    int32 Id = 1;
+    bytes ConcurrencyToken = 2;
+    string Borrower = 3;
+    string PhoneNumber = 4;
+    string Address = 5;
+}
+
+message BorrowerReferenceDTO {
+    string IdentityNumber = 1;
+}
+
+message NewBorrowerDTO {
+    string Name = 1;
+    NewContactDTO Contact = 2;
+}
+
+message UpdateBorrowerDTO {
+    string IdentityNumber = 1;
+    bytes ConcurrencyToken = 2;
+    string Name = 3;
+    UpdateContactDTO Contact = 4;
+    optional CopyDTO Reserved = 5;
+    repeated CopyDTO Borrowed = 6;
+}
+
+message BorrowerDTO {
+    string IdentityNumber = 1;
+    bytes ConcurrencyToken = 2;
+    string Name = 3;
+    ContactDTO Contact = 4;
+    optional CopyReferenceDTO Reserved = 5;
+    repeated CopyReferenceDTO Borrowed = 6;
 }

@@ -6,4 +6,9 @@ public sealed class MapperMissingException : EfCoreMapperException
         : base($"Entity mapper from type {sourceType} to {targetType} hasn't been registered yet.")
     {
     }
+
+    public MapperMissingException(Type targetType)
+        : base($"Type {targetType} hasn't been register as a mapping target.")
+    {
+    }
 }

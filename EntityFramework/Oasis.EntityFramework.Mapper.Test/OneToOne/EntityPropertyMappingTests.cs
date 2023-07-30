@@ -11,7 +11,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.Register<PrincipalOptional1, PrincipalOptional2>();
         var mapper = mapperBuilder.Build();
 
@@ -49,7 +49,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
         var mapper = mapperBuilder.Build();
 
@@ -100,7 +100,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder
             .WithConfiguration<DependentRequired1_1>(new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), false))
             .WithConfiguration<DependentRequired1_2>(new EntityConfiguration(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), false))
@@ -158,7 +158,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
         var mapper = mapperBuilder.Build();
 
@@ -187,7 +187,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
         var mapper = mapperBuilder.Build();
 
@@ -207,7 +207,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
         var mapper = mapperBuilder.Build();
 
@@ -226,7 +226,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.RegisterTwoWay<RecursiveEntity1, RecursiveEntity2>();
         var mapper = mapperBuilder.Build();
 

@@ -12,7 +12,7 @@ public class ToDatabaseTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>();
         var mapper = mapperBuilder.Build();
         var instance = new ToDatabaseEntity2(null, null, 1);
@@ -32,7 +32,7 @@ public class ToDatabaseTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>();
         var mapper = mapperBuilder.Build();
         var instance = new ToDatabaseEntity2(1, 1, 1);
@@ -56,7 +56,7 @@ public class ToDatabaseTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>();
         var mapper = mapperBuilder.Build();
         var instance = new ToDatabaseEntity2(1, 1, 1);
@@ -74,7 +74,7 @@ public class ToDatabaseTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder(GetType().Name, DefaultConfiguration);
+        var mapperBuilder = factory.MakeMapperBuilder(DefaultConfiguration);
         mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>();
         var mapper = mapperBuilder.Build();
         var instance = new ToDatabaseEntity2(1, 1, 1);

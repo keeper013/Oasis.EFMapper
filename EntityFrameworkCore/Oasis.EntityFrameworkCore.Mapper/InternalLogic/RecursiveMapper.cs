@@ -57,28 +57,22 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
             }
         }
 
-        var mapperSet = _lookup.LookUp(sourceType, targetType);
-        if (!mapperSet.HasValue)
+        var mapperSetFound = _lookup.LookUp(sourceType, targetType);
+        if (!mapperSetFound.HasValue)
         {
             return;
         }
 
+        var mapperSet = mapperSetFound.Value;
         using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
-        var value = mapperSet.Value;
-        if (value.customPropertiesMapper != null)
+        (mapperSet.customPropertiesMapper as Action<TSource, TTarget>)?.Invoke(source, target);
+
+        if (mapKeyProperties)
         {
-            ((Action<TSource, TTarget>)value.customPropertiesMapper)(source, target);
+            (mapperSet.keyMapper as Utilities.MapScalarProperties<TSource, TTarget>)?.Invoke(source, target, _scalarConverter);
         }
 
-        if (value.keyMapper != null && mapKeyProperties)
-        {
-            ((Utilities.MapScalarProperties<TSource, TTarget>)value.keyMapper)(source, target, _scalarConverter);
-        }
-
-        if (value.contentMapper != null)
-        {
-            ((Utilities.MapProperties<TSource, TTarget, int>)value.contentMapper)(source, target, _scalarConverter, this, existingTargetTracker, newTargetTracker, keepUnmatched);
-        }
+        (mapperSet.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, _scalarConverter, this, existingTargetTracker, newTargetTracker, keepUnmatched);
     }
 }
 
@@ -159,7 +153,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                     }
                     else
                     {
-                        Map(source, target, true, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
+                        Map(source, target, false, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
                         return target;
                     }
                 }

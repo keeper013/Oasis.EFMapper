@@ -35,6 +35,6 @@ internal class EntityFactory : IEntityFactory
             return ((Func<TEntity>)generatedConstructor)();
         }
 
-        throw new InvalidOperationException($"Type {type} doesn't have custom either factory method or a generated construct method.");
+        throw new MapperMissingException(type);
     }
 }

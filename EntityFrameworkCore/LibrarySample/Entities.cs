@@ -1,41 +1,57 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Sample;
 
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-public abstract class EntityBase
+public interface IEntityBaseWithId
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
+}
 
-    [Timestamp]
-    [ConcurrencyCheck]
+public interface IEntityBaseWithConcurrencyToken
+{
     public byte[]? ConcurrencyToken { get; set; }
 }
 
-public sealed class Borrower : EntityBase
+public sealed class Borrower : IEntityBaseWithConcurrencyToken
 {
-    public string? Name { get; set; }
-
-    public ICollection<BorrowRecord>? BorrowRecords { get; set; }
+    public string IdentityNumber { get; set; } = null!;
+    public byte[]? ConcurrencyToken { get; set; }
+    public string Name { get; set; } = null!;
+    public Contact Contact { get; set; } = null!;
+    public Copy Reserved { get; set; } = null!;
+    public List<Copy> Borrowed { get; set; } = new List<Copy>();
 }
 
-public sealed class Book : EntityBase
+public sealed class Contact : IEntityBaseWithId, IEntityBaseWithConcurrencyToken
 {
-    public string? Name { get; set; }
-
-    public BorrowRecord? BorrowRecord { get; set; }
+    public int Id { get; set; }
+    public byte[]? ConcurrencyToken { get; set; }
+    public string Borrower { get; set; } = null!;
+    public string PhoneNumber { get; set; } = null!;
+    public string Address { get; set; } = null!;
 }
 
-public sealed class BorrowRecord : EntityBase
+public sealed class Book : IEntityBaseWithId, IEntityBaseWithConcurrencyToken
 {
-    public int BorrowerId { get; set; }
+    public int Id { get; set; }
+    public byte[]? ConcurrencyToken { get; set; }
+    public string Name { get; set; } = null!;
+    public List<Copy> Copies { get; set; } = new List<Copy>();
+    public List<Tag> Tags { get; set; } = new List<Tag>();
+}
 
+public sealed class Copy : IEntityBaseWithConcurrencyToken
+{
+    public string Number { get; set; } = null!;
+    public byte[]? ConcurrencyToken { get; set; }
+    public string? Reserver { get; set; }
+    public string? Borrower { get; set; }
     public int BookId { get; set; }
+}
 
-    public Borrower? Borrower { get; set; }
-
-    public Book? Book { get; set; }
+public sealed class Tag : IEntityBaseWithId
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+    public List<Book> Books { get; set; } = new List<Book>();
 }
