@@ -516,6 +516,7 @@ public class ListPropertyMappingTests : TestBase
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
             Assert.Equal(1, entity.Scs!.Count);
             Assert.Equal(3, entity.Scs.ElementAt(0).IntProp);
+            Assert.Equal(2, await databaseContext.Set<SubScalarEntity1>().CountAsync());
         });
     }
 
