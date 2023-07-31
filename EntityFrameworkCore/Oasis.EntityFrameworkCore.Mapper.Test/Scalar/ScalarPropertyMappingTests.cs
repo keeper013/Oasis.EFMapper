@@ -22,7 +22,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         // act
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, databaseContext);
+            var entity = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, null, databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -77,7 +77,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, databaseContext);
+            result = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, null, databaseContext);
         });
 
         // assert
@@ -100,7 +100,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            _ = await mapper.MapAsync<ScalarEntityNoBase1, ScalarEntity1>(instance, databaseContext);
+            _ = await mapper.MapAsync<ScalarEntityNoBase1, ScalarEntity1>(instance, null, databaseContext);
             _ = await databaseContext.SaveChangesAsync();
         });
 
@@ -130,7 +130,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         // act
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, databaseContext);
+            var entity = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, null, databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -187,7 +187,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         // act
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, databaseContext);
+            var entity = await mapper.MapAsync<ScalarEntity2, ScalarEntity1>(instance, null, databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -332,7 +332,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result2 = await mapper.MapAsync<ScalarEntity4, ScalarEntity1>(result1, databaseContext);
+            result2 = await mapper.MapAsync<ScalarEntity4, ScalarEntity1>(result1, null, databaseContext);
         });
 
         // assert
@@ -371,7 +371,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result2 = await mapper.MapAsync<ScalarEntity4, ScalarEntity1>(result1, databaseContext);
+            result2 = await mapper.MapAsync<ScalarEntity4, ScalarEntity1>(result1, null, databaseContext);
         });
 
         // assert
@@ -514,7 +514,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result = await mapper.MapAsync<WrappedScalarEntity2, ScalarEntity1>(instance2, databaseContext);
+            result = await mapper.MapAsync<WrappedScalarEntity2, ScalarEntity1>(instance2, null, databaseContext);
         });
 
         // assert
@@ -566,7 +566,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         ScalarEntity1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result = await mapper.MapAsync<ScalarEntity5, ScalarEntity1>(instance, databaseContext);
+            result = await mapper.MapAsync<ScalarEntity5, ScalarEntity1>(instance, null, databaseContext);
         });
 
         // assert

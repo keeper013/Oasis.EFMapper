@@ -23,7 +23,7 @@ public sealed class KeepUnmatchedTests : TestBase
         var principal = new UnmatchedPrincipal2 { DependantList = new List<UnmatchedDependant2> { new UnmatchedDependant2 { IntProp = 1 } } };
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            await mapper.MapAsync<UnmatchedPrincipal2, UnmatchedPrincipal1>(principal, databaseContext);
+            await mapper.MapAsync<UnmatchedPrincipal2, UnmatchedPrincipal1>(principal, null, databaseContext);
             await databaseContext.SaveChangesAsync();
             Assert.Equal(1, await databaseContext.Set<UnmatchedPrincipal1>().CountAsync());
             Assert.Equal(1, await databaseContext.Set<UnmatchedDependant1>().CountAsync());
@@ -40,7 +40,7 @@ public sealed class KeepUnmatchedTests : TestBase
         {
             mappedPrincipal.DependantList.Clear();
             mappedPrincipal.DependantList.Add(new UnmatchedDependant2 { IntProp = 2 });
-            await mapper.MapAsync<UnmatchedPrincipal2, UnmatchedPrincipal1>(mappedPrincipal, databaseContext, p => p.Include(p => p.DependantList), MapToDatabaseType.Update, keepUnmatched);
+            await mapper.MapAsync<UnmatchedPrincipal2, UnmatchedPrincipal1>(mappedPrincipal, p => p.Include(p => p.DependantList), databaseContext, MapToDatabaseType.Update, keepUnmatched);
             await databaseContext.SaveChangesAsync();
             Assert.Equal(1, await databaseContext.Set<UnmatchedPrincipal1>().CountAsync());
         });

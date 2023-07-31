@@ -28,7 +28,7 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
             var bookDto = new NewBookDTO { Name = BookName };
-            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, databaseContext);
+            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().FirstAsync();
             Assert.Equal(BookName, book.Name);
@@ -55,7 +55,7 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
         {
             await ExecuteWithNewDatabaseContext(async databaseContext =>
             {
-                _ = await tuple.Item1.MapAsync<UpdateBookDTO, Book>(tuple.Item2, databaseContext);
+                _ = await tuple.Item1.MapAsync<UpdateBookDTO, Book>(tuple.Item2, null, databaseContext);
             });
         });
     }
@@ -78,7 +78,7 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
             var bookDto = new NewBookDTO { Name = BookName };
-            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, databaseContext);
+            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().FirstAsync();
             Assert.Equal(BookName, book.Name);
@@ -93,7 +93,7 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
 
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, databaseContext);
+            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null, databaseContext);
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().FirstAsync();
             Assert.Equal(UpdatedBookName, book.Name);

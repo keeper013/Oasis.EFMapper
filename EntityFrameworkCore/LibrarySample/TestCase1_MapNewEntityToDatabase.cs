@@ -25,7 +25,7 @@ public sealed class TestCase1_MapNewEntityToDatabase : TestBase
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
             var tagDto = new NewTagDTO { Name = TagName };
-            _ = await mapper.MapAsync<NewTagDTO, Tag>(tagDto, databaseContext);
+            _ = await mapper.MapAsync<NewTagDTO, Tag>(tagDto, null, databaseContext);
             _ = await databaseContext.SaveChangesAsync();
             tag = await databaseContext.Set<Tag>().FirstAsync();
             Assert.Equal(TagName, tag.Name);

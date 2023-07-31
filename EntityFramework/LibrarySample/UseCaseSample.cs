@@ -153,7 +153,7 @@ public class UseCaseSample
     {
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            _ = await Mapper!.MapAsync<TBookDto, Book>(dto, databaseContext);
+            _ = await Mapper!.MapAsync<TBookDto, Book>(dto, null, databaseContext);
             _ = await databaseContext.SaveChangesAsync();
         });
     }
@@ -193,7 +193,7 @@ public class UseCaseSample
         var dto = BorrowerDTO.Parser.ParseFrom(Convert.FromBase64String(updatedBorrowerString));
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            await Mapper!.MapAsync<BorrowerDTO, Borrower>(dto, databaseContext, qb => qb.Include(qb => qb.BorrowRecords));
+            await Mapper!.MapAsync<BorrowerDTO, Borrower>(dto, qb => qb.Include(qb => qb.BorrowRecords), databaseContext);
             await databaseContext.SaveChangesAsync();
         });
     }

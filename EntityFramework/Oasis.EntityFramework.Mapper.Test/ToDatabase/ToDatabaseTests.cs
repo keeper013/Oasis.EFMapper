@@ -20,7 +20,7 @@ public class ToDatabaseTests : TestBase
         // assert
         Assert.ThrowsAsync<UpdateToDatabaseWithoutIdException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, databaseContext, null, MapToDatabaseType.Update);
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext, MapToDatabaseType.Update);
             await databaseContext.SaveChangesAsync();
         }));
     }
@@ -46,7 +46,7 @@ public class ToDatabaseTests : TestBase
         // assert
         Assert.ThrowsAsync<ConcurrencyTokenException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, databaseContext, null, mapToDatabaseType);
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext, mapToDatabaseType);
             await databaseContext.SaveChangesAsync();
         }));
     }
@@ -64,7 +64,7 @@ public class ToDatabaseTests : TestBase
         // act
         Assert.ThrowsAsync<UpdateToDatabaseWithoutRecordException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, databaseContext, null, MapToDatabaseType.Update);
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext, MapToDatabaseType.Update);
             await databaseContext.SaveChangesAsync();
         }));
     }
@@ -88,7 +88,7 @@ public class ToDatabaseTests : TestBase
         // act
         Assert.ThrowsAsync<InsertToDatabaseWithExistingException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, databaseContext, null, MapToDatabaseType.Insert);
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext, MapToDatabaseType.Insert);
             await databaseContext.SaveChangesAsync();
         }));
     }

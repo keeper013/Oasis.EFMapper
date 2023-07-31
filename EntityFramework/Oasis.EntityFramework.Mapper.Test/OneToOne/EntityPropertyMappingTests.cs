@@ -76,7 +76,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         principalOptional2.Inner2 = new Dependent2_2("2");
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
+            var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, o => o.Include(o => o.Inner1).Include(o => o.Inner2), databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -131,7 +131,7 @@ public sealed class EntityPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result1 = await mapper.MapAsync<PrincipalRequired2, PrincipalRequired1>(principalRequired2, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
+            var result1 = await mapper.MapAsync<PrincipalRequired2, PrincipalRequired1>(principalRequired2, o => o.Include(o => o.Inner1).Include(o => o.Inner2), databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -260,7 +260,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         RecursiveEntity1 r3 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            r3 = await mapper.MapAsync<RecursiveEntity2, RecursiveEntity1>(r2, databaseContext, r => r.Include(r => r.Parent).Include(r => r.Child));
+            r3 = await mapper.MapAsync<RecursiveEntity2, RecursiveEntity1>(r2, r => r.Include(r => r.Parent).Include(r => r.Child), databaseContext);
         });
 
         Assert.AreEqual("parent 1", r3.StringProperty);
@@ -298,7 +298,7 @@ public sealed class EntityPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, databaseContext, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
+            var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, o => o.Include(o => o.Inner1).Include(o => o.Inner2), databaseContext);
             await databaseContext.SaveChangesAsync();
         });
     }

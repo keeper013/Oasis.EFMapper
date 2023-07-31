@@ -58,7 +58,7 @@ internal sealed class Mapper : IMapper
         return target;
     }
 
-    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, DbContext databaseContext, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default, MapToDatabaseType mappingType = MapToDatabaseType.Upsert, bool? keepUnmatched = null)
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, DbContext databaseContext, MapToDatabaseType mappingType = MapToDatabaseType.Upsert, bool? keepUnmatched = null)
         where TSource : class
         where TTarget : class
     {
@@ -120,7 +120,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, entityRemover, entityFactory, databaseContext);
     }
 
-    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer = default, MapToDatabaseType mappingType = MapToDatabaseType.Upsert, bool? keepUnmatched = null)
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, MapToDatabaseType mappingType = MapToDatabaseType.Upsert, bool? keepUnmatched = null)
         where TSource : class
         where TTarget : class
     {

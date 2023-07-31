@@ -47,7 +47,7 @@ public class ListPropertyMappingTests : TestBase
             Assert.ThrowsAsync<DuplicatedListItemException>(async () =>
             {
                 // Act
-                await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, databaseContext);
+                await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null, databaseContext);
             });
         });
     }
@@ -140,7 +140,7 @@ public class ListPropertyMappingTests : TestBase
         CollectionEntity1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result = await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(collectionEntity2, databaseContext, c => c.Include(c => c.Scs));
+            result = await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(collectionEntity2, c => c.Include(c => c.Scs), databaseContext);
         });
 
         // assert
@@ -193,7 +193,7 @@ public class ListPropertyMappingTests : TestBase
         CollectionEntity1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result2 = await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, databaseContext, c => c.Include(c => c.Scs));
+            result2 = await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, c => c.Include(c => c.Scs), databaseContext);
         });
 
         // assert
@@ -244,7 +244,7 @@ public class ListPropertyMappingTests : TestBase
         CollectionEntity1 result2 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result2 = await mapper.MapAsync<ListEntity1, CollectionEntity1>(result1, databaseContext, x => x.Include(x => x.Scs));
+            result2 = await mapper.MapAsync<ListEntity1, CollectionEntity1>(result1, x => x.Include(x => x.Scs), databaseContext);
         });
 
         // assert
@@ -275,7 +275,7 @@ public class ListPropertyMappingTests : TestBase
         DerivedEntity1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result = await mapper.MapAsync<DerivedEntity2, DerivedEntity1>(instance, databaseContext, x => x.AsNoTracking().Include(x => x.Scs));
+            result = await mapper.MapAsync<DerivedEntity2, DerivedEntity1>(instance, x => x.AsNoTracking().Include(x => x.Scs), databaseContext);
         });
 
         // assert
@@ -307,7 +307,7 @@ public class ListPropertyMappingTests : TestBase
         DerivedEntity1_1 result = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            result = await mapper.MapAsync<DerivedEntity2_2, DerivedEntity1_1>(instance, databaseContext, x => x.AsNoTracking().Include(x => x.Scs));
+            result = await mapper.MapAsync<DerivedEntity2_2, DerivedEntity1_1>(instance, x => x.AsNoTracking().Include(x => x.Scs), databaseContext);
         });
 
         // assert
@@ -354,7 +354,7 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result2 = await mapper.MapAsync<SubEntity3, SubEntity2>(result1, databaseContext);
+            var result2 = await mapper.MapAsync<SubEntity3, SubEntity2>(result1, null, databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -385,9 +385,9 @@ public class ListPropertyMappingTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2);
+            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, null);
             await databaseContext.SaveChangesAsync();
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2);
+            await session.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2, null);
             await databaseContext.SaveChangesAsync();
         });
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -412,9 +412,9 @@ public class ListPropertyMappingTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var session = mapper.CreateMappingToDatabaseSession(databaseContext);
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_1);
+            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_1, null);
             await databaseContext.SaveChangesAsync();
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_2);
+            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_2, null);
             await databaseContext.SaveChangesAsync();
         });
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -440,8 +440,8 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, databaseContext);
-            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2, databaseContext);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, null, databaseContext);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2, null, databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -467,8 +467,8 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, databaseContext);
-            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, databaseContext);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, null, databaseContext);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, null, databaseContext);
             await databaseContext.SaveChangesAsync();
         });
 
@@ -512,7 +512,7 @@ public class ListPropertyMappingTests : TestBase
         // assert
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, databaseContext, x => x.Include(x => x.Scs));
+            await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, x => x.Include(x => x.Scs), databaseContext);
             await databaseContext.SaveChangesAsync();
             entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
             Assert.AreEqual(1, entity.Scs!.Count);
@@ -557,7 +557,7 @@ public class ListPropertyMappingTests : TestBase
         {
             await Task.FromResult(0);
             Assert.ThrowsAsync<AsNoTrackingNotAllowedException>(
-                async () => await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, databaseContext, c => c.AsNoTracking().Include(c => c.Scs)));
+                async () => await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, c => c.AsNoTracking().Include(c => c.Scs), databaseContext));
         });
     }
 
