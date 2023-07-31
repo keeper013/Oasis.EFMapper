@@ -1,6 +1,7 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.Test.OneToOne;
 
 using Microsoft.EntityFrameworkCore;
+using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -42,6 +43,33 @@ public sealed class EntityPropertyMappingTests : TestBase
         Assert.Equal(1, principalOptional2.Inner1!.LongProp);
         Assert.NotNull(principalOptional2.Inner2);
         Assert.Equal("1", principalOptional2.Inner2!.StringProp);
+    }
+
+    [Fact]
+    public async Task AddOneToOneEntity_WithUpdateMappingType_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var customConfig = factory.MakeCustomTypeMapperBuilder<Dependent2_1, DependentOptional1_1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
+        var mapper = mapperBuilder
+            .Register<Dependent2_1, DependentOptional1_1>(customConfig)
+            .Register<PrincipalOptional2, PrincipalOptional1>()
+            .Build();
+
+        var principalOptional2 = new PrincipalOptional2(1);
+        var inner1 = new Dependent2_1(1);
+        var inner2 = new Dependent2_2("1");
+        principalOptional2.Inner1 = inner1;
+        principalOptional2.Inner2 = inner2;
+
+        await Assert.ThrowsAsync<MapToDatabaseTypeException>(async () =>
+        {
+            await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+            {
+                _ = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, p => p.Include(p => p.Inner1).Include(p => p.Inner2), databaseContext);
+            });
+        });
     }
 
     [Fact]
@@ -92,6 +120,49 @@ public sealed class EntityPropertyMappingTests : TestBase
         Assert.Equal(2, result2.Inner1!.LongProp);
         Assert.NotNull(result2.Inner2);
         Assert.Equal("2", result2.Inner2!.StringProp);
+    }
+
+    [Fact]
+    public async Task UpdateOneToOneEntityWithNew_WithInsertMappingType_ShouldFail()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var customConfig = factory.MakeCustomTypeMapperBuilder<Dependent2_1, DependentOptional1_1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
+        var mapper = mapperBuilder
+            .Register<Dependent2_1, DependentOptional1_1>(customConfig)
+            .RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>()
+            .Build();
+
+        var principalOptional1 = new PrincipalOptional1(1);
+        var inner1 = new DependentOptional1_1(1);
+        var inner2 = new DependentOptional1_2("1");
+        principalOptional1.Inner1 = inner1;
+        principalOptional1.Inner2 = inner2;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<PrincipalOptional1>().Add(principalOptional1);
+            await databaseContext.SaveChangesAsync();
+        });
+
+        // act
+        PrincipalOptional1 entity = null!;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<PrincipalOptional1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
+        });
+
+        var principalOptional2 = mapper.Map<PrincipalOptional1, PrincipalOptional2>(entity);
+        principalOptional2.Inner1 = new Dependent2_1(2);
+        principalOptional2.Inner2 = new Dependent2_2("2");
+        await Assert.ThrowsAsync<MapToDatabaseTypeException>(async () =>
+        {
+            await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+            {
+                var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, o => o.Include(o => o.Inner1).Include(o => o.Inner2), databaseContext);
+                await databaseContext.SaveChangesAsync();
+            });
+        });
     }
 
     [Fact]
