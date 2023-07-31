@@ -255,6 +255,11 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                     var t = target.FirstOrDefault(i => EntityBaseProxy.IdEquals(s, i));
                     if (t != default)
                     {
+                        if (!mapType.AllowsUpdate())
+                        {
+                            throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
+                        }
+
                         Map(s, t, false, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
                         shadowSet.Remove(t);
                     }

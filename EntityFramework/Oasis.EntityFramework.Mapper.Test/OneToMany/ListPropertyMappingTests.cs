@@ -53,6 +53,32 @@ public class ListPropertyMappingTests : TestBase
     }
 
     [Test]
+    public void MapListProperties_ToDatabase_WithUpdateConfig_ShouldThrowException()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var customConfig = factory.MakeCustomTypeMapperBuilder<ScalarEntity2Item, SubScalarEntity1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
+        var mapper = mapperBuilder
+            .Register<ScalarEntity2Item, SubScalarEntity1>(customConfig)
+            .Register<CollectionEntity2, CollectionEntity1>()
+            .Build();
+        var sc2 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
+        var entity2 = new CollectionEntity2(1, new[] { sc2 });
+
+        // Assert
+        Assert.ThrowsAsync<MapToDatabaseTypeException>(async () =>
+        {
+            await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+            {
+                // Act
+                await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null, databaseContext);
+            });
+        });
+        
+    }
+
+    [Test]
     public async Task MapListProperties_ICollection_MappingShouldSucceed()
     {
         var sc1_1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
@@ -205,6 +231,95 @@ public class ListPropertyMappingTests : TestBase
         Assert.AreEqual(3, item1.LongNullableProp);
         Assert.AreEqual("4", item1.StringProp);
         Assert.AreEqual(result1.Scs!.ElementAt(0).ByteArrayProp, result2.Scs.ElementAt(0).ByteArrayProp);
+    }
+
+    [Test]
+    public async Task MapListProperties_WithInsertConfig_ShouldThrowException()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
+        var customConfig = factory.MakeCustomTypeMapperBuilder<SubScalarEntity1, SubScalarEntity1>().SetMapToDatabaseType(MapToDatabaseType.Insert).Build();
+        mapperBuilder
+            .Register<SubScalarEntity1, SubScalarEntity1>(customConfig)
+            .RegisterTwoWay<ListIEntity1, CollectionEntity1>();
+        var mapper = mapperBuilder.Build();
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var subInstance = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
+            databaseContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, new List<SubScalarEntity1> { subInstance }));
+            await databaseContext.SaveChangesAsync();
+        });
+
+        // act
+        CollectionEntity1 entity = null!;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
+        });
+
+        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity);
+
+        result1!.IntProp = 2;
+        var item0 = result1.Scs![0];
+        item0.IntProp = 2;
+        item0.LongNullableProp = 3;
+        item0.StringProp = "4";
+        item0.ByteArrayProp = new byte[] { 2 };
+        Assert.ThrowsAsync<MapToDatabaseTypeException>(async () =>
+        {
+            await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+            {
+                _ = await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, c => c.Include(c => c.Scs), databaseContext);
+            });
+        });
+    }
+
+    [Test]
+    public async Task MapListPropertiesChangeId_WithInsertConfig_ShouldThrowException()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
+        var customConfig = factory.MakeCustomTypeMapperBuilder<SubScalarEntity1, SubScalarEntity1>().SetMapToDatabaseType(MapToDatabaseType.Insert).Build();
+        mapperBuilder
+            .Register<SubScalarEntity1, SubScalarEntity1>(customConfig)
+            .RegisterTwoWay<ListIEntity1, CollectionEntity1>();
+        var mapper = mapperBuilder.Build();
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var subInstance1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
+            var subInstance2 = new SubScalarEntity1(2, 3, "4", new byte[] { 2 });
+            databaseContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, new List<SubScalarEntity1> { subInstance1 }));
+            databaseContext.Set<SubScalarEntity1>().Add(subInstance2);
+            await databaseContext.SaveChangesAsync();
+        });
+
+        // act
+        CollectionEntity1 entity = null!;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
+        });
+
+        var result1 = mapper.Map<CollectionEntity1, ListIEntity1>(entity);
+
+        result1!.IntProp = 2;
+        var item0 = result1.Scs![0];
+        item0.Id = 2;
+        item0.IntProp = 3;
+        item0.LongNullableProp = 4;
+        item0.StringProp = "5";
+        item0.ByteArrayProp = new byte[] { 3 };
+        Assert.ThrowsAsync<MapToDatabaseTypeException>(async () =>
+        {
+            await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+            {
+                _ = await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, c => c.Include(c => c.Scs), databaseContext);
+            });
+        });
     }
 
     [Test]
