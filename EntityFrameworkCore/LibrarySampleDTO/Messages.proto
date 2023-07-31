@@ -53,15 +53,15 @@ message NewCopyDTO {
 message UpdateCopyDTO {
     string Number = 1;
     bytes ConcurrencyToken = 2;
-    optional string Reserver = 3;
-    optional string Borrower = 4;
+    google.protobuf.StringValue Reserver = 3;
+    google.protobuf.StringValue Borrower = 4;
 }
 
 message CopyDTO {
     string Number = 1;
     bytes ConcurrencyToken = 2;
-    optional string Reserver = 3;
-    optional string Borrower = 4;
+    google.protobuf.StringValue Reserver = 3;
+    google.protobuf.StringValue Borrower = 4;
     int32 BookId = 5;
 }
 

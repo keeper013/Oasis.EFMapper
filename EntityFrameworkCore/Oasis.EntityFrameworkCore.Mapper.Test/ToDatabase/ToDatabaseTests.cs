@@ -11,15 +11,16 @@ public class ToDatabaseTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
+        var customConfig = factory.MakeCustomTypeMapperBuilder<ToDatabaseEntity2, ToDatabaseEntity1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
         var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>();
+        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>(customConfig);
         var mapper = mapperBuilder.Build();
         var instance = new ToDatabaseEntity2(null, null, 1);
 
         // assert
         await Assert.ThrowsAsync<UpdateToDatabaseWithoutIdException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext, MapToDatabaseType.Update);
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext);
             await databaseContext.SaveChangesAsync();
         }));
     }
@@ -29,23 +30,22 @@ public class ToDatabaseTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
+        var customBuilder = factory.MakeCustomTypeMapperBuilder<ToDatabaseEntity2, ToDatabaseEntity1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
         var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>();
+        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>(customBuilder);
         var mapper = mapperBuilder.Build();
         var instance = new ToDatabaseEntity2(1, new byte[] { 1, 2, 3 }, 1);
 
         // assert
         await Assert.ThrowsAsync<UpdateToDatabaseWithoutRecordException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext, MapToDatabaseType.Update);
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext);
             await databaseContext.SaveChangesAsync();
         }));
     }
 
-    [Theory]
-    [InlineData(MapToDatabaseType.Update)]
-    [InlineData(MapToDatabaseType.Upsert)]
-    public async Task UpdateDifferentConcurrencyToken_ShouldFail(MapToDatabaseType mapToDatabaseType)
+    [Fact]
+    public async Task UpdateDifferentConcurrencyToken_ShouldFail()
     {
         // arrange
         var factory = new MapperBuilderFactory();
@@ -63,7 +63,7 @@ public class ToDatabaseTests : TestBase
         // assert
         await Assert.ThrowsAsync<ConcurrencyTokenException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext, mapToDatabaseType);
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext);
             await databaseContext.SaveChangesAsync();
         }));
     }
@@ -73,8 +73,9 @@ public class ToDatabaseTests : TestBase
     {
         // arrange
         var factory = new MapperBuilderFactory();
+        var customConfig = factory.MakeCustomTypeMapperBuilder<ToDatabaseEntity2, ToDatabaseEntity1>().SetMapToDatabaseType(MapToDatabaseType.Insert).Build();
         var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>();
+        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>(customConfig);
         var mapper = mapperBuilder.Build();
         var instance = new ToDatabaseEntity2(1, new byte[] { 1, 2, 3 }, 1);
 
@@ -87,7 +88,7 @@ public class ToDatabaseTests : TestBase
         // assert
         await Assert.ThrowsAsync<InsertToDatabaseWithExistingException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext, MapToDatabaseType.Insert);
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext);
             await databaseContext.SaveChangesAsync();
         }));
     }

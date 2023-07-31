@@ -35,6 +35,10 @@ internal static class Utilities
 
     public delegate IExistingTargetTracker BuildExistingTargetTracker(Delegate startTracking);
 
+    public static bool AllowsInsert(this MapToDatabaseType mapToDatabaseType) => (mapToDatabaseType & MapToDatabaseType.Insert) == MapToDatabaseType.Insert;
+
+    public static bool AllowsUpdate(this MapToDatabaseType mapToDatabaseType) => (mapToDatabaseType & MapToDatabaseType.Update) == MapToDatabaseType.Update;
+
     public static PropertyInfo? GetKeyProperty(this IEnumerable<PropertyInfo> properties, string? propertyName, bool mustHaveSetter)
     {
         return string.IsNullOrEmpty(propertyName) ?

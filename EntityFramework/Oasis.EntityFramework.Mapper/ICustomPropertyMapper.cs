@@ -23,6 +23,8 @@ public interface ICustomTypeMapperConfiguration
     IPropertyEntityRemover? PropertyEntityRemover { get; }
 
     string[]? ExcludedProperties { get; }
+
+    MapToDatabaseType? MapToDatabaseType { get; }
 }
 
 public interface ICustomTypeMapperConfigurationBuilder<TSource, TTarget>
@@ -30,6 +32,8 @@ public interface ICustomTypeMapperConfigurationBuilder<TSource, TTarget>
     where TTarget : class
 {
     ICustomTypeMapperConfigurationBuilder<TSource, TTarget> SetMappingKeepEntityOnMappingRemoved(bool keep);
+
+    ICustomTypeMapperConfigurationBuilder<TSource, TTarget> SetMapToDatabaseType(MapToDatabaseType mapToDatabase);
 
     ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value);
 

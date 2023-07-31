@@ -7,7 +7,6 @@ using Xunit;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
 {

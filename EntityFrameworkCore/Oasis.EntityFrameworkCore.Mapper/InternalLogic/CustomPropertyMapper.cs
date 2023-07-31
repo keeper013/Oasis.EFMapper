@@ -130,6 +130,8 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : ICustomTypeMapperConf
 
     public IPropertyEntityRemover? PropertyEntityRemover => _propertyEntityRemover.HasContent ? _propertyEntityRemover : default;
 
+    public MapToDatabaseType? MapToDatabaseType { get; private set; }
+
     public ICustomTypeMapperConfiguration Build()
     {
         return this;
@@ -156,6 +158,12 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : ICustomTypeMapperConf
     public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> ExcludePropertyByName(params string[] names)
     {
         _excludedProperties.UnionWith(names);
+        return this;
+    }
+
+    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> SetMapToDatabaseType(MapToDatabaseType mapToDatabase)
+    {
+        MapToDatabaseType = mapToDatabase;
         return this;
     }
 }

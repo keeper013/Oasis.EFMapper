@@ -39,3 +39,11 @@ public sealed class CustomTypePropertyEntityRemoverException : EfCoreMapperExcep
     {
     }
 }
+
+public sealed class MapToDatabaseTypeException : EfCoreMapperException
+{
+    public MapToDatabaseTypeException(Type sourceType, Type targetType, MapToDatabaseType mapType)
+        : base($"Mapping from {sourceType.Name} to {targetType.Name}, {mapType} is configured as not allowed.")
+    {
+    }
+}

@@ -178,7 +178,7 @@ public sealed class MappingRemovedTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             mappedPrincipal.OptionalDependant = null;
-            await mapper.MapAsync<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(mappedPrincipal, p => p.Include(p => p.OptionalDependant), databaseContext, MapToDatabaseType.Update);
+            await mapper.MapAsync<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(mappedPrincipal, p => p.Include(p => p.OptionalDependant), databaseContext);
             await databaseContext.SaveChangesAsync();
             Assert.Equal(1, await databaseContext.Set<MappingRemovedPrincipal1>().CountAsync());
             Assert.Equal(dependantCount, await databaseContext.Set<MappingRemovedDependant1>().CountAsync());
@@ -207,7 +207,7 @@ public sealed class MappingRemovedTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             mappedPrincipal.DependantList.Clear();
-            await mapper.MapAsync<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(mappedPrincipal, p => p.Include(p => p.DependantList), databaseContext, MapToDatabaseType.Update);
+            await mapper.MapAsync<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(mappedPrincipal, p => p.Include(p => p.DependantList), databaseContext);
             await databaseContext.SaveChangesAsync();
             Assert.Equal(1, await databaseContext.Set<MappingRemovedPrincipal1>().CountAsync());
             Assert.Equal(dependantCount, await databaseContext.Set<MappingRemovedDependant1>().CountAsync());

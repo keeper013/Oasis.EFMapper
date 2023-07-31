@@ -10,7 +10,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarTypes = new ();
-    private readonly HashSet<Type> _knownEntityTypes = new ();
     private readonly Dictionary<Type, bool> _typeKeepEntityOnMappingRemovedConfiguration = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeIdProxies = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeConcurrencyTokenProxies = new ();
@@ -19,6 +18,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _concurrencyTokenComparers = new ();
     private readonly Dictionary<Type, Dictionary<Type, bool>> _mappingKeepEntityOnMappingRemoved = new ();
     private readonly Dictionary<Type, Dictionary<Type, IReadOnlyDictionary<string, bool>>> _propertyKeepEntityOnMappingRemoved = new ();
+    private readonly Dictionary<Type, Dictionary<Type, MapToDatabaseType>> _mapToDatabaseDictionary = new ();
     private readonly Dictionary<Type, Dictionary<Type, ICustomTypeMapperConfiguration?>> _toBeRegistered = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
@@ -32,6 +32,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly KeyPropertyNameManager _keyPropertyNames;
     private readonly ExcludedPropertyManager _excludedPropertyManager;
     private readonly bool _defaultKeepEntityOnMappingRemoved;
+    private readonly MapToDatabaseType _defaultMapToDatabase;
     private readonly string? _identityPropertyName;
 
     public MapperRegistry(
@@ -39,9 +40,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
         string? identityPropertyName = default,
         string? concurrencyTokenPropertyName = default,
         IReadOnlySet<string>? excludedProperties = default,
-        bool? keepEntityOnMappingRemoved = default)
+        bool? keepEntityOnMappingRemoved = default,
+        MapToDatabaseType? mapToDatabase = default)
     {
         _identityPropertyName = identityPropertyName;
+        _defaultMapToDatabase = mapToDatabase.HasValue ? mapToDatabase.Value : MapToDatabaseType.Upsert;
         _keyPropertyNames = new (new KeyPropertyNameConfiguration(identityPropertyName, concurrencyTokenPropertyName));
         _scalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTypes);
         _entityMapperTypeValidator = new EntityMapperTypeValidator(_mapper);
@@ -58,7 +61,8 @@ internal sealed class MapperRegistry : IRecursiveRegister
     {
         if (configuration != null)
         {
-            if (configuration.CustomPropertyMapper == null && configuration.PropertyEntityRemover == null && configuration.ExcludedProperties == null)
+            if (configuration.CustomPropertyMapper == null && configuration.PropertyEntityRemover == null && configuration.ExcludedProperties == null
+                && configuration.MapToDatabaseType == null)
             {
                 throw new ArgumentException($"At least 1 configuration item of {nameof(ICustomTypeMapperConfiguration)} should not be null.", nameof(configuration));
             }
@@ -125,7 +129,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
         else
         {
             _entityListFactoryMethods.Add(type, factoryMethod);
-            _knownEntityTypes.Add(itemType);
         }
     }
 
@@ -298,6 +301,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new EntityRemover(_defaultKeepEntityOnMappingRemoved, _typeKeepEntityOnMappingRemovedConfiguration, _mappingKeepEntityOnMappingRemoved, _propertyKeepEntityOnMappingRemoved);
     }
 
+    public MapToDatabaseTypeManager MakeMapToDatabaseTypeManager()
+    {
+        return new MapToDatabaseTypeManager(_defaultMapToDatabase, _mapToDatabaseDictionary);
+    }
+
     public void RegisterEntityListDefaultConstructorMethod(Type listType)
     {
         if (listType.IsConstructable() && !listType.IsList() && !_entityListDefaultConstructors.ContainsKey(listType) && !_entityListFactoryMethods.ContainsKey(listType))
@@ -365,6 +373,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
                     }
                 }
 
+                if (configuration?.MapToDatabaseType != null)
+                {
+                    _mapToDatabaseDictionary.Add(sourceType, targetType, configuration.MapToDatabaseType.Value);
+                }
+
                 var keyMapper = _dynamicMethodBuilder.BuildUpKeyPropertiesMapperMethod(
                     sourceType,
                     targetType,
@@ -393,14 +406,15 @@ internal sealed class MapperRegistry : IRecursiveRegister
     public void Clear()
     {
         _scalarConverterDictionary.Clear();
-        _convertableToScalarTypes.Clear();
-        _knownEntityTypes.Clear();
         _keyPropertyNames.Clear();
         _typeIdProxies.Clear();
         _typeConcurrencyTokenProxies.Clear();
         _mapper.Clear();
         _idComparers.Clear();
         _concurrencyTokenComparers.Clear();
+        _existingTargetTrackers.Clear();
+        _entityDefaultConstructors.Clear();
+        _entityListDefaultConstructors.Clear();
     }
 
     private static TypeKeyProxyMetaDataSet BuildTypeKeyProxy(

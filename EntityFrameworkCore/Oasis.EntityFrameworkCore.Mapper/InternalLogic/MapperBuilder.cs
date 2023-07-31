@@ -13,12 +13,13 @@ internal sealed class MapperBuilder : IMapperBuilder
         string? identityPropertyName = default,
         string? concurrencyTokenPropertyName = default,
         IReadOnlySet<string>? excludedProperties = default,
-        bool? keepEntityOnMappingRemoved = default)
+        bool? keepEntityOnMappingRemoved = default,
+        MapToDatabaseType? mapToDatabase = default)
     {
         var name = new AssemblyName($"{assemblyName}.Oasis.EntityFrameworkCore.Mapper.Generated");
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
-        _mapperRegistry = new (module, identityPropertyName, concurrencyTokenPropertyName, excludedProperties, keepEntityOnMappingRemoved);
+        _mapperRegistry = new (module, identityPropertyName, concurrencyTokenPropertyName, excludedProperties, keepEntityOnMappingRemoved, mapToDatabase);
     }
 
     public IMapper Build()
@@ -31,12 +32,13 @@ internal sealed class MapperBuilder : IMapperBuilder
         var entityFactory = _mapperRegistry.MakeEntityFactory(type);
         var newTargetTrackerProvider = _mapperRegistry.MakeNewTargetTrackerProvider(entityFactory);
         var entityRemover = _mapperRegistry.MakeEntityRemover();
+        var mapToDatabaseTypeManager = _mapperRegistry.MakeMapToDatabaseTypeManager();
         var existingTargetTrackerFactory = _mapperRegistry.MakeExistingTargetTrackerFactory(type);
 
         // release some memory ahead
         _mapperRegistry.Clear();
 
-        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTrackerFactory, proxy, newTargetTrackerProvider, entityRemover, entityFactory);
+        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTrackerFactory, proxy, newTargetTrackerProvider, entityRemover, mapToDatabaseTypeManager, entityFactory);
     }
 
     public IMapperBuilder Register<TSource, TTarget>(ICustomTypeMapperConfiguration? configuration = null)
