@@ -479,7 +479,7 @@ public class ListPropertyMappingTests : TestBase
     }
 
     [Fact]
-    public async Task MapListProperties_UpdateNonExistingNavitation_ShouldFail()
+    public async Task MapListProperties_UpdateExistingNavitationIdentity_ShouldSucceed()
     {
         // arrange
         var factory = new MapperBuilderFactory();
@@ -509,12 +509,13 @@ public class ListPropertyMappingTests : TestBase
         item0.IntProp = 3;
 
         // assert
-        await Assert.ThrowsAsync<EntityNotFoundException>(async () =>
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-            {
-                await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, databaseContext, x => x.Include(x => x.Scs));
-            });
+            await mapper.MapAsync<ListIEntity1, CollectionEntity1>(result1, databaseContext, x => x.Include(x => x.Scs));
+            await databaseContext.SaveChangesAsync();
+            entity = await databaseContext.Set<CollectionEntity1>().AsNoTracking().Include(c => c.Scs).FirstAsync();
+            Assert.Equal(1, entity.Scs!.Count);
+            Assert.Equal(3, entity.Scs.ElementAt(0).IntProp);
         });
     }
 

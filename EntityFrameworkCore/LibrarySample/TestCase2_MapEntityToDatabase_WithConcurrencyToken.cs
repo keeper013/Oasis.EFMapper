@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-public sealed class TestCase2_MapEntityWithConcurrencyTokenToDatabase : TestBase
+public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBase
 {
     [Fact]
     public async Task Test1_MapNewBookToDatabase()
@@ -47,7 +47,7 @@ public sealed class TestCase2_MapEntityWithConcurrencyTokenToDatabase : TestBase
     }
 
     [Fact]
-    public async Task Test3_UpdateExistingBookToDatabaseWithConcurrencyTokenException()
+    public async Task Test3_UpdateExistingBookToDatabase_WithConcurrencyTokenException()
     {
         var tuple = await UpdateExistingBookToDatabase();
 

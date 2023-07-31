@@ -189,7 +189,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             return default;
         }
 
-        if (EntityBaseProxy.HasId<TSource>() && EntityBaseProxy.IdIsEmpty(source))
+        if (!EntityBaseProxy.HasId<TSource>() || EntityBaseProxy.IdIsEmpty(source))
         {
             if (target != default && EntityBaseProxy.HasId<TTarget>() && !EntityBaseProxy.IdIsEmpty(target))
             {
@@ -201,13 +201,15 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
 
         if (target != default && !EntityBaseProxy.IdEquals(source, target))
         {
+            // TODO: id change is id change, not removal and add new, or, access database once, changing id is dangerous anyway.
+            // plus, map key properties change from boolean to enum: none, id only, id and concurrency token
             _entityRemover.RemoveIfConfigured(_databaseContext, target, _mappingContext.MakeMappingData(propertyName));
-            target = AttachTarget<TSource, TTarget>(source);
+            target = FindOrAddTarget<TSource, TTarget>(source, newTargetTracker);
         }
 
         if (target == default)
         {
-            target = AttachTarget<TSource, TTarget>(source);
+            target = FindOrAddTarget<TSource, TTarget>(source, newTargetTracker);
         }
 
         Map(source, target, false, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
@@ -229,13 +231,13 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                     throw new DuplicatedListItemException(typeof(TSource));
                 }
 
-                if (EntityBaseProxy.IdIsEmpty(s))
+                if (!EntityBaseProxy.HasId<TSource>() || EntityBaseProxy.IdIsEmpty(s))
                 {
                     target.Add(MapToNewTarget<TSource, TTarget>(s, false, existingTargetTracker, newTargetTracker, keepUnmatched));
                 }
                 else
                 {
-                    var t = target.FirstOrDefault(i => Equals(EntityBaseProxy.GetId(i), EntityBaseProxy.GetId(s)));
+                    var t = target.FirstOrDefault(i => EntityBaseProxy.IdEquals(s, i));
                     if (t != default)
                     {
                         Map(s, t, false, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
@@ -243,7 +245,9 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                     }
                     else
                     {
-                        throw new EntityNotFoundException(typeof(TTarget), EntityBaseProxy.GetId(s));
+                        t = FindOrAddTarget<TSource, TTarget>(s, newTargetTracker);
+                        Map(s, t, false, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
+                        target.Add(t);
                     }
                 }
             }
@@ -303,24 +307,34 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         return newTarget;
     }
 
-    private TTarget AttachTarget<TSource, TTarget>(TSource source)
+    private TTarget FindOrAddTarget<TSource, TTarget>(TSource source, INewTargetTracker<int>? newTargetTracker)
         where TSource : class
         where TTarget : class
     {
-        var target = _entityFactory.Make<TTarget>();
+        var identityEqualsExpression = BuildIdEqualsExpression<TTarget>(_entityBaseProxy, _scalarConverter, EntityBaseProxy.GetId(source));
+        var target = _databaseContext.Set<TTarget>().FirstOrDefault(identityEqualsExpression);
+        if (target == null)
+        {
+            if (newTargetTracker != null)
+            {
+                if (!newTargetTracker.NewTargetIfNotExist(source.GetHashCode(), out TTarget newTarget))
+                {
+                    _databaseContext.Set<TTarget>().Add(newTarget);
+                }
+
+                target = newTarget;
+            }
+            else
+            {
+                target = _entityFactory.Make<TTarget>();
+                _databaseContext.Set<TTarget>().Add(target);
+            }
+        }
+
         var mapperSet = _lookup.LookUp(typeof(TSource), typeof(TTarget));
         if (mapperSet?.keyMapper != null)
         {
             ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.Value.keyMapper)(source, target, _scalarConverter);
-        }
-
-        try
-        {
-            _databaseContext.Set<TTarget>().Attach(target);
-        }
-        catch (InvalidOperationException e)
-        {
-            throw new AttachToDbSetException(e);
         }
 
         return target;

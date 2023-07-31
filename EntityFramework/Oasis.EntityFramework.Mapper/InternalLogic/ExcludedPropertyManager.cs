@@ -20,48 +20,24 @@ internal class ExcludedPropertyManager
 
     public (ISet<string>?, ISet<string>?) GetExcludedPropertyNames(Type sourceType, Type targetType)
     {
+        ISet<string>? source = new HashSet<string>(_excludedProperties);
+        ISet<string>? target = new HashSet<string>(_excludedProperties);
+
         var mappingProperties = _mappingExcludedProperties.Find(sourceType, targetType);
-        ISet<string>? source = default;
-        ISet<string>? target = default;
-        if (mappingProperties == null)
+        if (mappingProperties != null)
         {
-            if (_typeExcludedProperties.TryGetValue(sourceType, out var sourceExcludedProperties))
-            {
-                source = new HashSet<string>(sourceExcludedProperties);
-                source.UnionWith(_excludedProperties);
-            }
-
-            if (_typeExcludedProperties.TryGetValue(targetType, out var targetExcludedProperties))
-            {
-                target = new HashSet<string>(targetExcludedProperties);
-                target.UnionWith(_excludedProperties);
-            }
+            source.UnionWith(mappingProperties);
+            target.UnionWith(mappingProperties);
         }
-        else
-        {
-            if (_typeExcludedProperties.TryGetValue(sourceType, out var sourceExcludedProperties))
-            {
-                source = new HashSet<string>(sourceExcludedProperties);
-                source.UnionWith(mappingProperties);
-                source.UnionWith(_excludedProperties);
-            }
-            else
-            {
-                source = new HashSet<string>(mappingProperties);
-                source.UnionWith(_excludedProperties);
-            }
 
-            if (_typeExcludedProperties.TryGetValue(targetType, out var targetExcludedProperties))
-            {
-                target = new HashSet<string>(targetExcludedProperties);
-                target.UnionWith(mappingProperties);
-                target.UnionWith(_excludedProperties);
-            }
-            else
-            {
-                target = new HashSet<string>(mappingProperties);
-                target.UnionWith(_excludedProperties);
-            }
+        if (_typeExcludedProperties.TryGetValue(sourceType, out var sourceExcludedProperties))
+        {
+            source.UnionWith(sourceExcludedProperties);
+        }
+
+        if (_typeExcludedProperties.TryGetValue(targetType, out var targetExcludedProperties))
+        {
+            target.UnionWith(targetExcludedProperties);
         }
 
         return (source, target);

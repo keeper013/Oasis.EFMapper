@@ -23,6 +23,11 @@ public abstract class TestBase
         return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
     }
 
+    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory, string[] excludedProperties)
+    {
+        return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), excludedProperties);
+    }
+
     protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory, bool keepEntityOnMappingRemoved)
     {
         return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), null, keepEntityOnMappingRemoved);

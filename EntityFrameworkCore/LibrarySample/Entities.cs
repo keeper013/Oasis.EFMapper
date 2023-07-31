@@ -28,7 +28,7 @@ public sealed class Contact : IEntityBaseWithId, IEntityBaseWithConcurrencyToken
     public byte[]? ConcurrencyToken { get; set; }
     public string Borrower { get; set; } = null!;
     public string PhoneNumber { get; set; } = null!;
-    public string Address { get; set; } = null!;
+    public string? Address { get; set; } = null!;
 }
 
 public sealed class Book : IEntityBaseWithId, IEntityBaseWithConcurrencyToken

@@ -25,58 +25,61 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Cg5NZXNzYWdlcy5wcm90bxInT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5N",
-            "YXBwZXIuU2FtcGxlIhwKDklkUmVmZXJlbmNlRFRPEgoKAklkGAEgASgFImEK",
-            "CU5ld1RhZ0RUTxIMCgROYW1lGAEgASgJEkYKBUJvb2tzGAIgAygLMjcuT2Fz",
-            "aXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLklkUmVmZXJl",
-            "bmNlRFRPImMKBlRhZ0RUTxIKCgJJZBgBIAEoBRIMCgROYW1lGAIgASgJEj8K",
-            "BUJvb2tzGAMgAygLMjAuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBw",
-            "ZXIuU2FtcGxlLkJvb2tEVE8iXwoKTmV3Qm9va0RUTxIMCgROYW1lGAEgASgJ",
-            "EkMKBkNvcGllcxgCIAMoCzIzLk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUu",
-            "TWFwcGVyLlNhbXBsZS5OZXdDb3B5RFRPItUBCg1VcGRhdGVCb29rRFRPEgoK",
-            "AklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgD",
-            "IAEoCRJJCgZDb3BpZXMYBCADKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
-            "b3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUTxJFCgRUYWdzGAUg",
-            "AygLMjcuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxl",
-            "LklkUmVmZXJlbmNlRFRPIr4BCgdCb29rRFRPEgoKAklkGAEgASgFEhgKEENv",
-            "bmN1cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgDIAEoCRJACgZDb3BpZXMY",
-            "BCADKAsyMC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1w",
-            "bGUuQ29weURUTxI9CgRUYWdzGAUgAygLMi8uT2FzaXMuRW50aXR5RnJhbWV3",
-            "b3JrQ29yZS5NYXBwZXIuU2FtcGxlLlRhZ0RUTyIiChBDb3B5UmVmZXJlbmNl",
-            "RFRPEg4KBk51bWJlchgBIAEoCSIsCgpOZXdDb3B5RFRPEg4KBk51bWJlchgB",
-            "IAEoCRIOCgZCb29rSWQYAiABKAUigQEKDVVwZGF0ZUNvcHlEVE8SDgoGTnVt",
-            "YmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSFQoIUmVzZXJ2",
-            "ZXIYAyABKAlIAIgBARIVCghCb3Jyb3dlchgEIAEoCUgBiAEBQgsKCV9SZXNl",
-            "cnZlckILCglfQm9ycm93ZXIiiwEKB0NvcHlEVE8SDgoGTnVtYmVyGAEgASgJ",
-            "EhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSFQoIUmVzZXJ2ZXIYAyABKAlI",
-            "AIgBARIVCghCb3Jyb3dlchgEIAEoCUgBiAEBEg4KBkJvb2tJZBgFIAEoBUIL",
-            "CglfUmVzZXJ2ZXJCCwoJX0JvcnJvd2VyIjUKDU5ld0NvbnRhY3REVE8SEwoL",
-            "UGhvbmVOdW1iZXIYASABKAkSDwoHQWRkcmVzcxgCIAEoCSJeChBVcGRhdGVD",
-            "b250YWN0RFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiAB",
-            "KAwSEwoLUGhvbmVOdW1iZXIYAyABKAkSDwoHQWRkcmVzcxgEIAEoCSJqCgpD",
-            "b250YWN0RFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiAB",
-            "KAwSEAoIQm9ycm93ZXIYAyABKAkSEwoLUGhvbmVOdW1iZXIYBCABKAkSDwoH",
-            "QWRkcmVzcxgFIAEoCSIuChRCb3Jyb3dlclJlZmVyZW5jZURUTxIWCg5JZGVu",
-            "dGl0eU51bWJlchgBIAEoCSJ/Cg5OZXdCb3Jyb3dlckRUTxIWCg5JZGVudGl0",
-            "eU51bWJlchgBIAEoCRIMCgROYW1lGAIgASgJEkcKB0NvbnRhY3QYAyABKAsy",
-            "Ni5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuTmV3",
-            "Q29udGFjdERUTyK5AgoRVXBkYXRlQm9ycm93ZXJEVE8SFgoOSWRlbnRpdHlO",
-            "dW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIMCgROYW1l",
-            "GAMgASgJEkoKB0NvbnRhY3QYBCABKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdv",
-            "cmtDb3JlLk1hcHBlci5TYW1wbGUuVXBkYXRlQ29udGFjdERUTxJHCghSZXNl",
-            "cnZlZBgFIAEoCzIwLk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVy",
-            "LlNhbXBsZS5Db3B5RFRPSACIAQESQgoIQm9ycm93ZWQYBiADKAsyMC5PYXNp",
-            "cy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29weURUT0IL",
-            "CglfUmVzZXJ2ZWQivwIKC0JvcnJvd2VyRFRPEhYKDklkZW50aXR5TnVtYmVy",
-            "GAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgDIAEo",
-            "CRJECgdDb250YWN0GAQgASgLMjMuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29y",
-            "ZS5NYXBwZXIuU2FtcGxlLkNvbnRhY3REVE8SUAoIUmVzZXJ2ZWQYBSABKAsy",
-            "OS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29w",
-            "eVJlZmVyZW5jZURUT0gAiAEBEksKCEJvcnJvd2VkGAYgAygLMjkuT2FzaXMu",
-            "RW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvcHlSZWZlcmVu",
-            "Y2VEVE9CCwoJX1Jlc2VydmVkQiqqAidPYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
-            "b3JlLk1hcHBlci5TYW1wbGViBnByb3RvMw=="));
+            "YXBwZXIuU2FtcGxlGh5nb29nbGUvcHJvdG9idWYvd3JhcHBlcnMucHJvdG8i",
+            "HAoOSWRSZWZlcmVuY2VEVE8SCgoCSWQYASABKAUiYQoJTmV3VGFnRFRPEgwK",
+            "BE5hbWUYASABKAkSRgoFQm9va3MYAiADKAsyNy5PYXNpcy5FbnRpdHlGcmFt",
+            "ZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuSWRSZWZlcmVuY2VEVE8iYwoGVGFn",
+            "RFRPEgoKAklkGAEgASgFEgwKBE5hbWUYAiABKAkSPwoFQm9va3MYAyADKAsy",
+            "MC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQm9v",
+            "a0RUTyJfCgpOZXdCb29rRFRPEgwKBE5hbWUYASABKAkSQwoGQ29waWVzGAIg",
+            "AygLMjMuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxl",
+            "Lk5ld0NvcHlEVE8i1QEKDVVwZGF0ZUJvb2tEVE8SCgoCSWQYASABKAUSGAoQ",
+            "Q29uY3VycmVuY3lUb2tlbhgCIAEoDBIMCgROYW1lGAMgASgJEkkKBkNvcGll",
+            "cxgEIAMoCzI5Lk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNh",
+            "bXBsZS5Db3B5UmVmZXJlbmNlRFRPEkUKBFRhZ3MYBSADKAsyNy5PYXNpcy5F",
+            "bnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuSWRSZWZlcmVuY2VE",
+            "VE8ivgEKB0Jvb2tEVE8SCgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tl",
+            "bhgCIAEoDBIMCgROYW1lGAMgASgJEkAKBkNvcGllcxgEIAMoCzIwLk9hc2lz",
+            "LkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPEj0K",
+            "BFRhZ3MYBSADKAsyLy5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBl",
+            "ci5TYW1wbGUuVGFnRFRPIiIKEENvcHlSZWZlcmVuY2VEVE8SDgoGTnVtYmVy",
+            "GAEgASgJIiwKCk5ld0NvcHlEVE8SDgoGTnVtYmVyGAEgASgJEg4KBkJvb2tJ",
+            "ZBgCIAEoBSKBAQoNVXBkYXRlQ29weURUTxIOCgZOdW1iZXIYASABKAkSGAoQ",
+            "Q29uY3VycmVuY3lUb2tlbhgCIAEoDBIVCghSZXNlcnZlchgDIAEoCUgAiAEB",
+            "EhUKCEJvcnJvd2VyGAQgASgJSAGIAQFCCwoJX1Jlc2VydmVyQgsKCV9Cb3Jy",
+            "b3dlciKLAQoHQ29weURUTxIOCgZOdW1iZXIYASABKAkSGAoQQ29uY3VycmVu",
+            "Y3lUb2tlbhgCIAEoDBIVCghSZXNlcnZlchgDIAEoCUgAiAEBEhUKCEJvcnJv",
+            "d2VyGAQgASgJSAGIAQESDgoGQm9va0lkGAUgASgFQgsKCV9SZXNlcnZlckIL",
+            "CglfQm9ycm93ZXIiUwoNTmV3Q29udGFjdERUTxITCgtQaG9uZU51bWJlchgB",
+            "IAEoCRItCgdBZGRyZXNzGAIgASgLMhwuZ29vZ2xlLnByb3RvYnVmLlN0cmlu",
+            "Z1ZhbHVlInwKEFVwZGF0ZUNvbnRhY3REVE8SCgoCSWQYASABKAUSGAoQQ29u",
+            "Y3VycmVuY3lUb2tlbhgCIAEoDBITCgtQaG9uZU51bWJlchgDIAEoCRItCgdB",
+            "ZGRyZXNzGAQgASgLMhwuZ29vZ2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlIogB",
+            "CgpDb250YWN0RFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4Y",
+            "AiABKAwSEAoIQm9ycm93ZXIYAyABKAkSEwoLUGhvbmVOdW1iZXIYBCABKAkS",
+            "LQoHQWRkcmVzcxgFIAEoCzIcLmdvb2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1",
+            "ZSIuChRCb3Jyb3dlclJlZmVyZW5jZURUTxIWCg5JZGVudGl0eU51bWJlchgB",
+            "IAEoCSJ/Cg5OZXdCb3Jyb3dlckRUTxIWCg5JZGVudGl0eU51bWJlchgBIAEo",
+            "CRIMCgROYW1lGAIgASgJEkcKB0NvbnRhY3QYAyABKAsyNi5PYXNpcy5FbnRp",
+            "dHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuTmV3Q29udGFjdERUTyK5",
+            "AgoRVXBkYXRlQm9ycm93ZXJEVE8SFgoOSWRlbnRpdHlOdW1iZXIYASABKAkS",
+            "GAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIMCgROYW1lGAMgASgJEkoKB0Nv",
+            "bnRhY3QYBCABKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBl",
+            "ci5TYW1wbGUuVXBkYXRlQ29udGFjdERUTxJHCghSZXNlcnZlZBgFIAEoCzIw",
+            "Lk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5",
+            "RFRPSACIAQESQgoIQm9ycm93ZWQYBiADKAsyMC5PYXNpcy5FbnRpdHlGcmFt",
+            "ZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29weURUT0ILCglfUmVzZXJ2ZWQi",
+            "vwIKC0JvcnJvd2VyRFRPEhYKDklkZW50aXR5TnVtYmVyGAEgASgJEhgKEENv",
+            "bmN1cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgDIAEoCRJECgdDb250YWN0",
+            "GAQgASgLMjMuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2Ft",
+            "cGxlLkNvbnRhY3REVE8SUAoIUmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5FbnRp",
+            "dHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURU",
+            "T0gAiAEBEksKCEJvcnJvd2VkGAYgAygLMjkuT2FzaXMuRW50aXR5RnJhbWV3",
+            "b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJX1Jl",
+            "c2VydmVkQiqqAidPYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5T",
+            "YW1wbGViBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.WrappersReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO.Parser, new[]{ "Id" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO.Parser, new[]{ "Name", "Books" }, null, null, null, null),
@@ -2737,7 +2740,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public NewContactDTO(NewContactDTO other) : this() {
       phoneNumber_ = other.phoneNumber_;
-      address_ = other.address_;
+      Address = other.Address;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2761,15 +2764,17 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     /// <summary>Field number for the "Address" field.</summary>
     public const int AddressFieldNumber = 2;
-    private string address_ = "";
+    private static readonly pb::FieldCodec<string> _single_address_codec = pb::FieldCodec.ForClassWrapper<string>(18);
+    private string address_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Address {
       get { return address_; }
       set {
-        address_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        address_ = value;
       }
     }
+
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -2796,7 +2801,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (PhoneNumber.Length != 0) hash ^= PhoneNumber.GetHashCode();
-      if (Address.Length != 0) hash ^= Address.GetHashCode();
+      if (address_ != null) hash ^= Address.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2819,9 +2824,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(10);
         output.WriteString(PhoneNumber);
       }
-      if (Address.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Address);
+      if (address_ != null) {
+        _single_address_codec.WriteTagAndValue(output, Address);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -2837,9 +2841,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(10);
         output.WriteString(PhoneNumber);
       }
-      if (Address.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Address);
+      if (address_ != null) {
+        _single_address_codec.WriteTagAndValue(ref output, Address);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -2854,8 +2857,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (PhoneNumber.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(PhoneNumber);
       }
-      if (Address.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Address);
+      if (address_ != null) {
+        size += _single_address_codec.CalculateSizeWithTag(Address);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2872,8 +2875,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.PhoneNumber.Length != 0) {
         PhoneNumber = other.PhoneNumber;
       }
-      if (other.Address.Length != 0) {
-        Address = other.Address;
+      if (other.address_ != null) {
+        if (address_ == null || other.Address != "") {
+          Address = other.Address;
+        }
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -2895,7 +2900,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 18: {
-            Address = input.ReadString();
+            string value = _single_address_codec.Read(input);
+            if (address_ == null || value != "") {
+              Address = value;
+            }
             break;
           }
         }
@@ -2918,7 +2926,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 18: {
-            Address = input.ReadString();
+            string value = _single_address_codec.Read(ref input);
+            if (address_ == null || value != "") {
+              Address = value;
+            }
             break;
           }
         }
@@ -2965,7 +2976,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       id_ = other.id_;
       concurrencyToken_ = other.concurrencyToken_;
       phoneNumber_ = other.phoneNumber_;
-      address_ = other.address_;
+      Address = other.Address;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3013,15 +3024,17 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     /// <summary>Field number for the "Address" field.</summary>
     public const int AddressFieldNumber = 4;
-    private string address_ = "";
+    private static readonly pb::FieldCodec<string> _single_address_codec = pb::FieldCodec.ForClassWrapper<string>(34);
+    private string address_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Address {
       get { return address_; }
       set {
-        address_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        address_ = value;
       }
     }
+
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -3052,7 +3065,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (Id != 0) hash ^= Id.GetHashCode();
       if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
       if (PhoneNumber.Length != 0) hash ^= PhoneNumber.GetHashCode();
-      if (Address.Length != 0) hash ^= Address.GetHashCode();
+      if (address_ != null) hash ^= Address.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3083,9 +3096,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(26);
         output.WriteString(PhoneNumber);
       }
-      if (Address.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(Address);
+      if (address_ != null) {
+        _single_address_codec.WriteTagAndValue(output, Address);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -3109,9 +3121,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(26);
         output.WriteString(PhoneNumber);
       }
-      if (Address.Length != 0) {
-        output.WriteRawTag(34);
-        output.WriteString(Address);
+      if (address_ != null) {
+        _single_address_codec.WriteTagAndValue(ref output, Address);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -3132,8 +3143,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (PhoneNumber.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(PhoneNumber);
       }
-      if (Address.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Address);
+      if (address_ != null) {
+        size += _single_address_codec.CalculateSizeWithTag(Address);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -3156,8 +3167,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.PhoneNumber.Length != 0) {
         PhoneNumber = other.PhoneNumber;
       }
-      if (other.Address.Length != 0) {
-        Address = other.Address;
+      if (other.address_ != null) {
+        if (address_ == null || other.Address != "") {
+          Address = other.Address;
+        }
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3187,7 +3200,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 34: {
-            Address = input.ReadString();
+            string value = _single_address_codec.Read(input);
+            if (address_ == null || value != "") {
+              Address = value;
+            }
             break;
           }
         }
@@ -3218,7 +3234,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 34: {
-            Address = input.ReadString();
+            string value = _single_address_codec.Read(ref input);
+            if (address_ == null || value != "") {
+              Address = value;
+            }
             break;
           }
         }
@@ -3266,7 +3285,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       concurrencyToken_ = other.concurrencyToken_;
       borrower_ = other.borrower_;
       phoneNumber_ = other.phoneNumber_;
-      address_ = other.address_;
+      Address = other.Address;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3326,15 +3345,17 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     /// <summary>Field number for the "Address" field.</summary>
     public const int AddressFieldNumber = 5;
-    private string address_ = "";
+    private static readonly pb::FieldCodec<string> _single_address_codec = pb::FieldCodec.ForClassWrapper<string>(42);
+    private string address_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Address {
       get { return address_; }
       set {
-        address_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        address_ = value;
       }
     }
+
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -3367,7 +3388,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
       if (Borrower.Length != 0) hash ^= Borrower.GetHashCode();
       if (PhoneNumber.Length != 0) hash ^= PhoneNumber.GetHashCode();
-      if (Address.Length != 0) hash ^= Address.GetHashCode();
+      if (address_ != null) hash ^= Address.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3402,9 +3423,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(34);
         output.WriteString(PhoneNumber);
       }
-      if (Address.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(Address);
+      if (address_ != null) {
+        _single_address_codec.WriteTagAndValue(output, Address);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -3432,9 +3452,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(34);
         output.WriteString(PhoneNumber);
       }
-      if (Address.Length != 0) {
-        output.WriteRawTag(42);
-        output.WriteString(Address);
+      if (address_ != null) {
+        _single_address_codec.WriteTagAndValue(ref output, Address);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -3458,8 +3477,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (PhoneNumber.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(PhoneNumber);
       }
-      if (Address.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Address);
+      if (address_ != null) {
+        size += _single_address_codec.CalculateSizeWithTag(Address);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -3485,8 +3504,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.PhoneNumber.Length != 0) {
         PhoneNumber = other.PhoneNumber;
       }
-      if (other.Address.Length != 0) {
-        Address = other.Address;
+      if (other.address_ != null) {
+        if (address_ == null || other.Address != "") {
+          Address = other.Address;
+        }
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3520,7 +3541,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 42: {
-            Address = input.ReadString();
+            string value = _single_address_codec.Read(input);
+            if (address_ == null || value != "") {
+              Address = value;
+            }
             break;
           }
         }
@@ -3555,7 +3579,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 42: {
-            Address = input.ReadString();
+            string value = _single_address_codec.Read(ref input);
+            if (address_ == null || value != "") {
+              Address = value;
+            }
             break;
           }
         }

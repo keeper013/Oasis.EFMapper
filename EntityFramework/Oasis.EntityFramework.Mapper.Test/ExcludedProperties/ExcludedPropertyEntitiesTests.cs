@@ -56,6 +56,26 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
     }
 
     [Test]
+    public void Exclude_GlobalProperties_ShouldSucceed()
+    {
+        // arrange
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = MakeDefaultMapperBuilder(factory, new string[] { nameof(ExcludedPropertyEntity1.StringProp) });
+        var mapper = mapperBuilder.Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().Build();
+
+        // act
+        var entity2 = new ExcludedPropertyEntity2
+        {
+            IntProp = 1,
+            StringProp = "test",
+        };
+
+        var entity1 = mapper.Map<ExcludedPropertyEntity2, ExcludedPropertyEntity1>(entity2);
+        Assert.AreEqual(entity2.IntProp, entity1.IntProp);
+        Assert.Null(entity1.StringProp);
+    }
+
+    [Test]
     public void Exclude_SourceTypeProperties_ShouldSucceed()
     {
         // arrange

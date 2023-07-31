@@ -40,4 +40,9 @@ public abstract class TestBase
     {
         return factory.MakeMapperBuilder(nameof(IEntityBaseWithId.Id), nameof(IEntityBaseWithConcurrencyToken.ConcurrencyToken));
     }
+
+    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory, string[] excludedProperties)
+    {
+        return factory.MakeMapperBuilder(nameof(IEntityBaseWithId.Id), nameof(IEntityBaseWithConcurrencyToken.ConcurrencyToken), excludedProperties);
+    }
 }
