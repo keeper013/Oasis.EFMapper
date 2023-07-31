@@ -13,7 +13,7 @@ public sealed class TestCase1_MapNewEntityToDatabase : TestBase
     {
         // initialize mapper
         var factory = new MapperBuilderFactory();
-        var mapperBuilder = factory.MakeMapperBuilder();
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
         var mapper = mapperBuilder
             .Register<NewTagDTO, Tag>()
             .Register<Tag, TagDTO>()

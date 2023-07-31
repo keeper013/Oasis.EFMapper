@@ -6,6 +6,8 @@ using Oasis.EntityFrameworkCore.Mapper;
 using Xunit;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
 {
@@ -228,6 +230,61 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
         {
             Assert.Contains(book.Copies, c => string.Equals($"Copy{i + 1}", c.Number));
         }
+    }
+
+    [Fact]
+    public async Task Test10_UpdateBookWithExistingTags()
+    {
+        // initialize mapper
+        var factory = new MapperBuilderFactory();
+        var mapperBuilder = MakeDefaultMapperBuilder(factory);
+        var mapper = mapperBuilder
+            .Register<NewTagDTO, Tag>()
+            .Register<Tag, IdReferenceDTO>()
+            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
+            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .Register<NewBookDTO, Book>()
+            .Register<Book, BookDTO>()
+            .Build();
+
+        // create new tag
+        const string Tag1Name = "English";
+        const string Tag2Name = "Fiction";
+        List<Tag> tags = null!;
+        await ExecuteWithNewDatabaseContext(async databaseContext =>
+        {
+            var tag1Dto = new NewTagDTO { Name = Tag1Name };
+            var tag2Dto = new NewTagDTO { Name = Tag2Name };
+            _ = await mapper.MapAsync<NewTagDTO, Tag>(tag1Dto, databaseContext);
+            _ = await mapper.MapAsync<NewTagDTO, Tag>(tag2Dto, databaseContext);
+            _ = await databaseContext.SaveChangesAsync();
+            tags = await databaseContext.Set<Tag>().ToListAsync();
+            Assert.Equal(2, tags.Count);
+            Assert.Contains(tags, t => string.Equals(Tag1Name, t.Name));
+            Assert.Contains(tags, t => string.Equals(Tag2Name, t.Name));
+        });
+
+        // map from tag to dto
+        var tag1 = mapper.Map<Tag, IdReferenceDTO>(tags[0]);
+        var tag2 = mapper.Map<Tag, IdReferenceDTO>(tags[1]);
+
+        // new book with existing tag
+        const string BookName = "Book 1";
+        Book book = null!;
+        await ExecuteWithNewDatabaseContext(async databaseContext =>
+        {
+            var bookDto = new NewBookDTO { Name = BookName };
+            bookDto.Tags.Add(tag1);
+            bookDto.Tags.Add(tag2);
+            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, databaseContext, b => b.Include(b => b.Tags));
+            _ = await databaseContext.SaveChangesAsync();
+            book = await databaseContext.Set<Book>().Include(b => b.Tags).FirstAsync();
+            Assert.Equal(BookName, book.Name);
+            Assert.Equal(2, book.Tags.Count);
+            Assert.Contains(book.Tags, t => string.Equals(Tag1Name, t.Name));
+            Assert.Contains(book.Tags, t => string.Equals(Tag2Name, t.Name));
+            Assert.Equal(2, await databaseContext.Set<Tag>().CountAsync());
+        });
     }
 
     private async Task AddAndUpateBorrower(IMapper mapper, string address1, string? assertAddress1, string? assertAddress2, string address3, string? assertAddress3)

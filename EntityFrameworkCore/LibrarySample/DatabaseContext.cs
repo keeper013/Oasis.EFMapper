@@ -36,6 +36,7 @@ internal class DatabaseContext : DbContext
         modelBuilder.Entity<Tag>().ToTable(nameof(Tag));
         modelBuilder.Entity<Tag>().HasKey(t => t.Id);
         modelBuilder.Entity<Tag>().Property(t => t.Id).HasColumnName(nameof(Tag.Id)).ValueGeneratedOnAdd();
+        modelBuilder.Entity<Tag>().HasIndex(t => t.Name).IsUnique();
 
         modelBuilder.Entity<Contact>().ToTable(nameof(Contact));
         modelBuilder.Entity<Contact>().HasKey(c => c.Id);

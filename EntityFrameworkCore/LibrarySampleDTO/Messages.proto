@@ -22,6 +22,7 @@ message TagDTO {
 message NewBookDTO {
     string Name = 1;
     repeated NewCopyDTO Copies = 2;
+    repeated IdReferenceDTO Tags = 3;
 }
 
 message UpdateBookDTO {

@@ -31,60 +31,61 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             "ZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuSWRSZWZlcmVuY2VEVE8iYwoGVGFn",
             "RFRPEgoKAklkGAEgASgFEgwKBE5hbWUYAiABKAkSPwoFQm9va3MYAyADKAsy",
             "MC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQm9v",
-            "a0RUTyJfCgpOZXdCb29rRFRPEgwKBE5hbWUYASABKAkSQwoGQ29waWVzGAIg",
-            "AygLMjMuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxl",
-            "Lk5ld0NvcHlEVE8i1QEKDVVwZGF0ZUJvb2tEVE8SCgoCSWQYASABKAUSGAoQ",
-            "Q29uY3VycmVuY3lUb2tlbhgCIAEoDBIMCgROYW1lGAMgASgJEkkKBkNvcGll",
-            "cxgEIAMoCzI5Lk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNh",
-            "bXBsZS5Db3B5UmVmZXJlbmNlRFRPEkUKBFRhZ3MYBSADKAsyNy5PYXNpcy5F",
-            "bnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuSWRSZWZlcmVuY2VE",
-            "VE8ivgEKB0Jvb2tEVE8SCgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tl",
-            "bhgCIAEoDBIMCgROYW1lGAMgASgJEkAKBkNvcGllcxgEIAMoCzIwLk9hc2lz",
-            "LkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPEj0K",
-            "BFRhZ3MYBSADKAsyLy5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBl",
-            "ci5TYW1wbGUuVGFnRFRPIiIKEENvcHlSZWZlcmVuY2VEVE8SDgoGTnVtYmVy",
-            "GAEgASgJIiwKCk5ld0NvcHlEVE8SDgoGTnVtYmVyGAEgASgJEg4KBkJvb2tJ",
-            "ZBgCIAEoBSKBAQoNVXBkYXRlQ29weURUTxIOCgZOdW1iZXIYASABKAkSGAoQ",
-            "Q29uY3VycmVuY3lUb2tlbhgCIAEoDBIVCghSZXNlcnZlchgDIAEoCUgAiAEB",
-            "EhUKCEJvcnJvd2VyGAQgASgJSAGIAQFCCwoJX1Jlc2VydmVyQgsKCV9Cb3Jy",
-            "b3dlciKLAQoHQ29weURUTxIOCgZOdW1iZXIYASABKAkSGAoQQ29uY3VycmVu",
-            "Y3lUb2tlbhgCIAEoDBIVCghSZXNlcnZlchgDIAEoCUgAiAEBEhUKCEJvcnJv",
-            "d2VyGAQgASgJSAGIAQESDgoGQm9va0lkGAUgASgFQgsKCV9SZXNlcnZlckIL",
-            "CglfQm9ycm93ZXIiUwoNTmV3Q29udGFjdERUTxITCgtQaG9uZU51bWJlchgB",
-            "IAEoCRItCgdBZGRyZXNzGAIgASgLMhwuZ29vZ2xlLnByb3RvYnVmLlN0cmlu",
-            "Z1ZhbHVlInwKEFVwZGF0ZUNvbnRhY3REVE8SCgoCSWQYASABKAUSGAoQQ29u",
-            "Y3VycmVuY3lUb2tlbhgCIAEoDBITCgtQaG9uZU51bWJlchgDIAEoCRItCgdB",
-            "ZGRyZXNzGAQgASgLMhwuZ29vZ2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlIogB",
-            "CgpDb250YWN0RFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4Y",
-            "AiABKAwSEAoIQm9ycm93ZXIYAyABKAkSEwoLUGhvbmVOdW1iZXIYBCABKAkS",
-            "LQoHQWRkcmVzcxgFIAEoCzIcLmdvb2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1",
-            "ZSIuChRCb3Jyb3dlclJlZmVyZW5jZURUTxIWCg5JZGVudGl0eU51bWJlchgB",
-            "IAEoCSJ/Cg5OZXdCb3Jyb3dlckRUTxIWCg5JZGVudGl0eU51bWJlchgBIAEo",
-            "CRIMCgROYW1lGAIgASgJEkcKB0NvbnRhY3QYAyABKAsyNi5PYXNpcy5FbnRp",
-            "dHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuTmV3Q29udGFjdERUTyK5",
-            "AgoRVXBkYXRlQm9ycm93ZXJEVE8SFgoOSWRlbnRpdHlOdW1iZXIYASABKAkS",
-            "GAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIMCgROYW1lGAMgASgJEkoKB0Nv",
-            "bnRhY3QYBCABKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBl",
-            "ci5TYW1wbGUuVXBkYXRlQ29udGFjdERUTxJHCghSZXNlcnZlZBgFIAEoCzIw",
-            "Lk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5",
-            "RFRPSACIAQESQgoIQm9ycm93ZWQYBiADKAsyMC5PYXNpcy5FbnRpdHlGcmFt",
-            "ZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29weURUT0ILCglfUmVzZXJ2ZWQi",
-            "vwIKC0JvcnJvd2VyRFRPEhYKDklkZW50aXR5TnVtYmVyGAEgASgJEhgKEENv",
-            "bmN1cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgDIAEoCRJECgdDb250YWN0",
-            "GAQgASgLMjMuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2Ft",
-            "cGxlLkNvbnRhY3REVE8SUAoIUmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5FbnRp",
-            "dHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURU",
-            "T0gAiAEBEksKCEJvcnJvd2VkGAYgAygLMjkuT2FzaXMuRW50aXR5RnJhbWV3",
-            "b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJX1Jl",
-            "c2VydmVkQiqqAidPYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5T",
-            "YW1wbGViBnByb3RvMw=="));
+            "a0RUTyKmAQoKTmV3Qm9va0RUTxIMCgROYW1lGAEgASgJEkMKBkNvcGllcxgC",
+            "IAMoCzIzLk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBs",
+            "ZS5OZXdDb3B5RFRPEkUKBFRhZ3MYAyADKAsyNy5PYXNpcy5FbnRpdHlGcmFt",
+            "ZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuSWRSZWZlcmVuY2VEVE8i1QEKDVVw",
+            "ZGF0ZUJvb2tEVE8SCgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgC",
+            "IAEoDBIMCgROYW1lGAMgASgJEkkKBkNvcGllcxgEIAMoCzI5Lk9hc2lzLkVu",
+            "dGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5UmVmZXJlbmNl",
+            "RFRPEkUKBFRhZ3MYBSADKAsyNy5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3Jl",
+            "Lk1hcHBlci5TYW1wbGUuSWRSZWZlcmVuY2VEVE8ivgEKB0Jvb2tEVE8SCgoC",
+            "SWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIMCgROYW1lGAMg",
+            "ASgJEkAKBkNvcGllcxgEIAMoCzIwLk9hc2lzLkVudGl0eUZyYW1ld29ya0Nv",
+            "cmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPEj0KBFRhZ3MYBSADKAsyLy5PYXNp",
+            "cy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVGFnRFRPIiIK",
+            "EENvcHlSZWZlcmVuY2VEVE8SDgoGTnVtYmVyGAEgASgJIiwKCk5ld0NvcHlE",
+            "VE8SDgoGTnVtYmVyGAEgASgJEg4KBkJvb2tJZBgCIAEoBSKBAQoNVXBkYXRl",
+            "Q29weURUTxIOCgZOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tlbhgC",
+            "IAEoDBIVCghSZXNlcnZlchgDIAEoCUgAiAEBEhUKCEJvcnJvd2VyGAQgASgJ",
+            "SAGIAQFCCwoJX1Jlc2VydmVyQgsKCV9Cb3Jyb3dlciKLAQoHQ29weURUTxIO",
+            "CgZOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIVCghS",
+            "ZXNlcnZlchgDIAEoCUgAiAEBEhUKCEJvcnJvd2VyGAQgASgJSAGIAQESDgoG",
+            "Qm9va0lkGAUgASgFQgsKCV9SZXNlcnZlckILCglfQm9ycm93ZXIiUwoNTmV3",
+            "Q29udGFjdERUTxITCgtQaG9uZU51bWJlchgBIAEoCRItCgdBZGRyZXNzGAIg",
+            "ASgLMhwuZ29vZ2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlInwKEFVwZGF0ZUNv",
+            "bnRhY3REVE8SCgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEo",
+            "DBITCgtQaG9uZU51bWJlchgDIAEoCRItCgdBZGRyZXNzGAQgASgLMhwuZ29v",
+            "Z2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlIogBCgpDb250YWN0RFRPEgoKAklk",
+            "GAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSEAoIQm9ycm93ZXIY",
+            "AyABKAkSEwoLUGhvbmVOdW1iZXIYBCABKAkSLQoHQWRkcmVzcxgFIAEoCzIc",
+            "Lmdvb2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZSIuChRCb3Jyb3dlclJlZmVy",
+            "ZW5jZURUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCSJ/Cg5OZXdCb3Jyb3dl",
+            "ckRUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCRIMCgROYW1lGAIgASgJEkcK",
+            "B0NvbnRhY3QYAyABKAsyNi5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1h",
+            "cHBlci5TYW1wbGUuTmV3Q29udGFjdERUTyK5AgoRVXBkYXRlQm9ycm93ZXJE",
+            "VE8SFgoOSWRlbnRpdHlOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tl",
+            "bhgCIAEoDBIMCgROYW1lGAMgASgJEkoKB0NvbnRhY3QYBCABKAsyOS5PYXNp",
+            "cy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVXBkYXRlQ29u",
+            "dGFjdERUTxJHCghSZXNlcnZlZBgFIAEoCzIwLk9hc2lzLkVudGl0eUZyYW1l",
+            "d29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPSACIAQESQgoIQm9ycm93",
+            "ZWQYBiADKAsyMC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5T",
+            "YW1wbGUuQ29weURUT0ILCglfUmVzZXJ2ZWQivwIKC0JvcnJvd2VyRFRPEhYK",
+            "DklkZW50aXR5TnVtYmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4YAiAB",
+            "KAwSDAoETmFtZRgDIAEoCRJECgdDb250YWN0GAQgASgLMjMuT2FzaXMuRW50",
+            "aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvbnRhY3REVE8SUAoI",
+            "UmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1h",
+            "cHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0gAiAEBEksKCEJvcnJvd2Vk",
+            "GAYgAygLMjkuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2Ft",
+            "cGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJX1Jlc2VydmVkQiqqAidPYXNpcy5F",
+            "bnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGViBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.WrappersReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO.Parser, new[]{ "Id" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO.Parser, new[]{ "Name", "Books" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO.Parser, new[]{ "Id", "Name", "Books" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO.Parser, new[]{ "Name", "Copies" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO.Parser, new[]{ "Name", "Copies", "Tags" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBookDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "Copies", "Tags" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "Copies", "Tags" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO.Parser, new[]{ "Number" }, null, null, null, null),
@@ -796,6 +797,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     public NewBookDTO(NewBookDTO other) : this() {
       name_ = other.name_;
       copies_ = other.copies_.Clone();
+      tags_ = other.tags_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -828,6 +830,17 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       get { return copies_; }
     }
 
+    /// <summary>Field number for the "Tags" field.</summary>
+    public const int TagsFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO> _repeated_tags_codec
+        = pb::FieldCodec.ForMessage(26, global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO> tags_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.IdReferenceDTO> Tags {
+      get { return tags_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -845,6 +858,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
       if (Name != other.Name) return false;
       if(!copies_.Equals(other.copies_)) return false;
+      if(!tags_.Equals(other.tags_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -854,6 +868,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       int hash = 1;
       if (Name.Length != 0) hash ^= Name.GetHashCode();
       hash ^= copies_.GetHashCode();
+      hash ^= tags_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -877,6 +892,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteString(Name);
       }
       copies_.WriteTo(output, _repeated_copies_codec);
+      tags_.WriteTo(output, _repeated_tags_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -892,6 +908,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteString(Name);
       }
       copies_.WriteTo(ref output, _repeated_copies_codec);
+      tags_.WriteTo(ref output, _repeated_tags_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -906,6 +923,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
       }
       size += copies_.CalculateSize(_repeated_copies_codec);
+      size += tags_.CalculateSize(_repeated_tags_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -922,6 +940,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         Name = other.Name;
       }
       copies_.Add(other.copies_);
+      tags_.Add(other.tags_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -945,6 +964,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             copies_.AddEntriesFrom(input, _repeated_copies_codec);
             break;
           }
+          case 26: {
+            tags_.AddEntriesFrom(input, _repeated_tags_codec);
+            break;
+          }
         }
       }
     #endif
@@ -966,6 +989,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
           }
           case 18: {
             copies_.AddEntriesFrom(ref input, _repeated_copies_codec);
+            break;
+          }
+          case 26: {
+            tags_.AddEntriesFrom(ref input, _repeated_tags_codec);
             break;
           }
         }
