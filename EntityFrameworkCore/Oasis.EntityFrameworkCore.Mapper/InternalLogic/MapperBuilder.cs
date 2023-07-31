@@ -41,17 +41,17 @@ internal sealed class MapperBuilder : IMapperBuilder
         return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTrackerFactory, proxy, newTargetTrackerProvider, entityRemover, mapToDatabaseTypeManager, entityFactory);
     }
 
-    public IMapperBuilder Register<TSource, TTarget>(ICustomTypeMapperConfiguration? configuration = null)
+    public IMapperBuilder Register<TSource, TTarget>(ICustomTypeMapperConfiguration<TSource, TTarget>? configuration = null)
         where TSource : class
         where TTarget : class
     {
-        _mapperRegistry.Register(typeof(TSource), typeof(TTarget), configuration);
+        _mapperRegistry.Register(configuration);
         return this;
     }
 
     public IMapperBuilder RegisterTwoWay<TSource, TTarget>(
-        ICustomTypeMapperConfiguration? sourceToTargetConfiguration = null,
-        ICustomTypeMapperConfiguration? targetToSourceConfiguration = null)
+        ICustomTypeMapperConfiguration<TSource, TTarget>? sourceToTargetConfiguration = null,
+        ICustomTypeMapperConfiguration<TTarget, TSource>? targetToSourceConfiguration = null)
         where TSource : class
         where TTarget : class
     {
@@ -59,11 +59,11 @@ internal sealed class MapperBuilder : IMapperBuilder
         var targetType = typeof(TTarget);
         if (sourceType == targetType)
         {
-            _mapperRegistry.Register(sourceType, targetType, sourceToTargetConfiguration);
+            _mapperRegistry.Register(sourceToTargetConfiguration);
         }
 
-        _mapperRegistry.Register(sourceType, targetType, sourceToTargetConfiguration);
-        _mapperRegistry.Register(targetType, sourceType, targetToSourceConfiguration);
+        _mapperRegistry.Register(sourceToTargetConfiguration);
+        _mapperRegistry.Register(targetToSourceConfiguration);
 
         return this;
     }

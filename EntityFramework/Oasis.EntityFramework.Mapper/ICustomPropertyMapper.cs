@@ -16,6 +16,12 @@ public interface ICustomPropertyMapper
     Delegate MapProperties { get; }
 }
 
+public interface ICustomTypeMapperConfiguration<TSource, TTarget> : ICustomTypeMapperConfiguration
+    where TSource : class
+    where TTarget : class
+{
+}
+
 public interface ICustomTypeMapperConfiguration
 {
     ICustomPropertyMapper? CustomPropertyMapper { get; }
@@ -41,5 +47,5 @@ public interface ICustomTypeMapperConfigurationBuilder<TSource, TTarget>
 
     ICustomTypeMapperConfigurationBuilder<TSource, TTarget> ExcludePropertyByName(params string[] names);
 
-    ICustomTypeMapperConfiguration Build();
+    ICustomTypeMapperConfiguration<TSource, TTarget> Build();
 }

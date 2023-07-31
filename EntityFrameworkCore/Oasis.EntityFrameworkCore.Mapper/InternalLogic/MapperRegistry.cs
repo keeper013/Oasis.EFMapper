@@ -57,14 +57,18 @@ internal sealed class MapperRegistry : IRecursiveRegister
             new EntityListMapperTypeValidator(_mapper));
     }
 
-    public void Register(Type sourceType, Type targetType, ICustomTypeMapperConfiguration? configuration)
+    public void Register<TSource, TTarget>(ICustomTypeMapperConfiguration<TSource, TTarget>? configuration)
+        where TSource : class
+        where TTarget : class
     {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
         if (configuration != null)
         {
             if (configuration.CustomPropertyMapper == null && configuration.PropertyEntityRemover == null && configuration.ExcludedProperties == null
                 && configuration.MapToDatabaseType == null)
             {
-                throw new ArgumentException($"At least 1 configuration item of {nameof(ICustomTypeMapperConfiguration)} should not be null.", nameof(configuration));
+                throw new ArgumentException($"At least 1 configuration item of {nameof(ICustomTypeMapperConfiguration<TSource, TTarget>)} should not be null.", nameof(configuration));
             }
 
             if (configuration.ExcludedProperties != null)

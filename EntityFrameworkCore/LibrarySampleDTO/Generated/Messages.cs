@@ -45,40 +45,41 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             "cmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPEj0KBFRhZ3MYBSADKAsyLy5PYXNp",
             "cy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVGFnRFRPIiIK",
             "EENvcHlSZWZlcmVuY2VEVE8SDgoGTnVtYmVyGAEgASgJIiwKCk5ld0NvcHlE",
-            "VE8SDgoGTnVtYmVyGAEgASgJEg4KBkJvb2tJZBgCIAEoBSKBAQoNVXBkYXRl",
+            "VE8SDgoGTnVtYmVyGAEgASgJEg4KBkJvb2tJZBgCIAEoBSKZAQoNVXBkYXRl",
             "Q29weURUTxIOCgZOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tlbhgC",
-            "IAEoDBIVCghSZXNlcnZlchgDIAEoCUgAiAEBEhUKCEJvcnJvd2VyGAQgASgJ",
-            "SAGIAQFCCwoJX1Jlc2VydmVyQgsKCV9Cb3Jyb3dlciKLAQoHQ29weURUTxIO",
-            "CgZOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIVCghS",
-            "ZXNlcnZlchgDIAEoCUgAiAEBEhUKCEJvcnJvd2VyGAQgASgJSAGIAQESDgoG",
-            "Qm9va0lkGAUgASgFQgsKCV9SZXNlcnZlckILCglfQm9ycm93ZXIiUwoNTmV3",
-            "Q29udGFjdERUTxITCgtQaG9uZU51bWJlchgBIAEoCRItCgdBZGRyZXNzGAIg",
-            "ASgLMhwuZ29vZ2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlInwKEFVwZGF0ZUNv",
-            "bnRhY3REVE8SCgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEo",
-            "DBITCgtQaG9uZU51bWJlchgDIAEoCRItCgdBZGRyZXNzGAQgASgLMhwuZ29v",
-            "Z2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlIogBCgpDb250YWN0RFRPEgoKAklk",
-            "GAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSEAoIQm9ycm93ZXIY",
-            "AyABKAkSEwoLUGhvbmVOdW1iZXIYBCABKAkSLQoHQWRkcmVzcxgFIAEoCzIc",
-            "Lmdvb2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZSIuChRCb3Jyb3dlclJlZmVy",
-            "ZW5jZURUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCSJ/Cg5OZXdCb3Jyb3dl",
-            "ckRUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCRIMCgROYW1lGAIgASgJEkcK",
-            "B0NvbnRhY3QYAyABKAsyNi5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1h",
-            "cHBlci5TYW1wbGUuTmV3Q29udGFjdERUTyK5AgoRVXBkYXRlQm9ycm93ZXJE",
-            "VE8SFgoOSWRlbnRpdHlOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tl",
-            "bhgCIAEoDBIMCgROYW1lGAMgASgJEkoKB0NvbnRhY3QYBCABKAsyOS5PYXNp",
-            "cy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVXBkYXRlQ29u",
-            "dGFjdERUTxJHCghSZXNlcnZlZBgFIAEoCzIwLk9hc2lzLkVudGl0eUZyYW1l",
-            "d29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPSACIAQESQgoIQm9ycm93",
-            "ZWQYBiADKAsyMC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5T",
-            "YW1wbGUuQ29weURUT0ILCglfUmVzZXJ2ZWQivwIKC0JvcnJvd2VyRFRPEhYK",
-            "DklkZW50aXR5TnVtYmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4YAiAB",
-            "KAwSDAoETmFtZRgDIAEoCRJECgdDb250YWN0GAQgASgLMjMuT2FzaXMuRW50",
-            "aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvbnRhY3REVE8SUAoI",
-            "UmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1h",
-            "cHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0gAiAEBEksKCEJvcnJvd2Vk",
-            "GAYgAygLMjkuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2Ft",
-            "cGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJX1Jlc2VydmVkQiqqAidPYXNpcy5F",
-            "bnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGViBnByb3RvMw=="));
+            "IAEoDBIuCghSZXNlcnZlchgDIAEoCzIcLmdvb2dsZS5wcm90b2J1Zi5TdHJp",
+            "bmdWYWx1ZRIuCghCb3Jyb3dlchgEIAEoCzIcLmdvb2dsZS5wcm90b2J1Zi5T",
+            "dHJpbmdWYWx1ZSKjAQoHQ29weURUTxIOCgZOdW1iZXIYASABKAkSGAoQQ29u",
+            "Y3VycmVuY3lUb2tlbhgCIAEoDBIuCghSZXNlcnZlchgDIAEoCzIcLmdvb2ds",
+            "ZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZRIuCghCb3Jyb3dlchgEIAEoCzIcLmdv",
+            "b2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZRIOCgZCb29rSWQYBSABKAUiUwoN",
+            "TmV3Q29udGFjdERUTxITCgtQaG9uZU51bWJlchgBIAEoCRItCgdBZGRyZXNz",
+            "GAIgASgLMhwuZ29vZ2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlInwKEFVwZGF0",
+            "ZUNvbnRhY3REVE8SCgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgC",
+            "IAEoDBITCgtQaG9uZU51bWJlchgDIAEoCRItCgdBZGRyZXNzGAQgASgLMhwu",
+            "Z29vZ2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlIogBCgpDb250YWN0RFRPEgoK",
+            "AklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSEAoIQm9ycm93",
+            "ZXIYAyABKAkSEwoLUGhvbmVOdW1iZXIYBCABKAkSLQoHQWRkcmVzcxgFIAEo",
+            "CzIcLmdvb2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZSIuChRCb3Jyb3dlclJl",
+            "ZmVyZW5jZURUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCSJ/Cg5OZXdCb3Jy",
+            "b3dlckRUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCRIMCgROYW1lGAIgASgJ",
+            "EkcKB0NvbnRhY3QYAyABKAsyNi5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3Jl",
+            "Lk1hcHBlci5TYW1wbGUuTmV3Q29udGFjdERUTyK5AgoRVXBkYXRlQm9ycm93",
+            "ZXJEVE8SFgoOSWRlbnRpdHlOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lU",
+            "b2tlbhgCIAEoDBIMCgROYW1lGAMgASgJEkoKB0NvbnRhY3QYBCABKAsyOS5P",
+            "YXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVXBkYXRl",
+            "Q29udGFjdERUTxJHCghSZXNlcnZlZBgFIAEoCzIwLk9hc2lzLkVudGl0eUZy",
+            "YW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPSACIAQESQgoIQm9y",
+            "cm93ZWQYBiADKAsyMC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBl",
+            "ci5TYW1wbGUuQ29weURUT0ILCglfUmVzZXJ2ZWQivwIKC0JvcnJvd2VyRFRP",
+            "EhYKDklkZW50aXR5TnVtYmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4Y",
+            "AiABKAwSDAoETmFtZRgDIAEoCRJECgdDb250YWN0GAQgASgLMjMuT2FzaXMu",
+            "RW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvbnRhY3REVE8S",
+            "UAoIUmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3Jl",
+            "Lk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0gAiAEBEksKCEJvcnJv",
+            "d2VkGAYgAygLMjkuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIu",
+            "U2FtcGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJX1Jlc2VydmVkQiqqAidPYXNp",
+            "cy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGViBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.WrappersReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -90,8 +91,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "Copies", "Tags" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO.Parser, new[]{ "Number" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO.Parser, new[]{ "Number", "BookId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateCopyDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateCopyDTO.Parser, new[]{ "Number", "ConcurrencyToken", "Reserver", "Borrower" }, new[]{ "Reserver", "Borrower" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO.Parser, new[]{ "Number", "ConcurrencyToken", "Reserver", "Borrower", "BookId" }, new[]{ "Reserver", "Borrower" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateCopyDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateCopyDTO.Parser, new[]{ "Number", "ConcurrencyToken", "Reserver", "Borrower" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO.Parser, new[]{ "Number", "ConcurrencyToken", "Reserver", "Borrower", "BookId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewContactDTO.Parser, new[]{ "PhoneNumber", "Address" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateContactDTO.Parser, new[]{ "Id", "ConcurrencyToken", "PhoneNumber", "Address" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.ContactDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Borrower", "PhoneNumber", "Address" }, null, null, null, null),
@@ -2083,8 +2084,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     public UpdateCopyDTO(UpdateCopyDTO other) : this() {
       number_ = other.number_;
       concurrencyToken_ = other.concurrencyToken_;
-      reserver_ = other.reserver_;
-      borrower_ = other.borrower_;
+      Reserver = other.Reserver;
+      Borrower = other.Borrower;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2120,51 +2121,31 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     /// <summary>Field number for the "Reserver" field.</summary>
     public const int ReserverFieldNumber = 3;
+    private static readonly pb::FieldCodec<string> _single_reserver_codec = pb::FieldCodec.ForClassWrapper<string>(26);
     private string reserver_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Reserver {
-      get { return reserver_ ?? ""; }
+      get { return reserver_; }
       set {
-        reserver_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        reserver_ = value;
       }
     }
-    /// <summary>Gets whether the "Reserver" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasReserver {
-      get { return reserver_ != null; }
-    }
-    /// <summary>Clears the value of the "Reserver" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearReserver() {
-      reserver_ = null;
-    }
+
 
     /// <summary>Field number for the "Borrower" field.</summary>
     public const int BorrowerFieldNumber = 4;
+    private static readonly pb::FieldCodec<string> _single_borrower_codec = pb::FieldCodec.ForClassWrapper<string>(34);
     private string borrower_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Borrower {
-      get { return borrower_ ?? ""; }
+      get { return borrower_; }
       set {
-        borrower_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        borrower_ = value;
       }
     }
-    /// <summary>Gets whether the "Borrower" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasBorrower {
-      get { return borrower_ != null; }
-    }
-    /// <summary>Clears the value of the "Borrower" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearBorrower() {
-      borrower_ = null;
-    }
+
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -2194,8 +2175,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       int hash = 1;
       if (Number.Length != 0) hash ^= Number.GetHashCode();
       if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
-      if (HasReserver) hash ^= Reserver.GetHashCode();
-      if (HasBorrower) hash ^= Borrower.GetHashCode();
+      if (reserver_ != null) hash ^= Reserver.GetHashCode();
+      if (borrower_ != null) hash ^= Borrower.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2222,13 +2203,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(18);
         output.WriteBytes(ConcurrencyToken);
       }
-      if (HasReserver) {
-        output.WriteRawTag(26);
-        output.WriteString(Reserver);
+      if (reserver_ != null) {
+        _single_reserver_codec.WriteTagAndValue(output, Reserver);
       }
-      if (HasBorrower) {
-        output.WriteRawTag(34);
-        output.WriteString(Borrower);
+      if (borrower_ != null) {
+        _single_borrower_codec.WriteTagAndValue(output, Borrower);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -2248,13 +2227,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(18);
         output.WriteBytes(ConcurrencyToken);
       }
-      if (HasReserver) {
-        output.WriteRawTag(26);
-        output.WriteString(Reserver);
+      if (reserver_ != null) {
+        _single_reserver_codec.WriteTagAndValue(ref output, Reserver);
       }
-      if (HasBorrower) {
-        output.WriteRawTag(34);
-        output.WriteString(Borrower);
+      if (borrower_ != null) {
+        _single_borrower_codec.WriteTagAndValue(ref output, Borrower);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -2272,11 +2249,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (ConcurrencyToken.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
       }
-      if (HasReserver) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Reserver);
+      if (reserver_ != null) {
+        size += _single_reserver_codec.CalculateSizeWithTag(Reserver);
       }
-      if (HasBorrower) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Borrower);
+      if (borrower_ != null) {
+        size += _single_borrower_codec.CalculateSizeWithTag(Borrower);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2296,11 +2273,15 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.ConcurrencyToken.Length != 0) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
-      if (other.HasReserver) {
-        Reserver = other.Reserver;
+      if (other.reserver_ != null) {
+        if (reserver_ == null || other.Reserver != "") {
+          Reserver = other.Reserver;
+        }
       }
-      if (other.HasBorrower) {
-        Borrower = other.Borrower;
+      if (other.borrower_ != null) {
+        if (borrower_ == null || other.Borrower != "") {
+          Borrower = other.Borrower;
+        }
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -2326,11 +2307,17 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 26: {
-            Reserver = input.ReadString();
+            string value = _single_reserver_codec.Read(input);
+            if (reserver_ == null || value != "") {
+              Reserver = value;
+            }
             break;
           }
           case 34: {
-            Borrower = input.ReadString();
+            string value = _single_borrower_codec.Read(input);
+            if (borrower_ == null || value != "") {
+              Borrower = value;
+            }
             break;
           }
         }
@@ -2357,11 +2344,17 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 26: {
-            Reserver = input.ReadString();
+            string value = _single_reserver_codec.Read(ref input);
+            if (reserver_ == null || value != "") {
+              Reserver = value;
+            }
             break;
           }
           case 34: {
-            Borrower = input.ReadString();
+            string value = _single_borrower_codec.Read(ref input);
+            if (borrower_ == null || value != "") {
+              Borrower = value;
+            }
             break;
           }
         }
@@ -2407,8 +2400,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     public CopyDTO(CopyDTO other) : this() {
       number_ = other.number_;
       concurrencyToken_ = other.concurrencyToken_;
-      reserver_ = other.reserver_;
-      borrower_ = other.borrower_;
+      Reserver = other.Reserver;
+      Borrower = other.Borrower;
       bookId_ = other.bookId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -2445,51 +2438,31 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     /// <summary>Field number for the "Reserver" field.</summary>
     public const int ReserverFieldNumber = 3;
+    private static readonly pb::FieldCodec<string> _single_reserver_codec = pb::FieldCodec.ForClassWrapper<string>(26);
     private string reserver_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Reserver {
-      get { return reserver_ ?? ""; }
+      get { return reserver_; }
       set {
-        reserver_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        reserver_ = value;
       }
     }
-    /// <summary>Gets whether the "Reserver" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasReserver {
-      get { return reserver_ != null; }
-    }
-    /// <summary>Clears the value of the "Reserver" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearReserver() {
-      reserver_ = null;
-    }
+
 
     /// <summary>Field number for the "Borrower" field.</summary>
     public const int BorrowerFieldNumber = 4;
+    private static readonly pb::FieldCodec<string> _single_borrower_codec = pb::FieldCodec.ForClassWrapper<string>(34);
     private string borrower_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Borrower {
-      get { return borrower_ ?? ""; }
+      get { return borrower_; }
       set {
-        borrower_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        borrower_ = value;
       }
     }
-    /// <summary>Gets whether the "Borrower" field is set</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool HasBorrower {
-      get { return borrower_ != null; }
-    }
-    /// <summary>Clears the value of the "Borrower" field</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void ClearBorrower() {
-      borrower_ = null;
-    }
+
 
     /// <summary>Field number for the "BookId" field.</summary>
     public const int BookIdFieldNumber = 5;
@@ -2532,8 +2505,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       int hash = 1;
       if (Number.Length != 0) hash ^= Number.GetHashCode();
       if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
-      if (HasReserver) hash ^= Reserver.GetHashCode();
-      if (HasBorrower) hash ^= Borrower.GetHashCode();
+      if (reserver_ != null) hash ^= Reserver.GetHashCode();
+      if (borrower_ != null) hash ^= Borrower.GetHashCode();
       if (BookId != 0) hash ^= BookId.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -2561,13 +2534,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(18);
         output.WriteBytes(ConcurrencyToken);
       }
-      if (HasReserver) {
-        output.WriteRawTag(26);
-        output.WriteString(Reserver);
+      if (reserver_ != null) {
+        _single_reserver_codec.WriteTagAndValue(output, Reserver);
       }
-      if (HasBorrower) {
-        output.WriteRawTag(34);
-        output.WriteString(Borrower);
+      if (borrower_ != null) {
+        _single_borrower_codec.WriteTagAndValue(output, Borrower);
       }
       if (BookId != 0) {
         output.WriteRawTag(40);
@@ -2591,13 +2562,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
         output.WriteRawTag(18);
         output.WriteBytes(ConcurrencyToken);
       }
-      if (HasReserver) {
-        output.WriteRawTag(26);
-        output.WriteString(Reserver);
+      if (reserver_ != null) {
+        _single_reserver_codec.WriteTagAndValue(ref output, Reserver);
       }
-      if (HasBorrower) {
-        output.WriteRawTag(34);
-        output.WriteString(Borrower);
+      if (borrower_ != null) {
+        _single_borrower_codec.WriteTagAndValue(ref output, Borrower);
       }
       if (BookId != 0) {
         output.WriteRawTag(40);
@@ -2619,11 +2588,11 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (ConcurrencyToken.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
       }
-      if (HasReserver) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Reserver);
+      if (reserver_ != null) {
+        size += _single_reserver_codec.CalculateSizeWithTag(Reserver);
       }
-      if (HasBorrower) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Borrower);
+      if (borrower_ != null) {
+        size += _single_borrower_codec.CalculateSizeWithTag(Borrower);
       }
       if (BookId != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(BookId);
@@ -2646,11 +2615,15 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       if (other.ConcurrencyToken.Length != 0) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
-      if (other.HasReserver) {
-        Reserver = other.Reserver;
+      if (other.reserver_ != null) {
+        if (reserver_ == null || other.Reserver != "") {
+          Reserver = other.Reserver;
+        }
       }
-      if (other.HasBorrower) {
-        Borrower = other.Borrower;
+      if (other.borrower_ != null) {
+        if (borrower_ == null || other.Borrower != "") {
+          Borrower = other.Borrower;
+        }
       }
       if (other.BookId != 0) {
         BookId = other.BookId;
@@ -2679,11 +2652,17 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 26: {
-            Reserver = input.ReadString();
+            string value = _single_reserver_codec.Read(input);
+            if (reserver_ == null || value != "") {
+              Reserver = value;
+            }
             break;
           }
           case 34: {
-            Borrower = input.ReadString();
+            string value = _single_borrower_codec.Read(input);
+            if (borrower_ == null || value != "") {
+              Borrower = value;
+            }
             break;
           }
           case 40: {
@@ -2714,11 +2693,17 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             break;
           }
           case 26: {
-            Reserver = input.ReadString();
+            string value = _single_reserver_codec.Read(ref input);
+            if (reserver_ == null || value != "") {
+              Reserver = value;
+            }
             break;
           }
           case 34: {
-            Borrower = input.ReadString();
+            string value = _single_borrower_codec.Read(ref input);
+            if (borrower_ == null || value != "") {
+              Borrower = value;
+            }
             break;
           }
           case 40: {
