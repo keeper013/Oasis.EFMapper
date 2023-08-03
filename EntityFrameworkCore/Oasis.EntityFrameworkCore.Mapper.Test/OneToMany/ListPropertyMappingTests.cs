@@ -14,10 +14,7 @@ public class ListPropertyMappingTests : TestBase
     public void MapListProperties_ToMemory_SameInstance_ShouldThrowException()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<CollectionEntity1, CollectionEntity2>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity1, CollectionEntity2>().Build();
         var sc1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
         var entity1 = new CollectionEntity1(1, new[] { sc1, sc1 });
 
@@ -33,10 +30,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListProperties_ToDatabase_SameInstance_ShouldThrowException()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<CollectionEntity2, CollectionEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity2, CollectionEntity1>().Build();
         var sc2 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
         var entity2 = new CollectionEntity2(1, new[] { sc2, sc2 });
 
@@ -55,11 +49,10 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListProperties_ToDatabase_WithUpdateConfig_ShouldThrowException()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var customConfig = factory.MakeCustomTypeMapperBuilder<ScalarEntity2Item, SubScalarEntity1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
-            .Register<ScalarEntity2Item, SubScalarEntity1>(customConfig)
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<ScalarEntity2Item, SubScalarEntity1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .Finish()
             .Register<CollectionEntity2, CollectionEntity1>()
             .Build();
         var sc2 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
@@ -151,10 +144,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListProperties_ICollection_MappingToDatabaseShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<CollectionEntity2, CollectionEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity2, CollectionEntity1>().Build();
 
         var sc1_1 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
         var sc1_2 = new ScalarEntity2Item(2, null, "4", new byte[] { 2, 3, 4 });
@@ -187,10 +177,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListProperties_IList_ExistingElementShouldBeUpdated()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<ListIEntity1, CollectionEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<ListIEntity1, CollectionEntity1>().Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -235,13 +222,12 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListProperties_WithInsertConfig_ShouldThrowException()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var customConfig = factory.MakeCustomTypeMapperBuilder<SubScalarEntity1, SubScalarEntity1>().SetMapToDatabaseType(MapToDatabaseType.Insert).Build();
-        mapperBuilder
-            .Register<SubScalarEntity1, SubScalarEntity1>(customConfig)
-            .RegisterTwoWay<ListIEntity1, CollectionEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<SubScalarEntity1, SubScalarEntity1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Insert)
+                .Finish()
+            .RegisterTwoWay<ListIEntity1, CollectionEntity1>()
+            .Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -278,13 +264,12 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListPropertiesChangeId_WithInsertConfig_ShouldThrowException()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var customConfig = factory.MakeCustomTypeMapperBuilder<SubScalarEntity1, SubScalarEntity1>().SetMapToDatabaseType(MapToDatabaseType.Insert).Build();
-        mapperBuilder
-            .Register<SubScalarEntity1, SubScalarEntity1>(customConfig)
-            .RegisterTwoWay<ListIEntity1, CollectionEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<SubScalarEntity1, SubScalarEntity1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Insert)
+                .Finish()
+            .RegisterTwoWay<ListIEntity1, CollectionEntity1>()
+            .Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -324,10 +309,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListProperties_List_ExcludedElementShouldBeDeleted()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<ListEntity1, CollectionEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<ListEntity1, CollectionEntity1>().Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -375,13 +357,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapDerivedEntities_ShouldMapDerivedAndBase()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-
-        mapperBuilder.Register<DerivedEntity2, DerivedEntity1>();
-
-        var mapper = mapperBuilder.Build();
-
+        var mapper = MakeDefaultMapperBuilder().Register<DerivedEntity2, DerivedEntity1>().Build();
         var instance = new DerivedEntity2("str2", 2, new List<ScalarEntity2Item> { new ScalarEntity2Item(1, 2, "3", new byte[] { 1 }) });
 
         // act
@@ -407,12 +383,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task HiddingPublicProperty_HiddenMemberIgnored()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-
-        mapperBuilder.Register<DerivedEntity2_2, DerivedEntity1_1>();
-
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<DerivedEntity2_2, DerivedEntity1_1>().Build();
 
         var instance = new DerivedEntity2_2(2, 2, new List<ScalarEntity2Item> { new ScalarEntity2Item(1, 2, "3", new byte[] { 1 }) });
 
@@ -439,10 +410,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task ChangeListEntityById_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<ListEntity2, ListEntity3>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<ListEntity2, ListEntity3>().Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -485,12 +453,10 @@ public class ListPropertyMappingTests : TestBase
     public async Task SessionTest_SameSessionAvoidDuplicatedNewEntity1()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .Register<SessionTestingList2, SessionTestingList1_1>()
-            .Register<SessionTestingList2, SessionTestingList1_2>();
-        var mapper = mapperBuilder.Build();
+            .Register<SessionTestingList2, SessionTestingList1_2>()
+            .Build();
 
         var item = new ScalarItem2("abc");
         var l2 = new SessionTestingList2(new List<ScalarItem2> { item });
@@ -513,10 +479,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task SessionTest_SameSessionAvoidDuplicatedNewEntity2()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<SessionTestingList2, SessionTestingList1_1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<SessionTestingList2, SessionTestingList1_1>().Build();
 
         var item = new ScalarItem2("abc");
         var l2_1 = new SessionTestingList2(new List<ScalarItem2> { item });
@@ -541,12 +504,10 @@ public class ListPropertyMappingTests : TestBase
     public async Task SessionTest_DifferentSessionCreatesDuplicatedNewEntity1()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .Register<SessionTestingList2, SessionTestingList1_1>()
-            .Register<SessionTestingList2, SessionTestingList1_2>();
-        var mapper = mapperBuilder.Build();
+            .Register<SessionTestingList2, SessionTestingList1_2>()
+            .Build();
 
         var item = new ScalarItem2("abc");
         var l2 = new SessionTestingList2(new List<ScalarItem2> { item });
@@ -568,12 +529,10 @@ public class ListPropertyMappingTests : TestBase
     public async Task SessionTest_DifferentSessionCreatesDuplicatedNewEntity2()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .Register<SessionTestingList2, SessionTestingList1_1>()
-            .Register<SessionTestingList2, SessionTestingList1_2>();
-        var mapper = mapperBuilder.Build();
+            .Register<SessionTestingList2, SessionTestingList1_2>()
+            .Build();
 
         var item = new ScalarItem2("abc");
         var l2 = new SessionTestingList2(new List<ScalarItem2> { item });
@@ -596,12 +555,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListProperties_UpdateExistingNavitationIdentity_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-
-        mapperBuilder.RegisterTwoWay<ListIEntity1, CollectionEntity1>();
-
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<ListIEntity1, CollectionEntity1>().Build();
 
         var sub = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -638,12 +592,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListProperties_HasAsNoTrackingInIncluder_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-
-        mapperBuilder.RegisterTwoWay<ListIEntity1, CollectionEntity1>();
-
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<ListIEntity1, CollectionEntity1>().Build();
 
         var subInstance = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -684,30 +633,20 @@ public class ListPropertyMappingTests : TestBase
     [Fact]
     public void CustomFactoryMethodForClassWithDefaultConstructor_ShouldFail()
     {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-
-        // act and assert
+        // arrange, act and assert
         Assert.Throws<FactoryMethodException>(() =>
         {
-            mapperBuilder
-                .WithFactoryMethod<ScalarEntity2ListWrapper>(() => new ScalarEntity2ListWrapper());
+            MakeDefaultMapperBuilder().WithFactoryMethod(() => new ScalarEntity2ListWrapper());
         });
     }
 
     [Fact]
     public void CustomFactoryMethodForScalarList_ShouldFail()
     {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-
-        // act and assert
+        // arrange, act and assert
         Assert.Throws<InvalidEntityListTypeException>(() =>
         {
-            mapperBuilder
-                .WithFactoryMethod<StringListNoDefaultConstructor, string>(() => new StringListNoDefaultConstructor(1));
+            MakeDefaultMapperBuilder().WithFactoryMethod<StringListNoDefaultConstructor, string>(() => new StringListNoDefaultConstructor(1));
         });
     }
 
@@ -715,8 +654,7 @@ public class ListPropertyMappingTests : TestBase
         where T : class
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
+        var mapperBuilder = MakeDefaultMapperBuilder();
         mapperBuilder.Register<CollectionEntity1, T>();
         if (action != default)
         {

@@ -9,7 +9,7 @@ internal static class ScalarTests
 
     public static void EfMapper_Scalar(IDictionary<string, TimeSpan> dict)
     {
-        var mapper = new MapperBuilderFactory().MakeMapperBuilder(nameof(ScalarTests)).Register<ScalarSource, ScalarTarget>().Build();
+        var mapper = new MapperBuilderFactory().MakeMapperBuilder().Register<ScalarSource, ScalarTarget>().Build();
         var source = ScalarUtilities.BuildDefaultScalarSource();
         using var timer = new StopWatchTimer(dict, nameof(EfMapper_Scalar));
         for (var i = 0; i < Rounds; i++)
@@ -20,7 +20,7 @@ internal static class ScalarTests
 
     public static void EfMapper_Scalar_Session(IDictionary<string, TimeSpan> dict)
     {
-        var session = new MapperBuilderFactory().MakeMapperBuilder(nameof(ScalarTests)).Register<ScalarSource, ScalarTarget>().Build().CreateMappingSession();
+        var session = new MapperBuilderFactory().MakeMapperBuilder().Register<ScalarSource, ScalarTarget>().Build().CreateMappingSession();
         var source = ScalarUtilities.BuildDefaultScalarSource();
         using var timer = new StopWatchTimer(dict, nameof(EfMapper_Scalar_Session));
         for (var i = 0; i < Rounds; i++)

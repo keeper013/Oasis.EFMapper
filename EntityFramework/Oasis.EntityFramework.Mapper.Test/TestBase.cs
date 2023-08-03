@@ -30,19 +30,15 @@ public abstract class TestBase
         _connection?.Dispose();
     }
 
-    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory)
+    protected static IMapperBuilder MakeDefaultMapperBuilder(string[]? excludedProperties = null, bool? keepEntityOnMappingRemoved = null)
     {
-        return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
-    }
-
-    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory, string[] excludedProperties)
-    {
-        return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), excludedProperties);
-    }
-
-    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory, bool keepEntityOnMappingRemoved)
-    {
-        return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), null, keepEntityOnMappingRemoved);
+        return new MapperBuilderFactory()
+            .Configure()
+                .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
+                .ExcludedPropertiesByName(excludedProperties)
+                .SetKeepEntityOnMappingRemoved(keepEntityOnMappingRemoved)
+                .Finish()
+            .MakeMapperBuilder();
     }
 
     protected DbContext CreateDatabaseContext()

@@ -118,10 +118,7 @@ public class KeyPropertyTypeTests : TestBase
     private async Task Test<T>()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<SomeSourceEntity<T>, SomeTargetEntity<T>>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<SomeSourceEntity<T>, SomeTargetEntity<T>>().Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {

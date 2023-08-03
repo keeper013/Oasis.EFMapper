@@ -19,7 +19,7 @@ public sealed class CustomMappingPropertyExcludedException : EfCoreMapperExcepti
 public sealed class UselessExcludeException : EfCoreMapperException
 {
     public UselessExcludeException(Type type, string propertyName)
-        : base($"Type ${type} doesn't have a valid property named {propertyName} to be excluded.")
+        : base($"Type ${type.Name} doesn't have a valid property named {propertyName} to be excluded.")
     {
     }
 

@@ -1,9 +1,9 @@
 ﻿namespace Oasis.EntityFramework.Mapper.Test.OneToOne;
 
-using System.Data.Entity;
+using Oasis.EntityFramework.Mapper.Exceptions;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using Oasis.EntityFramework.Mapper.Exceptions;
+using System.Data.Entity;
 
 public sealed class EntityPropertyMappingTests : TestBase
 {
@@ -11,10 +11,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task AddOneToOneEntity_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<PrincipalOptional1, PrincipalOptional2>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<PrincipalOptional1, PrincipalOptional2>().Build();
 
         var principalOptional1 = new PrincipalOptional1(1);
         var inner1 = new DependentOptional1_1(1);
@@ -49,11 +46,10 @@ public sealed class EntityPropertyMappingTests : TestBase
     public void AddOneToOneEntity_WithUpdateMappingType_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var customConfig = factory.MakeCustomTypeMapperBuilder<Dependent2_1, DependentOptional1_1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
-            .Register<Dependent2_1, DependentOptional1_1>(customConfig)
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<Dependent2_1, DependentOptional1_1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .Finish()
             .Register<PrincipalOptional2, PrincipalOptional1>()
             .Build();
 
@@ -76,10 +72,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task UpdateOneToOneEntityWithNew_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>().Build();
 
         var principalOptional1 = new PrincipalOptional1(1);
         var inner1 = new DependentOptional1_1(1);
@@ -126,11 +119,10 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task UpdateOneToOneEntityWithNew_WithInsertMappingType_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var customConfig = factory.MakeCustomTypeMapperBuilder<Dependent2_1, DependentOptional1_1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
-            .Register<Dependent2_1, DependentOptional1_1>(customConfig)
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<Dependent2_1, DependentOptional1_1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .Finish()
             .RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>()
             .Build();
 
@@ -170,13 +162,17 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task UpdateOneToOneRequiredEntityWithExisting_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
-            .WithConfiguration<DependentRequired1_1>(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), null, false)
-            .WithConfiguration<DependentRequired1_2>(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), null,false)
-            .RegisterTwoWay<PrincipalRequired1, PrincipalRequired2>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<DependentRequired1_1>()
+                .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
+                .SetKeepEntityOnMappingRemoved(false)
+                .Finish()
+            .Configure<DependentRequired1_2>()
+                .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
+                .SetKeepEntityOnMappingRemoved(false)
+                .Finish()
+            .RegisterTwoWay<PrincipalRequired1, PrincipalRequired2>()
+            .Build();
 
         var principalRequired1 = new PrincipalRequired1(1);
         var inner1 = new DependentRequired1_1(1);
@@ -228,10 +224,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task UpdateOptionalOneToOneEntityWithExisting_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>().Build();
 
         await ReplaceOptinoalOneToOneMapping(mapper);
 
@@ -257,10 +250,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task UpdateOneToOneEntityKeepEntityOnMappingRemoved_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>().Build();
 
         await ReplaceOptinoalOneToOneMapping(mapper);
 
@@ -277,10 +267,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task UpdateOneToOneEntity_WithDefaultKeepEntityOnMappingRemoved_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>().Build();
 
         await ReplaceOptinoalOneToOneMapping(mapper);
 
@@ -296,10 +283,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task AddRecursiveEntity_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<RecursiveEntity1, RecursiveEntity2>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<RecursiveEntity1, RecursiveEntity2>().Build();
 
         var parent = new RecursiveEntity1("parent");
         var child1 = new RecursiveEntity1("child");

@@ -6,21 +6,16 @@ using System.Reflection.Emit;
 
 internal sealed class MapperBuilder : IMapperBuilder
 {
-    internal const bool DefaultKeepEntityOnMappingRemoved = true;
     private readonly MapperRegistry _mapperRegistry;
+    private readonly bool _throwForRedundantConfiguration;
 
-    public MapperBuilder(
-        string assemblyName,
-        string? identityPropertyName = default,
-        string? concurrencyTokenPropertyName = default,
-        ISet<string>? excludedProperties = default,
-        bool? keepEntityOnMappingRemoved = default,
-        MapToDatabaseType? mapToDatabase = default)
+    public MapperBuilder(string assemblyName, IMapperBuilderConfiguration? configuration)
     {
         var name = new AssemblyName($"{assemblyName}.Oasis.EntityFramework.Mapper.Generated");
         var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
         var module = assemblyBuilder.DefineDynamicModule($"{name.Name}.dll");
-        _mapperRegistry = new (module, identityPropertyName, concurrencyTokenPropertyName, excludedProperties, keepEntityOnMappingRemoved, mapToDatabase);
+        _mapperRegistry = new (module, configuration);
+        _throwForRedundantConfiguration = configuration?.ThrowForRedundantConfiguration ?? true;
     }
 
     public IMapper Build()
@@ -42,29 +37,25 @@ internal sealed class MapperBuilder : IMapperBuilder
         return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTrackerFactory, proxy, newTargetTrackerProvider, entityRemover, mapToDatabaseTypeManager, entityFactory);
     }
 
-    public IMapperBuilder Register<TSource, TTarget>(ICustomTypeMapperConfiguration<TSource, TTarget>? configuration = null)
+    public IMapperBuilder Register<TSource, TTarget>()
         where TSource : class
         where TTarget : class
     {
-        _mapperRegistry.Register(configuration);
+        _mapperRegistry.Register(typeof(TSource), typeof(TTarget));
         return this;
     }
 
-    public IMapperBuilder RegisterTwoWay<TSource, TTarget>(
-        ICustomTypeMapperConfiguration<TSource, TTarget>? sourceToTargetConfiguration = null,
-        ICustomTypeMapperConfiguration<TTarget, TSource>? targetToSourceConfiguration = null)
+    public IMapperBuilder RegisterTwoWay<TSource, TTarget>()
         where TSource : class
         where TTarget : class
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
-        if (sourceType == targetType)
+        _mapperRegistry.Register(sourceType, targetType);
+        if (sourceType != targetType)
         {
-            _mapperRegistry.Register(sourceToTargetConfiguration);
+            _mapperRegistry.Register(targetType, sourceType);
         }
-
-        _mapperRegistry.Register(sourceToTargetConfiguration);
-        _mapperRegistry.Register(targetToSourceConfiguration);
 
         return this;
     }
@@ -82,25 +73,6 @@ internal sealed class MapperBuilder : IMapperBuilder
         return this;
     }
 
-    public IMapperBuilder WithConfiguration<TEntity>(
-        string? identityPropertyName,
-        string? concurrencyTokenPropertyName = default,
-        string[]? excludedProperties = default,
-        bool? keepEntityOnMappingRemoved = default,
-        bool throwIfRedundant = false)
-        where TEntity : class
-    {
-        var excludedProps = excludedProperties != null && excludedProperties.Any() ? new HashSet<string>(excludedProperties) : null;
-        _mapperRegistry.WithConfiguration(
-            typeof(TEntity),
-            identityPropertyName,
-            concurrencyTokenPropertyName,
-            excludedProps,
-            keepEntityOnMappingRemoved,
-            throwIfRedundant);
-        return this;
-    }
-
     public IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression, bool throwIfRedundant = false)
     {
         var sourceType = typeof(TSource);
@@ -112,5 +84,65 @@ internal sealed class MapperBuilder : IMapperBuilder
 
         _mapperRegistry.WithScalarConverter(typeof(TSource), typeof(TTarget), expression.Compile(), throwIfRedundant);
         return this;
+    }
+
+    public IEntityConfiguration<TEntity> Configure<TEntity>()
+        where TEntity : class
+    {
+        var type = typeof(TEntity);
+        if (_throwForRedundantConfiguration && _mapperRegistry.IsConfigured(type))
+        {
+            throw new RedundantConfiguratedException(type);
+        }
+
+        return new EntityConfigurationBuilder<TEntity>(this);
+    }
+
+    public ICustomTypeMapperConfiguration<TSource, TTarget> Configure<TSource, TTarget>()
+        where TSource : class
+        where TTarget : class
+    {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        if (_throwForRedundantConfiguration && _mapperRegistry.IsConfigured(sourceType, targetType))
+        {
+            throw new RedundantConfiguratedException(sourceType, targetType);
+        }
+
+        return new CustomTypeMapperBuilder<TSource, TTarget>(this);
+    }
+
+    internal void Configure<TEntity>(IEntityConfiguration configuration)
+    {
+        if (configuration.IdentityPropertyName == null && configuration.ConcurrencyTokenPropertyName == null && configuration.ExcludedProperties == null
+                && configuration.KeepEntityOnMappingRemoved == null)
+        {
+            throw new EmptyConfiguratedException(typeof(IEntityConfiguration));
+        }
+
+        _mapperRegistry.Configure(typeof(TEntity), configuration);
+    }
+
+    internal void Configure<TSource, TTarget>(ICustomTypeMapperConfiguration configuration)
+    {
+        if (configuration.CustomPropertyMapper == null && configuration.PropertyEntityRemover == null && configuration.ExcludedProperties == null
+                && configuration.MapToDatabaseType == null)
+        {
+            throw new EmptyConfiguratedException(typeof(ICustomTypeMapperConfiguration));
+        }
+
+        if (configuration.ExcludedProperties != null)
+        {
+            if (configuration.CustomPropertyMapper != null)
+            {
+                var excluded = configuration.CustomPropertyMapper.MappedTargetProperties.FirstOrDefault(p => configuration.ExcludedProperties.Contains(p.Name));
+                if (excluded != null)
+                {
+                    throw new CustomMappingPropertyExcludedException(typeof(TSource), typeof(TTarget), excluded.Name);
+                }
+            }
+        }
+
+        _mapperRegistry.Configure(typeof(TSource), typeof(TTarget), configuration);
     }
 }

@@ -10,11 +10,11 @@ public class ToDatabaseTests : TestBase
     public async Task UpdateNullId_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var customConfig = factory.MakeCustomTypeMapperBuilder<ToDatabaseEntity2, ToDatabaseEntity1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>(customConfig);
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<ToDatabaseEntity2, ToDatabaseEntity1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .Finish()
+            .Build();
         var instance = new ToDatabaseEntity2(null, null, 1);
 
         // assert
@@ -29,11 +29,11 @@ public class ToDatabaseTests : TestBase
     public async Task UpdateNotExisting_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var customBuilder = factory.MakeCustomTypeMapperBuilder<ToDatabaseEntity2, ToDatabaseEntity1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>(customBuilder);
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<ToDatabaseEntity2, ToDatabaseEntity1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .Finish()
+            .Build();
         var instance = new ToDatabaseEntity2(1, new byte[] { 1, 2, 3 }, 1);
 
         // assert
@@ -48,10 +48,7 @@ public class ToDatabaseTests : TestBase
     public async Task UpdateDifferentConcurrencyToken_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<ToDatabaseEntity2, ToDatabaseEntity1>().Build();
         var instance = new ToDatabaseEntity2(1, new byte[] { 1, 2, 3 }, 1);
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -72,11 +69,11 @@ public class ToDatabaseTests : TestBase
     public async Task InsertExisting_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var customConfig = factory.MakeCustomTypeMapperBuilder<ToDatabaseEntity2, ToDatabaseEntity1>().SetMapToDatabaseType(MapToDatabaseType.Insert).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>(customConfig);
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<ToDatabaseEntity2, ToDatabaseEntity1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Insert)
+                .Finish()
+            .Build();
         var instance = new ToDatabaseEntity2(1, new byte[] { 1, 2, 3 }, 1);
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>

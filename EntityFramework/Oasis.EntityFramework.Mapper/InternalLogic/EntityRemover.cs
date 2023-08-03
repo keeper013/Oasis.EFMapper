@@ -24,7 +24,7 @@ internal sealed class EntityRemover
     public void RemoveIfConfigured<TEntity>(DbContext databaseContext, TEntity entity, EntityPropertyMappingData data)
         where TEntity : class
     {
-        bool keep = MapperBuilder.DefaultKeepEntityOnMappingRemoved;
+        bool keep = true;
         var propertyConfigured = _propertyKeepEntityOnMappingRemoved.TryGetValue(data.sourceType, out var propertyTarget)
             && propertyTarget.TryGetValue(data.targetType, out var propertyDict) && propertyDict.TryGetValue(data.propertyName, out keep);
         if (!propertyConfigured)

@@ -33,70 +33,25 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly ExcludedPropertyManager _excludedPropertyManager;
     private readonly bool _defaultKeepEntityOnMappingRemoved;
     private readonly MapToDatabaseType _defaultMapToDatabase;
-    private readonly string? _identityPropertyName;
 
-    public MapperRegistry(
-        ModuleBuilder module,
-        string? identityPropertyName = default,
-        string? concurrencyTokenPropertyName = default,
-        ISet<string>? excludedProperties = default,
-        bool? keepEntityOnMappingRemoved = default,
-        MapToDatabaseType? mapToDatabase = default)
+    public MapperRegistry(ModuleBuilder module, IMapperBuilderConfiguration? configuration)
     {
-        _identityPropertyName = identityPropertyName;
-        _defaultMapToDatabase = mapToDatabase.HasValue ? mapToDatabase.Value : MapToDatabaseType.Upsert;
-        _keyPropertyNames = new KeyPropertyNameManager(new KeyPropertyNameConfiguration(identityPropertyName, concurrencyTokenPropertyName));
+        _defaultMapToDatabase = configuration?.MapToDatabaseType ?? MapToDatabaseType.Upsert;
+        _keyPropertyNames = new (new KeyPropertyNameConfiguration(configuration?.IdentityPropertyName, configuration?.ConcurrencyTokenPropertyName));
         _scalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTypes);
         _entityMapperTypeValidator = new EntityMapperTypeValidator(_mapper);
-        _excludedPropertyManager = new (excludedProperties);
-        _defaultKeepEntityOnMappingRemoved = keepEntityOnMappingRemoved ?? MapperBuilder.DefaultKeepEntityOnMappingRemoved;
-        _dynamicMethodBuilder = new DynamicMethodBuilder(
+        _excludedPropertyManager = new (configuration?.ExcludedProperties);
+        _defaultKeepEntityOnMappingRemoved = configuration?.KeepEntityOnMappingRemoved ?? true;
+        _dynamicMethodBuilder = new (
             module.DefineType("Mapper", TypeAttributes.Public),
             _scalarMapperTypeValidator,
             _entityMapperTypeValidator,
             new EntityListMapperTypeValidator(_mapper));
     }
 
-    public void Register<TSource, TTarget>(ICustomTypeMapperConfiguration<TSource, TTarget>? configuration)
-        where TSource : class
-        where TTarget : class
+    public void Register(Type sourceType, Type targetType)
     {
-        var sourceType = typeof(TSource);
-        var targetType = typeof(TTarget);
-        if (configuration != null)
-        {
-            if (configuration.CustomPropertyMapper == null && configuration.PropertyEntityRemover == null && configuration.ExcludedProperties == null
-                && configuration.MapToDatabaseType == null)
-            {
-                throw new ArgumentException($"At least 1 configuration item of {nameof(ICustomTypeMapperConfiguration<TTarget, TSource>)} should not be null.", nameof(configuration));
-            }
-
-            if (configuration.ExcludedProperties != null)
-            {
-                if (configuration.CustomPropertyMapper != null)
-                {
-                    var excluded = configuration.CustomPropertyMapper.MappedTargetProperties.FirstOrDefault(p => configuration.ExcludedProperties.Contains(p.Name));
-                    if (excluded != null)
-                    {
-                        throw new CustomMappingPropertyExcludedException(sourceType, targetType, excluded.Name);
-                    }
-                }
-
-                var sourceProperties = sourceType.GetProperties(Utilities.PublicInstance);
-                var targetProperties = targetType.GetProperties(Utilities.PublicInstance);
-                foreach (var propertyName in configuration.ExcludedProperties)
-                {
-                    if (!sourceProperties.Any(p => string.Equals(p.Name, propertyName)) || !targetProperties.Any(p => string.Equals(p.Name, propertyName)))
-                    {
-                        throw new UselessExcludeException(sourceType, targetType, propertyName);
-                    }
-                }
-
-                _excludedPropertyManager.Add(sourceType, targetType, new HashSet<string>(configuration.ExcludedProperties));
-            }
-        }
-
-        _toBeRegistered.Add(sourceType, targetType, configuration);
+        _toBeRegistered.AddIfNotExists(sourceType, targetType, (ICustomTypeMapperConfiguration?)null);
     }
 
     public Type Build()
@@ -109,6 +64,61 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
 
         return _dynamicMethodBuilder.Build();
+    }
+
+    public void Configure(Type sourceType, Type targetType, ICustomTypeMapperConfiguration configuration)
+    {
+        if (configuration.ExcludedProperties != null)
+        {
+            _excludedPropertyManager.Add(sourceType, targetType, configuration.ExcludedProperties);
+        }
+
+        _toBeRegistered.AddOrUpdateNull(sourceType, targetType, configuration);
+    }
+
+    public void Configure(Type type, IEntityConfiguration configuration)
+    {
+        if (!_entityMapperTypeValidator.IsValidType(type))
+        {
+            throw new InvalidEntityTypeException(type);
+        }
+
+        var properties = type.GetProperties(Utilities.PublicInstance);
+        if (!string.IsNullOrEmpty(configuration.IdentityPropertyName))
+        {
+            var identityProperty = properties.GetKeyProperty(configuration.IdentityPropertyName, false);
+            if (identityProperty != default)
+            {
+                _keyPropertyNames.Add(type, new KeyPropertyConfiguration(configuration.IdentityPropertyName!, configuration.ConcurrencyTokenPropertyName));
+            }
+            else
+            {
+                throw new MissingIdentityException(type);
+            }
+        }
+
+        if (configuration.KeepEntityOnMappingRemoved.HasValue)
+        {
+            if (properties.GetKeyProperty(_keyPropertyNames.GetIdentityPropertyName(type), false) == null)
+            {
+                throw new MissingIdentityException(type);
+            }
+
+            _typeKeepEntityOnMappingRemovedConfiguration.Add(type, configuration.KeepEntityOnMappingRemoved.Value);
+        }
+
+        if (configuration.ExcludedProperties != null && configuration.ExcludedProperties.Any())
+        {
+            foreach (var propertyName in configuration.ExcludedProperties)
+            {
+                if (!properties.Any(p => string.Equals(p.Name, propertyName)))
+                {
+                    throw new UselessExcludeException(type, propertyName);
+                }
+            }
+
+            _excludedPropertyManager.Add(type, configuration.ExcludedProperties);
+        }
     }
 
     public void WithFactoryMethod(Type type, Type itemType, Delegate factoryMethod, bool throwIfRedundant = false)
@@ -166,72 +176,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
     }
 
-    public void WithConfiguration(
-        Type type,
-        string? identityPropertyName,
-        string? concurrencyTokenPropertyName = default,
-        ISet<string>? excludedProperties = default,
-        bool? keepEntityOnMappingRemoved = default,
-        bool throwIfRedundant = false)
-    {
-        if (!_entityMapperTypeValidator.IsValidType(type))
-        {
-            throw new InvalidEntityTypeException(type);
-        }
-
-        bool typeIsConfigurated = false;
-        if (_keyPropertyNames.ContainsConfiguration(type) || _typeKeepEntityOnMappingRemovedConfiguration.ContainsKey(type)
-            || _excludedPropertyManager.ContainsTypeConfiguration(type))
-        {
-            if (throwIfRedundant)
-            {
-                throw new TypeConfiguratedException(type);
-            }
-
-            typeIsConfigurated = true;
-        }
-
-        if (!typeIsConfigurated)
-        {
-            var properties = type.GetProperties(Utilities.PublicInstance);
-            if (!string.IsNullOrEmpty(identityPropertyName))
-            {
-                var identityProperty = properties.GetKeyProperty(identityPropertyName, false);
-                if (identityProperty != null)
-                {
-                    _keyPropertyNames.Add(type, new KeyPropertyConfiguration(identityPropertyName!, concurrencyTokenPropertyName));
-                }
-                else
-                {
-                    throw new MissingIdentityException(type);
-                }
-            }
-
-            if (keepEntityOnMappingRemoved.HasValue)
-            {
-                if (properties.GetKeyProperty(_keyPropertyNames.GetIdentityPropertyName(type), false) == null)
-                {
-                    throw new MissingIdentityException(type);
-                }
-
-                _typeKeepEntityOnMappingRemovedConfiguration.Add(type, keepEntityOnMappingRemoved.Value);
-            }
-
-            if (excludedProperties != null && excludedProperties.Any())
-            {
-                foreach (var propertyName in excludedProperties)
-                {
-                    if (!properties.Any(p => string.Equals(p.Name, propertyName)))
-                    {
-                        throw new UselessExcludeException(type, propertyName);
-                    }
-                }
-
-                _excludedPropertyManager.Add(type, excludedProperties);
-            }
-        }
-    }
-
     public void WithScalarConverter(Type sourceType, Type targetType, Delegate @delegate, bool throwIfRedundant = false)
     {
         var sourceIsScalarType = _scalarMapperTypeValidator.IsValidType(sourceType);
@@ -264,6 +208,12 @@ internal sealed class MapperRegistry : IRecursiveRegister
             throw new ScalarMapperExistsException(sourceType, targetType);
         }
     }
+
+    public bool IsConfigured(Type sourceType, Type targetType) => _toBeRegistered.Find(sourceType, targetType) != null;
+
+    public bool IsConfigured(Type entityType) => _keyPropertyNames.ContainsConfiguration(entityType)
+        || _typeKeepEntityOnMappingRemovedConfiguration.ContainsKey(entityType)
+        || _excludedPropertyManager.ContainsTypeConfiguration(entityType);
 
     public IScalarTypeConverter MakeScalarTypeConverter()
     {
@@ -367,19 +317,19 @@ internal sealed class MapperRegistry : IRecursiveRegister
                     var remover = configuration.PropertyEntityRemover;
                     if (remover.MappingKeepEntityOnMappingRemoved.HasValue)
                     {
-                        _mappingKeepEntityOnMappingRemoved.Add(sourceType, targetType, remover.MappingKeepEntityOnMappingRemoved.Value);
+                        _mappingKeepEntityOnMappingRemoved.AddIfNotExists(sourceType, targetType, remover.MappingKeepEntityOnMappingRemoved.Value);
                     }
 
                     if (remover.PropertyKeepEntityOnMappingRemoved != null)
                     {
-                        _propertyKeepEntityOnMappingRemoved.Add(sourceType, targetType, remover.PropertyKeepEntityOnMappingRemoved);
+                        _propertyKeepEntityOnMappingRemoved.AddIfNotExists(sourceType, targetType, remover.PropertyKeepEntityOnMappingRemoved);
                         keepEntityOnMappingRemovedProperties = remover.PropertyKeepEntityOnMappingRemoved.Keys.ToHashSet();
                     }
                 }
 
                 if (configuration?.MapToDatabaseType != null)
                 {
-                    _mapToDatabaseDictionary.Add(sourceType, targetType, configuration.MapToDatabaseType.Value);
+                    _mapToDatabaseDictionary.AddIfNotExists(sourceType, targetType, configuration.MapToDatabaseType.Value);
                 }
 
                 var keyMapper = _dynamicMethodBuilder.BuildUpKeyPropertiesMapperMethod(
@@ -442,7 +392,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         PropertyInfo? targetKeyProperty,
         DynamicMethodBuilder methodBuilder)
     {
-        comparers.Add(
+        comparers.AddIfNotExists(
             sourceType,
             targetType,
             () => methodBuilder.BuildUpKeyEqualComparerMethod(keyType, sourceType, targetType, sourceKeyProperty!, targetKeyProperty!),

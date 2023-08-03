@@ -3,7 +3,7 @@
 public sealed class SameTypeException : EfCoreMapperException
 {
     public SameTypeException(Type type)
-        : base($"Can't register mapping for type {type} with itself.")
+        : base($"Can't register mapping for type {type.Name} with itself.")
     {
     }
 }

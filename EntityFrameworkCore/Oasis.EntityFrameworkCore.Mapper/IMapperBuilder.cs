@@ -2,6 +2,35 @@
 
 using System.Linq.Expressions;
 
+public interface IEntityConfiguration<TEntity> : IConfigurator<IMapperBuilder>
+    where TEntity : class
+{
+    IEntityConfiguration<TEntity> SetIdentityPropertyName(string identityPropertyName);
+
+    IEntityConfiguration<TEntity> SetConcurrencyTokenPropertyName(string concurrencyTokenPropertyName);
+
+    IEntityConfiguration<TEntity> SetKeyPropertyNames(string identityPropertyName, string? concurrencyTokenPropertyName = null);
+
+    IEntityConfiguration<TEntity> ExcludedPropertiesByName(params string[] names);
+
+    IEntityConfiguration<TEntity> SetKeepEntityOnMappingRemoved(bool keepEntityOnMappingRemoved);
+}
+
+public interface ICustomTypeMapperConfiguration<TSource, TTarget> : IConfigurator<IMapperBuilder>
+    where TSource : class
+    where TTarget : class
+{
+    ICustomTypeMapperConfiguration<TSource, TTarget> SetMappingKeepEntityOnMappingRemoved(bool keep);
+
+    ICustomTypeMapperConfiguration<TSource, TTarget> SetMapToDatabaseType(MapToDatabaseType mapToDatabase);
+
+    ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value);
+
+    ICustomTypeMapperConfiguration<TSource, TTarget> PropertyKeepEntityOnMappingRemoved(string propertyName, bool keep);
+
+    ICustomTypeMapperConfiguration<TSource, TTarget> ExcludePropertiesByName(params string[] names);
+}
+
 public interface IMapperBuilder
 {
     public const bool DefaultKeepEntityOnMappingRemoved = true;
@@ -13,23 +42,20 @@ public interface IMapperBuilder
     IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod, bool throwIfRedundant = false)
         where TEntity : class;
 
-    IMapperBuilder WithConfiguration<TEntity>(
-        string? identityPropertyName = default,
-        string? concurrencyTokenPropertyName = default,
-        string[]? excludedProperties = default,
-        bool? keepEntityOnMappingRemoved = default,
-        bool throwIfRedundant = false)
+    IEntityConfiguration<TEntity> Configure<TEntity>()
         where TEntity : class;
 
-    IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression, bool throwIfRedundant = false);
-
-    IMapperBuilder Register<TSource, TTarget>(ICustomTypeMapperConfiguration<TSource, TTarget>? configuration = null)
+    ICustomTypeMapperConfiguration<TSource, TTarget> Configure<TSource, TTarget>()
         where TSource : class
         where TTarget : class;
 
-    IMapperBuilder RegisterTwoWay<TSource, TTarget>(
-        ICustomTypeMapperConfiguration<TSource, TTarget>? sourceToTargetConfiguration = null,
-        ICustomTypeMapperConfiguration<TTarget, TSource>? targetToSourceConfiguration = null)
+    IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression, bool throwIfRedundant = false);
+
+    IMapperBuilder Register<TSource, TTarget>()
+        where TSource : class
+        where TTarget : class;
+
+    IMapperBuilder RegisterTwoWay<TSource, TTarget>()
         where TSource : class
         where TTarget : class;
 

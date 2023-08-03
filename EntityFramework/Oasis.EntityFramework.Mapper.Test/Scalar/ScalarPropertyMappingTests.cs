@@ -12,10 +12,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapNew_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<ScalarEntity2, ScalarEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<ScalarEntity2, ScalarEntity1>().Build();
         var byteArray = new byte[] { 2, 3, 4 };
         var instance = new ScalarEntity2(2, 3, "4", byteArray);
 
@@ -44,10 +41,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapScalarProperties_ValidProperties_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<ScalarEntity1, ScalarEntity2>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<ScalarEntity1, ScalarEntity2>().Build();
         var byteArray = new byte[] { 2, 3, 4 };
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -91,11 +85,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapNewWithoutIdToDatabase_ShouldInsert()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
-            .Register<ScalarEntityNoBase1, ScalarEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<ScalarEntityNoBase1, ScalarEntity1>().Build();
         var instance = new ScalarEntityNoBase1(2, 3, "4", new byte[] { 2, 3, 4 });
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -117,10 +107,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapNewWithIdToDatabase_ShouldInsert()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<ScalarEntity2, ScalarEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<ScalarEntity2, ScalarEntity1>().Build();
         var byteArray = new byte[] { 2, 3, 4 };
         var instance = new ScalarEntity2(2, 3, "4", byteArray)
         {
@@ -158,10 +145,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapExistingWithIdToDatabase_ShouldUpdate()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.RegisterTwoWay<ScalarEntity2, ScalarEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<ScalarEntity2, ScalarEntity1>().Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -202,6 +186,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.NotNull(entity);
         Assert.AreEqual(1, count);
         Assert.AreEqual(id, entity!.Id);
+        Assert.NotNull(entity.ConcurrencyToken);
         Assert.AreEqual(2, entity.IntProp);
         Assert.AreEqual(3, entity.LongNullableProp);
         Assert.AreEqual("4", entity.StringProp);
@@ -212,12 +197,10 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task RegisterTarget_WithFactoryMethod_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithFactoryMethod(() => new EntityWithoutDefaultConstructor(100))
-            .Register<ScalarEntity1, EntityWithoutDefaultConstructor>();
-        var mapper = mapperBuilder.Build();
+            .Register<ScalarEntity1, EntityWithoutDefaultConstructor>()
+            .Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -242,10 +225,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapScalarProperties_InvalidProperties_ShouldNotBeMapped()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ScalarEntity1, ScalarEntity3>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<ScalarEntity1, ScalarEntity3>().Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -273,11 +253,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task ConvertWithoutStaticScalarMapper_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ScalarEntity1, ScalarEntity4>();
-
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<ScalarEntity1, ScalarEntity4>().Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -302,14 +278,11 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task ConvertWithLambdaExpressionScalarMapper_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter((ByteArrayWrapper? wrapper) => wrapper!.Bytes)
             .WithScalarConverter((byte[]? array) => new ByteArrayWrapper(array!))
-            .RegisterTwoWay<ScalarEntity1, ScalarEntity4>();
-
-        var mapper = mapperBuilder.Build();
+            .RegisterTwoWay<ScalarEntity1, ScalarEntity4>()
+            .Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -341,14 +314,11 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task ConvertWithStaticScalarMapper_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter((ByteArrayWrapper? wrapper) => ByteArrayWrapper.ConvertStatic(wrapper!))
             .WithScalarConverter((byte[]? array) => ByteArrayWrapper.ConvertStatic(array!))
-            .RegisterTwoWay<ScalarEntity1, ScalarEntity4>();
-
-        var mapper = mapperBuilder.Build();
+            .RegisterTwoWay<ScalarEntity1, ScalarEntity4>()
+            .Build();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -380,12 +350,10 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapScalarProperties_ToEntityNoId_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .Register<ScalarEntity1, ScalarEntityNoBase1>()
-            .Register<ScalarEntityNoBase1, ScalarEntityNoBase2>();
-        var mapper = mapperBuilder.Build();
+            .Register<ScalarEntityNoBase1, ScalarEntityNoBase2>()
+            .Build();
         var byteArray = new byte[] { 2, 3, 4 };
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -423,14 +391,16 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapScalarProperties_CustomKeyProperties_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
-            .WithConfiguration<ScalarEntityCustomKeyProperties1>(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id))
-            .WithConfiguration<ScalarEntityNoConcurrencyToken1>(nameof(EntityBaseNoConcurrencyToken.AnotherId))
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<ScalarEntityCustomKeyProperties1>()
+                .SetKeyPropertyNames(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id))
+                .Finish()
+            .Configure<ScalarEntityNoConcurrencyToken1>()
+                .SetIdentityPropertyName(nameof(EntityBaseNoConcurrencyToken.AnotherId))
+                .Finish()
             .Register<ScalarEntity1, ScalarEntityCustomKeyProperties1>()
-            .Register<ScalarEntity1, ScalarEntityNoConcurrencyToken1>();
-        var mapper = mapperBuilder.Build();
+            .Register<ScalarEntity1, ScalarEntityNoConcurrencyToken1>()
+            .Build();
 
         var byteArray = new byte[] { 2, 3, 4 };
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -468,19 +438,19 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapScalarProperties_WrappedKeyProperties_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteArrayWrapper>(arr => new ByteArrayWrapper(arr!))
             .WithScalarConverter<ByteArrayWrapper, byte[]>(wrapper => wrapper!.Bytes!)
             .WithScalarConverter<long, LongWrapper>(l => new LongWrapper(l))
-            .WithScalarConverter<LongWrapper, long>(wrapper => wrapper!.Value)
+            .WithScalarConverter<LongWrapper, long>(wrapper => wrapper.Value)
             .WithScalarConverter<long?, NullableLongWrapper>(l => new NullableLongWrapper(l))
-            .WithScalarConverter<NullableLongWrapper, long?>(wrapper => wrapper!.Value)
-            .WithConfiguration<WrappedScalarEntity2>(nameof(WrappedScalarEntity2.WrappedId), nameof(WrappedScalarEntity2.WrappedConcurrencyToken))
+            .WithScalarConverter<NullableLongWrapper, long?>(wrapper => wrapper.Value)
+            .Configure<WrappedScalarEntity2>()
+                .SetKeyPropertyNames(nameof(WrappedScalarEntity2.WrappedId), nameof(WrappedScalarEntity2.WrappedConcurrencyToken))
+                .Finish()
             .RegisterTwoWay<ScalarEntity1, WrappedScalarEntity2>()
-            .Register<WrappedScalarEntity2, WrappedScalarEntity2>();
-        var mapper = mapperBuilder.Build();
+            .Register<WrappedScalarEntity2, WrappedScalarEntity2>()
+            .Build();
         var byteArray = new byte[] { 2, 3, 4 };
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -527,15 +497,13 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapScalarProperties_PrimitiveToNullable_ShouldSucceed()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<int, int?>(i => i)
             .WithScalarConverter<int?, int>(ni => ni.HasValue ? ni.Value : 0)
             .WithScalarConverter<long, long?>(l => l)
             .WithScalarConverter<long?, long>(nl => nl.HasValue ? nl.Value : 0)
-            .RegisterTwoWay<ScalarEntity1, ScalarEntity5>();
-        var mapper = mapperBuilder.Build();
+            .RegisterTwoWay<ScalarEntity1, ScalarEntity5>()
+            .Build();
         var byteArray = new byte[] { 2, 3, 4 };
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -578,12 +546,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
     [Test]
     public void ConvertWithDuplicatedScalarMapper_ShouldFail()
     {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-
-        // assert
-        Assert.Throws<ScalarMapperExistsException>(() => mapperBuilder
+        // arrange, act and assert
+        Assert.Throws<ScalarMapperExistsException>(() => MakeDefaultMapperBuilder()
             .WithScalarConverter<ByteArrayWrapper, byte[]>((wrapper) => ByteArrayWrapper.ConvertStatic(wrapper!)!)
             .WithScalarConverter<ByteArrayWrapper, byte[]>((wrapper) => wrapper!.Bytes!, true));
     }
@@ -591,38 +555,26 @@ public sealed class ScalarPropertyMappingTests : TestBase
     [Test]
     public void RegisterTarget_WithoutDefaultConstructorAndNoFactoryMethod_ShouldFail()
     {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-
-        // act & assert
-        Assert.Throws<FactoryMethodException>(() => mapperBuilder.Register<ScalarEntity1, EntityWithoutDefaultConstructor>().Build());
+        // arrange, act & assert
+        Assert.Throws<FactoryMethodException>(() => MakeDefaultMapperBuilder().Register<ScalarEntity1, EntityWithoutDefaultConstructor>().Build());
     }
 
     [Test]
     public void RegisterTarget_WithDefaultConstructorAndFactoryMethod_ShouldFail()
     {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-
-        // act & assert
-        Assert.Throws<FactoryMethodException>(() => mapperBuilder
-            .WithFactoryMethod<ScalarEntity1>(() => new ScalarEntity1())
+        // arrange, act & assert
+        Assert.Throws<FactoryMethodException>(() => MakeDefaultMapperBuilder()
+            .WithFactoryMethod(() => new ScalarEntity1())
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
     }
 
     [Test]
     public void RegisterTarget_WithDuplicatedFactoryMethod_ShouldFail()
     {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-
-        // act & assert
-        Assert.Throws<FactoryMethodExistsException>(() => mapperBuilder
-            .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(1))
-            .WithFactoryMethod<EntityWithoutDefaultConstructor>(() => new EntityWithoutDefaultConstructor(2), true)
+        // arrange, act & assert
+        Assert.Throws<FactoryMethodExistsException>(() => MakeDefaultMapperBuilder()
+            .WithFactoryMethod(() => new EntityWithoutDefaultConstructor(1))
+            .WithFactoryMethod(() => new EntityWithoutDefaultConstructor(2), true)
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
     }
 
@@ -630,13 +582,20 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public void RegisterTarget_WithDuplicatedConfig_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
+        var builder = new MapperBuilderFactory()
+            .Configure()
+            .SetThrowForRedundantConfiguration(true)
+            .Finish()
+            .MakeMapperBuilder();
 
         // act & assert
-        Assert.Throws<TypeConfiguratedException>(() => mapperBuilder
-            .WithConfiguration<EntityWithoutDefaultConstructor>(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
-            .WithConfiguration<EntityWithoutDefaultConstructor>(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), null, null, true)
+        Assert.Throws<RedundantConfiguratedException>(() => builder
+            .Configure<EntityWithoutDefaultConstructor>()
+                .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
+                .Finish()
+            .Configure<EntityWithoutDefaultConstructor>()
+                .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
+                .Finish()
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
     }
 }

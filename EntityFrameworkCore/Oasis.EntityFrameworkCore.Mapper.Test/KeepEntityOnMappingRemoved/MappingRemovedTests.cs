@@ -12,15 +12,15 @@ public sealed class MappingRemovedTests : TestBase
     public void PropertyConfig_WrongPropertyName_ShouldThrowException()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
-            .SetMappingKeepEntityOnMappingRemoved(false)
-            .PropertyKeepEntityOnMappingRemoved("NoneExistingPropertyName", true)
-            .Build();
-        var mapperBuilder = factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), null, false);
-        var mapper = mapperBuilder
-            .WithConfiguration<MappingRemovedDependant1>(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken), null, false)
-            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config);
+        var mapper = MakeDefaultMapperBuilder(null, false)
+            .Configure<MappingRemovedDependant1>()
+                .SetKeepEntityOnMappingRemoved(false)
+                .Finish()
+            .Configure<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
+                .SetMappingKeepEntityOnMappingRemoved(false)
+                .PropertyKeepEntityOnMappingRemoved("NoneExistingPropertyName", true)
+                .Finish()
+            .Register<MappingRemovedPrincipal1, MappingRemovedPrincipal2>();
 
         // act and assert
         Assert.Throws<CustomTypePropertyEntityRemoverException>(() => mapper.Build());
@@ -32,9 +32,7 @@ public sealed class MappingRemovedTests : TestBase
     public async Task DefaultConfig_RemoveEntity_Test(bool defaultKeep, int dependantCount)
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory, defaultKeep);
-        var mapper = mapperBuilder.RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
+        var mapper = MakeDefaultMapperBuilder(null, defaultKeep).RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
         await RemoveEntityTest(mapper, dependantCount);
@@ -46,9 +44,7 @@ public sealed class MappingRemovedTests : TestBase
     public async Task DefaultConfig_RemoveListItm_Test(bool defaultKeep, int dependantCount)
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory, defaultKeep);
-        var mapper = mapperBuilder.RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
+        var mapper = MakeDefaultMapperBuilder(null, defaultKeep).RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
         await RemoveListItemTest(mapper, dependantCount);
@@ -60,9 +56,12 @@ public sealed class MappingRemovedTests : TestBase
     public async Task TypeConfig_RemoveEntity_Test(bool defaultKeep, int dependantCount)
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory, !defaultKeep);
-        var mapper = mapperBuilder.WithConfiguration<MappingRemovedDependant1>(null, null, null, defaultKeep).RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
+        var mapper = MakeDefaultMapperBuilder(null, !defaultKeep)
+            .Configure<MappingRemovedDependant1>()
+                .SetKeepEntityOnMappingRemoved(defaultKeep)
+                .Finish()
+            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
+            .Build();
 
         // act and assert
         await RemoveEntityTest(mapper, dependantCount);
@@ -74,9 +73,12 @@ public sealed class MappingRemovedTests : TestBase
     public async Task TypeConfig_RemoveListItem_Test(bool defaultKeep, int dependantCount)
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory, !defaultKeep);
-        var mapper = mapperBuilder.WithConfiguration<MappingRemovedDependant1>(null, null, null, defaultKeep).RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
+        var mapper = MakeDefaultMapperBuilder(null, !defaultKeep)
+            .Configure<MappingRemovedDependant1>()
+                .SetKeepEntityOnMappingRemoved(defaultKeep)
+                .Finish()
+            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
+            .Build();
 
         // act and assert
         await RemoveListItemTest(mapper, dependantCount);
@@ -88,12 +90,15 @@ public sealed class MappingRemovedTests : TestBase
     public async Task MappingConfig_RemoveEntity_Test(bool defaultKeep, int dependantCount)
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().SetMappingKeepEntityOnMappingRemoved(defaultKeep).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory, !defaultKeep);
-        var mapper = mapperBuilder
-            .WithConfiguration<MappingRemovedDependant1>(null, null, null, !defaultKeep)
-            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
+        var mapper = MakeDefaultMapperBuilder(null, !defaultKeep)
+            .Configure<MappingRemovedDependant1>()
+                .SetKeepEntityOnMappingRemoved(!defaultKeep)
+                .Finish()
+            .Configure<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
+                .SetMappingKeepEntityOnMappingRemoved(defaultKeep)
+                .Finish()
+            .Register<MappingRemovedPrincipal1, MappingRemovedPrincipal2>()
+            .Build();
 
         // act and assert
         await RemoveEntityTest(mapper, dependantCount);
@@ -105,12 +110,14 @@ public sealed class MappingRemovedTests : TestBase
     public async Task MappingConfig_RemoveListItem_Test(bool defaultKeep, int dependantCount)
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().SetMappingKeepEntityOnMappingRemoved(defaultKeep).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory, !defaultKeep);
-        var mapper = mapperBuilder
-            .WithConfiguration<MappingRemovedDependant1>(null, null, null, !defaultKeep)
-            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
+        var mapper = MakeDefaultMapperBuilder(null, !defaultKeep)
+            .Configure<MappingRemovedDependant1>()
+                .SetKeepEntityOnMappingRemoved(!defaultKeep)
+                .Finish()
+            .Configure<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
+                .SetMappingKeepEntityOnMappingRemoved(defaultKeep)
+                .Finish()
+            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>().Build();
 
         // act and assert
         await RemoveListItemTest(mapper, dependantCount);
@@ -122,15 +129,15 @@ public sealed class MappingRemovedTests : TestBase
     public async Task PropertyConfig_RemoveEntity_Test(bool defaultKeep, int dependantCount)
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
-            .SetMappingKeepEntityOnMappingRemoved(!defaultKeep)
-            .PropertyKeepEntityOnMappingRemoved(nameof(MappingRemovedPrincipal1.OptionalDependant), defaultKeep)
-            .Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory, !defaultKeep);
-        var mapper = mapperBuilder
-            .WithConfiguration<MappingRemovedDependant1>(null, null, null, !defaultKeep)
-            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
+        var mapper = MakeDefaultMapperBuilder(null, !defaultKeep)
+            .Configure<MappingRemovedDependant1>()
+                .SetKeepEntityOnMappingRemoved(!defaultKeep)
+                .Finish()
+            .Configure<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
+                .SetMappingKeepEntityOnMappingRemoved(!defaultKeep)
+                .PropertyKeepEntityOnMappingRemoved(nameof(MappingRemovedPrincipal1.OptionalDependant), defaultKeep)
+                .Finish()
+            .Register<MappingRemovedPrincipal1, MappingRemovedPrincipal2>().Build();
 
         // act and assert
         await RemoveEntityTest(mapper, dependantCount);
@@ -142,15 +149,15 @@ public sealed class MappingRemovedTests : TestBase
     public async Task PropertyConfig_RemoveListItem_Test(bool defaultKeep, int dependantCount)
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var config = factory.MakeCustomTypeMapperBuilder<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
-            .SetMappingKeepEntityOnMappingRemoved(!defaultKeep)
-            .PropertyKeepEntityOnMappingRemoved(nameof(MappingRemovedPrincipal1.DependantList), defaultKeep)
-            .Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory, !defaultKeep);
-        var mapper = mapperBuilder
-            .WithConfiguration<MappingRemovedDependant1>(null, null, null, !defaultKeep)
-            .RegisterTwoWay<MappingRemovedPrincipal2, MappingRemovedPrincipal1>(config).Build();
+        var mapper = MakeDefaultMapperBuilder(null, !defaultKeep)
+            .Configure<MappingRemovedDependant1>()
+                .SetKeepEntityOnMappingRemoved(!defaultKeep)
+                .Finish()
+            .Configure<MappingRemovedPrincipal2, MappingRemovedPrincipal1>()
+                .SetMappingKeepEntityOnMappingRemoved(!defaultKeep)
+                .PropertyKeepEntityOnMappingRemoved(nameof(MappingRemovedPrincipal1.DependantList), defaultKeep)
+                .Finish()
+            .Register<MappingRemovedPrincipal1, MappingRemovedPrincipal2>().Build();
 
         // act and assert
         await RemoveListItemTest(mapper, dependantCount);

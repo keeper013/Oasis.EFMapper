@@ -3,24 +3,48 @@
 using Oasis.EntityFramework.Mapper.InternalLogic;
 using System.Security.Cryptography;
 
-public sealed class MapperBuilderFactory : IMapperBuilderFactory
+public interface IConfigurator<TConfigurator>
+    where TConfigurator : class
 {
-    public IMapperBuilder MakeMapperBuilder(
-        string? identityPropertyName = default,
-        string? concurrencyTokenPropertyName = default,
-        string[]? excludedProperties = default,
-        bool? keepEntityOnMappingRemoved = default,
-        MapToDatabaseType? mapToDatabase = default)
+    TConfigurator Finish();
+}
+
+public abstract class BuilderConfiguration<TConfigurator>
+    where TConfigurator : class
+{
+    private readonly TConfigurator _configurator;
+
+    protected BuilderConfiguration(TConfigurator configurator)
     {
-        var excludedProps = excludedProperties != null && excludedProperties.Any() ? new HashSet<string>(excludedProperties) : null;
-        return new MapperBuilder(GenerateRandomTypeName(16), identityPropertyName, concurrencyTokenPropertyName, excludedProps, keepEntityOnMappingRemoved, mapToDatabase);
+        _configurator = configurator;
     }
 
-    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MakeCustomTypeMapperBuilder<TSource, TTarget>()
-        where TSource : class
-        where TTarget : class
+    protected TConfigurator FinishInternal()
     {
-        return new CustomTypeMapperBuilder<TSource, TTarget>();
+        Configure(_configurator);
+        return _configurator;
+    }
+
+    protected abstract void Configure(TConfigurator configurator);
+}
+
+public sealed class MapperBuilderFactory : IMapperBuilderFactory
+{
+    private IMapperBuilderConfiguration? _configuration;
+
+    public IMapperBuilder MakeMapperBuilder()
+    {
+        return new MapperBuilder(GenerateRandomTypeName(16), _configuration);
+    }
+
+    public IMapperBuilderConfigurationBuilder Configure()
+    {
+        return new MapperBuilderConfigurationBuilder(this);
+    }
+
+    public void Configure(IMapperBuilderConfiguration configuration)
+    {
+        _configuration = configuration;
     }
 
     private static string GenerateRandomTypeName(int length)

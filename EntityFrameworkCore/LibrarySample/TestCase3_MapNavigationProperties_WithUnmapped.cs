@@ -14,14 +14,18 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test1_AddAndUpateBorrower()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-            .WithConfiguration<Borrower>(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
-            .WithConfiguration<NewBorrowerDTO>(nameof(NewBorrowerDTO.IdentityNumber))
-            .WithConfiguration<UpdateBorrowerDTO>(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
+            .Configure<Borrower>()
+                .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
+                .Finish()
+            .Configure<NewBorrowerDTO>()
+                .SetIdentityPropertyName(nameof(NewBorrowerDTO.IdentityNumber))
+                .Finish()
+            .Configure<UpdateBorrowerDTO>()
+                .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
+                .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
             .Build();
@@ -35,14 +39,18 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test2_AddAndUpateBorrower_WithGlobalUnmappedProperty()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory, new string[] { nameof(Contact.Address) });
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder(new string[] { nameof(Contact.Address) })
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-            .WithConfiguration<Borrower>(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
-            .WithConfiguration<NewBorrowerDTO>(nameof(NewBorrowerDTO.IdentityNumber), null)
-            .WithConfiguration<UpdateBorrowerDTO>(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
+            .Configure<Borrower>()
+                .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
+                .Finish()
+            .Configure<NewBorrowerDTO>()
+                .SetIdentityPropertyName(nameof(NewBorrowerDTO.IdentityNumber))
+                .Finish()
+            .Configure<UpdateBorrowerDTO>()
+                .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
+                .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
             .Build();
@@ -56,15 +64,21 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test3_AddAndUpateBorrower_WithTypeUnmappedProperty_NewContactDTO()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-            .WithConfiguration<Borrower>(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
-            .WithConfiguration<NewBorrowerDTO>(nameof(NewBorrowerDTO.IdentityNumber), null)
-            .WithConfiguration<UpdateBorrowerDTO>(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
-            .WithConfiguration<NewContactDTO>(null, null, new[] { nameof(UpdateContactDTO.Address) })
+            .Configure<Borrower>()
+                .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
+                .Finish()
+            .Configure<NewBorrowerDTO>()
+                .SetIdentityPropertyName(nameof(NewBorrowerDTO.IdentityNumber))
+                .Finish()
+            .Configure<UpdateBorrowerDTO>()
+                .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
+                .Finish()
+            .Configure<NewContactDTO>()
+                .ExcludedPropertiesByName(nameof(UpdateContactDTO.Address))
+                .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
             .Build();
@@ -78,15 +92,21 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test4_AddAndUpateBorrower_WithTypeUnmappedProperty_UpdateContactDTO()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-            .WithConfiguration<Borrower>(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
-            .WithConfiguration<NewBorrowerDTO>(nameof(NewBorrowerDTO.IdentityNumber))
-            .WithConfiguration<UpdateBorrowerDTO>(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
-            .WithConfiguration<UpdateContactDTO>(null, null, new[] { nameof(UpdateContactDTO.Address) })
+            .Configure<Borrower>()
+                .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
+                .Finish()
+            .Configure<NewBorrowerDTO>()
+                .SetIdentityPropertyName(nameof(NewBorrowerDTO.IdentityNumber))
+                .Finish()
+            .Configure<UpdateBorrowerDTO>()
+                .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
+                .Finish()
+            .Configure<UpdateContactDTO>()
+                .ExcludedPropertiesByName(nameof(UpdateContactDTO.Address))
+                .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
             .Build();
@@ -100,15 +120,21 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test5_AddAndUpateBorrower_WithTypeUnmappedProperty_Contact()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-            .WithConfiguration<Borrower>(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
-            .WithConfiguration<NewBorrowerDTO>(nameof(NewBorrowerDTO.IdentityNumber))
-            .WithConfiguration<UpdateBorrowerDTO>(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
-            .WithConfiguration<Contact>(null, null, new[] { nameof(Contact.Address) })
+            .Configure<Borrower>()
+                .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
+                .Finish()
+            .Configure<NewBorrowerDTO>()
+                .SetIdentityPropertyName(nameof(NewBorrowerDTO.IdentityNumber))
+                .Finish()
+            .Configure<UpdateBorrowerDTO>()
+                .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
+                .Finish()
+            .Configure<Contact>()
+                .ExcludedPropertiesByName(nameof(Contact.Address))
+                .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
             .Build();
@@ -122,16 +148,21 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test6_AddAndUpateBorrower_WithTypeUnmappedProperty_NewDtoToEntity()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var newToContact = factory.MakeCustomTypeMapperBuilder<NewContactDTO, Contact>().ExcludePropertyByName(nameof(Contact.Address)).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-            .WithConfiguration<Borrower>(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
-            .WithConfiguration<NewBorrowerDTO>(nameof(NewBorrowerDTO.IdentityNumber))
-            .WithConfiguration<UpdateBorrowerDTO>(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
-            .Register<NewContactDTO, Contact>(newToContact)
+            .Configure<Borrower>()
+                .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
+                .Finish()
+            .Configure<NewBorrowerDTO>()
+                .SetIdentityPropertyName(nameof(NewBorrowerDTO.IdentityNumber))
+                .Finish()
+            .Configure<UpdateBorrowerDTO>()
+                .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
+                .Finish()
+            .Configure<NewContactDTO, Contact>()
+                .ExcludePropertiesByName(nameof(Contact.Address))
+                .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
             .Build();
@@ -145,16 +176,22 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test7_AddAndUpateBorrower_WithTypeUnmappedProperty_EntityToUpdateDto()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var contactToUpdate = factory.MakeCustomTypeMapperBuilder<Contact, UpdateContactDTO>().ExcludePropertyByName(nameof(Contact.Address)).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-            .WithConfiguration<Borrower>(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
-            .WithConfiguration<NewBorrowerDTO>(nameof(NewBorrowerDTO.IdentityNumber))
-            .WithConfiguration<UpdateBorrowerDTO>(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
-            .Register<Contact, UpdateContactDTO>(contactToUpdate)
+            .Configure<Borrower>()
+                .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
+                .Finish()
+            .Configure<NewBorrowerDTO>()
+                .SetIdentityPropertyName(nameof(NewBorrowerDTO.IdentityNumber))
+                .Finish()
+            .Configure<UpdateBorrowerDTO>()
+                .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
+                .Finish()
+            .Configure<Contact, UpdateContactDTO>()
+                .ExcludePropertiesByName(nameof(Contact.Address))
+                .Finish()
+            .Register<Contact, UpdateContactDTO>()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
             .Build();
@@ -168,16 +205,22 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test8_AddAndUpateBorrower_WithTypeUnmappedProperty_UpdateDtoToEntity()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var updateToContact = factory.MakeCustomTypeMapperBuilder<UpdateContactDTO, Contact>().ExcludePropertyByName(nameof(Contact.Address)).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-            .WithConfiguration<Borrower>(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
-            .WithConfiguration<NewBorrowerDTO>(nameof(NewBorrowerDTO.IdentityNumber))
-            .WithConfiguration<UpdateBorrowerDTO>(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
-            .Register<UpdateContactDTO, Contact>(updateToContact)
+            .Configure<Borrower>()
+                .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
+                .Finish()
+            .Configure<NewBorrowerDTO>()
+                .SetIdentityPropertyName(nameof(NewBorrowerDTO.IdentityNumber))
+                .Finish()
+            .Configure<UpdateBorrowerDTO>()
+                .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
+                .Finish()
+            .Configure<UpdateContactDTO, Contact>()
+                .ExcludePropertiesByName(nameof(Contact.Address))
+                .Finish()
+            .Register<UpdateContactDTO, Contact>()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
             .Build();
@@ -191,12 +234,14 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test9_AddBookWithCopies()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithConfiguration<NewCopyDTO>(nameof(NewCopyDTO.Number))
-            .WithConfiguration<Copy>(nameof(Copy.Number))
+            .Configure<NewCopyDTO>()
+                .SetIdentityPropertyName(nameof(NewCopyDTO.Number))
+                .Finish()
+            .Configure<Copy>()
+                .SetIdentityPropertyName(nameof(Copy.Number))
+                .Finish()
             .Register<NewBookDTO, Book>()
             .Register<Book, BookDTO>()
             .Build();
@@ -235,9 +280,7 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test10_UpdateBookWithExistingTags()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .Register<NewTagDTO, Tag>()
             .Register<Tag, IdReferenceDTO>()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))

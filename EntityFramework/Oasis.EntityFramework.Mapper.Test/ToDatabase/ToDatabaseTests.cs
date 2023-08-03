@@ -1,21 +1,20 @@
 ﻿namespace Oasis.EntityFramework.Mapper.Test.ToDatabase;
 
-using NUnit.Framework;
 using Oasis.EntityFramework.Mapper.Exceptions;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
-[TestFixture]
 public class ToDatabaseTests : TestBase
 {
     [Test]
     public void UpdateNullId_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var customConfig = factory.MakeCustomTypeMapperBuilder<ToDatabaseEntity2, ToDatabaseEntity1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>(customConfig);
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<ToDatabaseEntity2, ToDatabaseEntity1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .Finish()
+            .Build();
         var instance = new ToDatabaseEntity2(null, null, 1);
 
         // assert
@@ -26,15 +25,31 @@ public class ToDatabaseTests : TestBase
         }));
     }
 
-    [Ignore("Sqlite doesn't support concurrenty token, ignored here")]
     [Test]
+    public void UpdateNotExisting_ShouldFail()
+    {
+        // arrange
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<ToDatabaseEntity2, ToDatabaseEntity1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .Finish()
+            .Build();
+        var instance = new ToDatabaseEntity2(1, 1, 1);
+
+        // assert
+        Assert.ThrowsAsync<UpdateToDatabaseWithoutRecordException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext);
+            await databaseContext.SaveChangesAsync();
+        }));
+    }
+
+    [Test]
+    [Ignore("Sqlite doesn't support concurrenty token, ignored here")]
     public async Task UpdateDifferentConcurrencyToken_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>();
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder().Register<ToDatabaseEntity2, ToDatabaseEntity1>().Build();
         var instance = new ToDatabaseEntity2(1, 1, 1);
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -52,33 +67,14 @@ public class ToDatabaseTests : TestBase
     }
 
     [Test]
-    public void UpdateNotExisting_ShouldFail()
-    {
-        // arrange
-        var factory = new MapperBuilderFactory();
-        var customBuilder = factory.MakeCustomTypeMapperBuilder<ToDatabaseEntity2, ToDatabaseEntity1>().SetMapToDatabaseType(MapToDatabaseType.Update).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>(customBuilder);
-        var mapper = mapperBuilder.Build();
-        var instance = new ToDatabaseEntity2(1, 1, 1);
-
-        // act
-        Assert.ThrowsAsync<UpdateToDatabaseWithoutRecordException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext);
-            await databaseContext.SaveChangesAsync();
-        }));
-    }
-
-    [Test]
     public async Task InsertExisting_ShouldFail()
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var customConfig = factory.MakeCustomTypeMapperBuilder<ToDatabaseEntity2, ToDatabaseEntity1>().SetMapToDatabaseType(MapToDatabaseType.Insert).Build();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        mapperBuilder.Register<ToDatabaseEntity2, ToDatabaseEntity1>(customConfig);
-        var mapper = mapperBuilder.Build();
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<ToDatabaseEntity2, ToDatabaseEntity1>()
+                .SetMapToDatabaseType(MapToDatabaseType.Insert)
+                .Finish()
+            .Build();
         var instance = new ToDatabaseEntity2(1, 1, 1);
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -87,7 +83,7 @@ public class ToDatabaseTests : TestBase
             await databaseContext.SaveChangesAsync();
         });
 
-        // act
+        // assert
         Assert.ThrowsAsync<InsertToDatabaseWithExistingException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null, databaseContext);

@@ -74,21 +74,41 @@ internal static class Utilities
             : new MapperMetaDataSet(customPropertiesMapper, keyMapper, contentMapper);
     }
 
-    internal static void Add<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, T value, bool? extraCondition = null)
+    internal static void AddIfNotExists<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, T value, bool? extraCondition = null)
     {
-        if (!dict.TryGetValue(sourceType, out var innerDict))
+        if (!extraCondition.HasValue || extraCondition.Value)
         {
-            innerDict = new Dictionary<Type, T>();
-            dict[sourceType] = innerDict;
-        }
+            if (!dict.TryGetValue(sourceType, out var innerDict))
+            {
+                innerDict = new Dictionary<Type, T>();
+                dict[sourceType] = innerDict;
+            }
 
-        if (!innerDict.ContainsKey(targetType) && (!extraCondition.HasValue || extraCondition.Value))
-        {
-            innerDict![targetType] = value;
+            if (!innerDict.ContainsKey(targetType))
+            {
+                innerDict.Add(targetType, value);
+            }
         }
     }
 
-    internal static void Add<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, Func<T> func, bool? extraCondition = null)
+    internal static void AddOrUpdateNull<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, T value, bool? extraCondition = null)
+    {
+        if (!extraCondition.HasValue || extraCondition.Value)
+        {
+            if (!dict.TryGetValue(sourceType, out var innerDict))
+            {
+                innerDict = new Dictionary<Type, T>();
+                dict[sourceType] = innerDict;
+            }
+
+            if (!innerDict.TryGetValue(targetType, out var existing) || existing == null)
+            {
+                innerDict[targetType] = value;
+            }
+        }
+    }
+
+    internal static void AddIfNotExists<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, Func<T> func, bool? extraCondition = null)
     {
         if (!dict.TryGetValue(sourceType, out var innerDict))
         {

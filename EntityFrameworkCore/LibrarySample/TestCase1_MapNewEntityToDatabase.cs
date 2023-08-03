@@ -12,9 +12,7 @@ public sealed class TestCase1_MapNewEntityToDatabase : TestBase
     public async Task Test1_MapNewTagToDatabase()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .Register<NewTagDTO, Tag>()
             .Register<Tag, TagDTO>()
             .Build();

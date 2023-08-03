@@ -36,13 +36,13 @@ public abstract class TestBase
         }
     }
 
-    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory)
+    protected static IMapperBuilder MakeDefaultMapperBuilder(string[]? excludedProperties = null)
     {
-        return factory.MakeMapperBuilder(nameof(IEntityBaseWithId.Id), nameof(IEntityBaseWithConcurrencyToken.ConcurrencyToken));
-    }
-
-    protected static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory, string[] excludedProperties)
-    {
-        return factory.MakeMapperBuilder(nameof(IEntityBaseWithId.Id), nameof(IEntityBaseWithConcurrencyToken.ConcurrencyToken), excludedProperties);
+        return new MapperBuilderFactory()
+            .Configure()
+                .SetKeyPropertyNames(nameof(IEntityBaseWithId.Id), nameof(IEntityBaseWithConcurrencyToken.ConcurrencyToken))
+                .ExcludedPropertiesByName(excludedProperties)
+                .Finish()
+            .MakeMapperBuilder();
     }
 }

@@ -14,9 +14,7 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
     public async Task Test1_MapNewBookToDatabase()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .Register<NewBookDTO, Book>()
             .Register<Book, BookDTO>()
@@ -63,9 +61,7 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
     private async Task<(IMapper, UpdateBookDTO)> UpdateExistingBookToDatabase()
     {
         // initialize mapper
-        var factory = new MapperBuilderFactory();
-        var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var mapper = mapperBuilder
+        var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
             .Register<NewBookDTO, Book>()

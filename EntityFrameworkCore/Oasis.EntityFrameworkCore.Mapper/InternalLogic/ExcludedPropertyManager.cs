@@ -45,11 +45,6 @@ internal class ExcludedPropertyManager
 
     public void Add(Type type, IReadOnlySet<string> excludedProperties)
     {
-        if (_typeExcludedProperties.ContainsKey(type))
-        {
-            throw new TypeConfiguratedException(type);
-        }
-
         _typeExcludedProperties.Add(type, excludedProperties);
     }
 
@@ -59,11 +54,6 @@ internal class ExcludedPropertyManager
         {
             inner = new Dictionary<Type, IReadOnlySet<string>>();
             _mappingExcludedProperties.Add(sourceType, inner);
-        }
-
-        if (inner.ContainsKey(targetType))
-        {
-            throw new TypeConfiguratedException(targetType);
         }
 
         inner.Add(targetType, excludedProperties);

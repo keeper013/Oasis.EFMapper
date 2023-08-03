@@ -1,10 +1,10 @@
 ﻿namespace Oasis.EntityFramework.Mapper.Test.KeepUnmatched;
 
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using System.Data.Entity;
 
 public sealed class KeepUnmatchedTests : TestBase
 {
@@ -14,8 +14,7 @@ public sealed class KeepUnmatchedTests : TestBase
     public async Task KeepUnmatchedTest(bool keepUnmatched, int count)
     {
         // arrange
-        var factory = new MapperBuilderFactory();
-        var mapper = MakeDefaultMapperBuilder(factory)
+        var mapper = MakeDefaultMapperBuilder()
             .RegisterTwoWay<UnmatchedPrincipal1, UnmatchedPrincipal2>()
             .Build();
 

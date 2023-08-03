@@ -3,7 +3,7 @@
 public sealed class UnconstructableTypeException : EfMapperException
 {
     public UnconstructableTypeException(Type type)
-        : base($"Type {type} doesn't have a parameterless constructor or a factory method defined.")
+        : base($"Type {type.Name} doesn't have a parameterless constructor or a factory method defined.")
     {
     }
 }

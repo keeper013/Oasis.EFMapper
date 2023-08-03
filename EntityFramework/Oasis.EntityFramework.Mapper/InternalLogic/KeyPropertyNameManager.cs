@@ -19,11 +19,6 @@ internal class KeyPropertyNameManager
 
     public void Add(Type type, KeyPropertyConfiguration config)
     {
-        if (_typesUsingCustomConfiguration.ContainsKey(type))
-        {
-            throw new TypeConfiguratedException(type);
-        }
-
         _typesUsingCustomConfiguration.Add(type, config);
     }
 

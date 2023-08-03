@@ -1,6 +1,5 @@
 ﻿namespace Oasis.EntityFramework.Mapper.Test.Custom;
 
-using Oasis.EntityFramework.Mapper.Exceptions;
 using NUnit.Framework;
 
 [TestFixture]
@@ -11,10 +10,11 @@ public class CustomPropertyMappingTests
     {
         var factory = new MapperBuilderFactory();
         var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var custom = factory.MakeCustomTypeMapperBuilder<CustomEntity1, CustomEntity2>()
-            .MapProperty(c2 => c2.InternalIntProperty, c1 => c1.InternalProperty.IntProperty)
+        var mapper = mapperBuilder
+            .Configure<CustomEntity1, CustomEntity2>()
+                .MapProperty(c2 => c2.InternalIntProperty, c1 => c1.InternalProperty.IntProperty)
+                .Finish()
             .Build();
-        var mapper = mapperBuilder.Register<CustomEntity1, CustomEntity2>(custom).Build();
 
         var c1 = new CustomEntity1
         {
@@ -32,10 +32,11 @@ public class CustomPropertyMappingTests
     {
         var factory = new MapperBuilderFactory();
         var mapperBuilder = MakeDefaultMapperBuilder(factory);
-        var custom = factory.MakeCustomTypeMapperBuilder<CustomEntity3, CustomEntity2>()
-            .MapProperty(c2 => c2.InternalIntProperty, c3 => c3.InternalProperty.IntProperty)
+        var mapper = mapperBuilder
+            .Configure<CustomEntity3, CustomEntity2>()
+                .MapProperty(c2 => c2.InternalIntProperty, c3 => c3.InternalProperty.IntProperty)
+                .Finish()
             .Build();
-        var mapper = mapperBuilder.Register<CustomEntity3, CustomEntity2>(custom).Build();
 
         var c3 = new CustomEntity3
         {
@@ -51,6 +52,10 @@ public class CustomPropertyMappingTests
 
     private static IMapperBuilder MakeDefaultMapperBuilder(IMapperBuilderFactory factory)
     {
-        return factory.MakeMapperBuilder(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken));
+        return factory
+            .Configure()
+                .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
+                .Finish()
+            .MakeMapperBuilder();
     }
 }

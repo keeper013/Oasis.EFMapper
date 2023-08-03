@@ -1,5 +1,6 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
+using Oasis.EntityFramework.Mapper.Exceptions;
 using System.Linq.Expressions;
 
 internal sealed class PropertyEntityRemover : IPropertyEntityRemover
@@ -116,15 +117,20 @@ internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper
     }
 }
 
-internal class CustomTypeMapperBuilder<TSource, TTarget> : ICustomTypeMapperConfigurationBuilder<TSource, TTarget>, ICustomTypeMapperConfiguration<TSource, TTarget>
+internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<MapperBuilder>, ICustomTypeMapperConfiguration<TSource, TTarget>, ICustomTypeMapperConfiguration
     where TSource : class
     where TTarget : class
 {
     private CustomPropertyMapper<TSource, TTarget> _customPropertyMapper = new ();
     private PropertyEntityRemover _propertyEntityRemover = new ();
-    private ISet<string> _excludedProperties = new HashSet<string>();
+    private HashSet<string> _excludedProperties = new HashSet<string>();
 
-    public string[]? ExcludedProperties => _excludedProperties.Any() ? _excludedProperties.ToArray() : default;
+    public CustomTypeMapperBuilder(MapperBuilder builder)
+        : base(builder)
+    {
+    }
+
+    public ISet<string>? ExcludedProperties => _excludedProperties.Any() ? _excludedProperties : default;
 
     public ICustomPropertyMapper? CustomPropertyMapper => _customPropertyMapper.HasContent ? _customPropertyMapper : default;
 
@@ -132,38 +138,58 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : ICustomTypeMapperConf
 
     public MapToDatabaseType? MapToDatabaseType { get; private set; }
 
-    public ICustomTypeMapperConfiguration<TSource, TTarget> Build()
-    {
-        return this;
-    }
-
-    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value)
+    public ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value)
     {
         _customPropertyMapper.MapProperty(setter, value);
         return this;
     }
 
-    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> PropertyKeepEntityOnMappingRemoved(string propertyName, bool keep)
+    public ICustomTypeMapperConfiguration<TSource, TTarget> PropertyKeepEntityOnMappingRemoved(string propertyName, bool keep)
     {
         _propertyEntityRemover.KeepEntityOnMappingRemovedForProperty(propertyName, keep);
         return this;
     }
 
-    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> SetMappingKeepEntityOnMappingRemoved(bool keep)
+    public ICustomTypeMapperConfiguration<TSource, TTarget> SetMappingKeepEntityOnMappingRemoved(bool keep)
     {
         _propertyEntityRemover.KeepEntityOnMappingRemoved = keep;
         return this;
     }
 
-    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> ExcludePropertyByName(params string[] names)
+    public ICustomTypeMapperConfiguration<TSource, TTarget> ExcludePropertiesByName(params string[] names)
     {
+        if (names == null || !names.Any())
+        {
+            throw new ArgumentNullException(nameof(names));
+        }
+
+        var sourceProperties = typeof(TSource).GetProperties(Utilities.PublicInstance);
+        var targetProperties = typeof(TTarget).GetProperties(Utilities.PublicInstance);
+        foreach (var propertyName in names)
+        {
+            if (!sourceProperties.Any(p => string.Equals(p.Name, propertyName)) || !targetProperties.Any(p => string.Equals(p.Name, propertyName)))
+            {
+                throw new UselessExcludeException(typeof(TSource), typeof(TTarget), propertyName);
+            }
+        }
+
         _excludedProperties.UnionWith(names);
         return this;
     }
 
-    public ICustomTypeMapperConfigurationBuilder<TSource, TTarget> SetMapToDatabaseType(MapToDatabaseType mapToDatabase)
+    public ICustomTypeMapperConfiguration<TSource, TTarget> SetMapToDatabaseType(MapToDatabaseType mapToDatabase)
     {
         MapToDatabaseType = mapToDatabase;
         return this;
+    }
+
+    public IMapperBuilder Finish()
+    {
+        return FinishInternal();
+    }
+
+    protected override void Configure(MapperBuilder configurator)
+    {
+        configurator.Configure<TSource, TTarget>(this);
     }
 }
