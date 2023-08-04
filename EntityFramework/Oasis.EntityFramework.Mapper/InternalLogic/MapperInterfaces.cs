@@ -38,7 +38,7 @@ public interface IExistingTargetTracker
         where TTarget : class;
 }
 
-public record struct EntityPropertyMappingData(Type sourceType, Type targetType, string propertyName);
+public record struct DependentPropertyData(Type targetType, string propertyName);
 
 /// <summary>
 /// Recursive mapper interface. This interface has to be public, or else generate code will have problem accessing its methods.

@@ -186,7 +186,6 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.NotNull(entity);
         Assert.AreEqual(1, count);
         Assert.AreEqual(id, entity!.Id);
-        Assert.NotNull(entity.ConcurrencyToken);
         Assert.AreEqual(2, entity.IntProp);
         Assert.AreEqual(3, entity.LongNullableProp);
         Assert.AreEqual("4", entity.StringProp);

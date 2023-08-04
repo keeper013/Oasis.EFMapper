@@ -27,14 +27,14 @@ internal sealed class MapperBuilder : IMapperBuilder
         var proxy = _mapperRegistry.MakeEntityBaseProxy(type, scalarTypeConverter);
         var entityFactory = _mapperRegistry.MakeEntityFactory(type);
         var newTargetTrackerProvider = _mapperRegistry.MakeNewTargetTrackerProvider(entityFactory);
-        var entityRemover = _mapperRegistry.MakeEntityRemover();
+        var dependentPropertyManager = _mapperRegistry.MakeDependentPropertyManager();
         var mapToDatabaseTypeManager = _mapperRegistry.MakeMapToDatabaseTypeManager();
         var existingTargetTrackerFactory = _mapperRegistry.MakeExistingTargetTrackerFactory(type);
 
         // release some memory ahead
         _mapperRegistry.Clear();
 
-        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTrackerFactory, proxy, newTargetTrackerProvider, entityRemover, mapToDatabaseTypeManager, entityFactory);
+        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTrackerFactory, proxy, newTargetTrackerProvider, dependentPropertyManager, mapToDatabaseTypeManager, entityFactory);
     }
 
     public IMapperBuilder Register<TSource, TTarget>()
@@ -115,7 +115,7 @@ internal sealed class MapperBuilder : IMapperBuilder
     internal void Configure<TEntity>(IEntityConfiguration configuration)
     {
         if (configuration.IdentityPropertyName == null && configuration.ConcurrencyTokenPropertyName == null && configuration.ExcludedProperties == null
-                && configuration.KeepEntityOnMappingRemoved == null)
+                && configuration.DependentProperties == null)
         {
             throw new EmptyConfiguratedException(typeof(IEntityConfiguration));
         }
@@ -125,8 +125,7 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     internal void Configure<TSource, TTarget>(ICustomTypeMapperConfiguration configuration)
     {
-        if (configuration.CustomPropertyMapper == null && configuration.PropertyEntityRemover == null && configuration.ExcludedProperties == null
-                && configuration.MapToDatabaseType == null)
+        if (configuration.CustomPropertyMapper == null && configuration.ExcludedProperties == null && configuration.MapToDatabaseType == null)
         {
             throw new EmptyConfiguratedException(typeof(ICustomTypeMapperConfiguration));
         }

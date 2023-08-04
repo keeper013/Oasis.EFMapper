@@ -18,13 +18,12 @@ public abstract class TestBase
             .Options;
     }
 
-    protected static IMapperBuilder MakeDefaultMapperBuilder(string[]? excludedProperties = null, bool? keepEntityOnMappingRemoved = null)
+    protected static IMapperBuilder MakeDefaultMapperBuilder(string[]? excludedProperties = null)
     {
         return new MapperBuilderFactory()
             .Configure()
                 .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
                 .ExcludedPropertiesByName(excludedProperties)
-                .SetKeepEntityOnMappingRemoved(keepEntityOnMappingRemoved)
                 .Finish()
             .MakeMapperBuilder();
     }

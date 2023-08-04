@@ -13,20 +13,16 @@ public interface IEntityConfiguration<TEntity> : IConfigurator<IMapperBuilder>
 
     IEntityConfiguration<TEntity> ExcludedPropertiesByName(params string[] names);
 
-    IEntityConfiguration<TEntity> SetKeepEntityOnMappingRemoved(bool keepEntityOnMappingRemoved);
+    IEntityConfiguration<TEntity> SetDependentProperties(params string[] names);
 }
 
 public interface ICustomTypeMapperConfiguration<TSource, TTarget> : IConfigurator<IMapperBuilder>
     where TSource : class
     where TTarget : class
 {
-    ICustomTypeMapperConfiguration<TSource, TTarget> SetMappingKeepEntityOnMappingRemoved(bool keep);
-
     ICustomTypeMapperConfiguration<TSource, TTarget> SetMapToDatabaseType(MapToDatabaseType mapToDatabase);
 
     ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value);
-
-    ICustomTypeMapperConfiguration<TSource, TTarget> PropertyKeepEntityOnMappingRemoved(string propertyName, bool keep);
 
     ICustomTypeMapperConfiguration<TSource, TTarget> ExcludePropertiesByName(params string[] names);
 }

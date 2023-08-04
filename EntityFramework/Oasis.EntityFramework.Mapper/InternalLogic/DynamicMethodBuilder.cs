@@ -85,18 +85,13 @@ internal sealed class DynamicMethodBuilder
         List<PropertyInfo> sourceProperties,
         List<PropertyInfo> targetProperties,
         IRecursiveRegister recursiveRegister,
-        RecursiveRegisterContext context,
-        ISet<string>? keepEntityOnMappingRemovedProperties)
+        RecursiveRegisterContext context)
     {
         var mappedScalarProperties = ExtractScalarProperties(sourceProperties, targetProperties);
         var generateScalarPropertyMappingCode = mappedScalarProperties.Any();
-        var mappedEntityProperties = ExtractEntityProperties(sourceProperties, targetProperties, recursiveRegister, context, keepEntityOnMappingRemovedProperties);
+        var mappedEntityProperties = ExtractEntityProperties(sourceProperties, targetProperties, recursiveRegister, context);
         var generateEntityPropertyMappingCode = mappedEntityProperties.Any();
-        var mappedEntityListProperties = ExtractEntityListProperties(sourceProperties, targetProperties, recursiveRegister, context, keepEntityOnMappingRemovedProperties);
-        if (keepEntityOnMappingRemovedProperties != null && keepEntityOnMappingRemovedProperties.Any())
-        {
-            throw new CustomTypePropertyEntityRemoverException(sourceType, targetType, string.Join("/", keepEntityOnMappingRemovedProperties));
-        }
+        var mappedEntityListProperties = ExtractEntityListProperties(sourceProperties, targetProperties, recursiveRegister, context);
 
         var generateEntityListPropertyMappingCode = mappedEntityListProperties.Any();
 
@@ -275,8 +270,7 @@ internal sealed class DynamicMethodBuilder
         IList<PropertyInfo> sourceProperties,
         IList<PropertyInfo> targetProperties,
         IRecursiveRegister recursiveRegister,
-        RecursiveRegisterContext context,
-        ISet<string>? keepEntityOnMappingRemovedProperties)
+        RecursiveRegisterContext context)
     {
         var sourceEntityProperties = sourceProperties.Where(p => _entityMapperTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
         var targetEntityProperties = targetProperties.Where(p => _entityMapperTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
@@ -292,7 +286,6 @@ internal sealed class DynamicMethodBuilder
                 // cascading mapper creation: if entity mapper doesn't exist, create it
                 context.RegisterIf(recursiveRegister, sourcePropertyType, targetPropertyType, _entityMapperTypeValidator.CanConvert(sourcePropertyType, targetPropertyType));
                 matchedProperties.Add((sourceProperty, sourcePropertyType, targetProperty, targetPropertyType));
-                keepEntityOnMappingRemovedProperties?.Remove(sourceProperty.Name);
             }
         }
 
@@ -331,8 +324,7 @@ internal sealed class DynamicMethodBuilder
         IList<PropertyInfo> sourceProperties,
         IList<PropertyInfo> targetProperties,
         IRecursiveRegister recursiveRegister,
-        RecursiveRegisterContext context,
-        ISet<string>? keepEntityOnMappingRemovedProperties)
+        RecursiveRegisterContext context)
     {
         var sourceEntityListProperties = sourceProperties.Where(p => _entityListMapperTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(false));
         var targetEntityListProperties = targetProperties.Where(p => _entityListMapperTypeValidator.IsValidType(p.PropertyType) && p.VerifyGetterSetter(true)).ToDictionary(p => p.Name, p => p);
@@ -349,7 +341,6 @@ internal sealed class DynamicMethodBuilder
                 context.RegisterIf(recursiveRegister, sourceItemType, targetItemType, _entityListMapperTypeValidator.CanConvert(sourceItemType, targetItemType));
                 recursiveRegister.RegisterEntityListDefaultConstructorMethod(targetType);
                 matchedProperties.Add((sourceProperty, sourceItemType, targetProperty, targetItemType));
-                keepEntityOnMappingRemovedProperties?.Remove(sourceProperty.Name);
             }
         }
 

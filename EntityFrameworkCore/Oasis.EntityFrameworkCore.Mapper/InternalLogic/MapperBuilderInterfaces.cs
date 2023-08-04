@@ -1,12 +1,5 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-internal interface IPropertyEntityRemover
-{
-    bool? MappingKeepEntityOnMappingRemoved { get; }
-
-    IReadOnlyDictionary<string, bool>? PropertyKeepEntityOnMappingRemoved { get; }
-}
-
 internal interface ICustomPropertyMapper
 {
     IEnumerable<PropertyInfo> MappedTargetProperties { get; }
@@ -17,8 +10,6 @@ internal interface ICustomPropertyMapper
 internal interface ICustomTypeMapperConfiguration
 {
     ICustomPropertyMapper? CustomPropertyMapper { get; }
-
-    IPropertyEntityRemover? PropertyEntityRemover { get; }
 
     IReadOnlySet<string>? ExcludedProperties { get; }
 
@@ -33,7 +24,7 @@ internal interface IEntityConfiguration
 
     IReadOnlySet<string>? ExcludedProperties { get; }
 
-    bool? KeepEntityOnMappingRemoved { get; }
+    IReadOnlySet<string>? DependentProperties { get; }
 }
 
 internal interface IMapperBuilderInternal

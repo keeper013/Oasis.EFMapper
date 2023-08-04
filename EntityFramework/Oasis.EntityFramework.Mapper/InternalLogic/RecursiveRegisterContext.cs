@@ -86,9 +86,5 @@ internal sealed class RecursiveRegisterContext : RecursiveContext
 
 internal sealed class MappingToDatabaseContext : RecursiveContext
 {
-    public EntityPropertyMappingData MakeMappingData(string propertyName)
-    {
-        var tuple = Stack.Peek();
-        return new EntityPropertyMappingData(tuple.Item1, tuple.Item2, propertyName);
-    }
+    public Type CurrentTarget => Stack.Peek().Item2;
 }

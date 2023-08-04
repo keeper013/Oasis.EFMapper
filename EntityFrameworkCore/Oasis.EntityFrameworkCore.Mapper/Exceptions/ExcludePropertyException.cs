@@ -28,3 +28,11 @@ public sealed class UselessExcludeException : EfCoreMapperException
     {
     }
 }
+
+public sealed class InvalidDependentException : EfCoreMapperException
+{
+    public InvalidDependentException(Type type, string propertyName)
+        : base($"Type ${type.Name} doesn't have a valid property of class type of list of class type named {propertyName} to be a dependent property.")
+    {
+    }
+}

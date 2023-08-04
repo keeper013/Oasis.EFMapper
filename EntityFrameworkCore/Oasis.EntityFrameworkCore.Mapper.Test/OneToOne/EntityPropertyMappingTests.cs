@@ -162,13 +162,8 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder()
-            .Configure<DependentRequired1_1>()
-                .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
-                .SetKeepEntityOnMappingRemoved(false)
-                .Finish()
-            .Configure<DependentRequired1_2>()
-                .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
-                .SetKeepEntityOnMappingRemoved(false)
+            .Configure<PrincipalRequired1>()
+                .SetDependentProperties(nameof(PrincipalRequired1.Inner1), nameof(PrincipalRequired1.Inner2))
                 .Finish()
             .RegisterTwoWay<PrincipalRequired1, PrincipalRequired2>()
             .Build();
@@ -244,23 +239,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     }
 
     [Fact]
-    public async Task UpdateOneToOneEntityKeepEntityOnMappingRemoved_ShouldSucceed()
-    {
-        // arrange
-        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>().Build();
-
-        await ReplaceOptinoalOneToOneMapping(mapper);
-
-        // assert
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            Assert.Equal(2, await databaseContext.Set<DependentOptional1_1>().CountAsync());
-            Assert.Equal(2, await databaseContext.Set<DependentOptional1_2>().CountAsync());
-        });
-    }
-
-    [Fact]
-    public async Task UpdateOneToOneEntity_WithDefaultKeepEntityOnMappingRemoved_ShouldSucceed()
+    public async Task UpdateOneToOneEntity_ShouldSucceed()
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>().Build();

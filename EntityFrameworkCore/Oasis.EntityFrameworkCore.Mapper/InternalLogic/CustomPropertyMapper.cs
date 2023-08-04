@@ -3,35 +3,6 @@
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Linq.Expressions;
 
-internal sealed class PropertyEntityRemover : IPropertyEntityRemover
-{
-    private readonly Dictionary<string, bool> _propertyKeepEntityOnMappingRemoved = new ();
-    private bool? _mappingKeepEntityOnMappingRemoved;
-
-    public bool? MappingKeepEntityOnMappingRemoved => _mappingKeepEntityOnMappingRemoved;
-
-    public IReadOnlyDictionary<string, bool>? PropertyKeepEntityOnMappingRemoved => _propertyKeepEntityOnMappingRemoved.Any() ? _propertyKeepEntityOnMappingRemoved : null;
-
-    public bool HasContent => _mappingKeepEntityOnMappingRemoved.HasValue || _propertyKeepEntityOnMappingRemoved.Any();
-
-    public bool KeepEntityOnMappingRemoved { set => _mappingKeepEntityOnMappingRemoved = value; }
-
-    public void KeepEntityOnMappingRemovedForProperty(string propertyName, bool keep)
-    {
-        if (string.IsNullOrWhiteSpace(propertyName))
-        {
-            throw new ArgumentNullException(nameof(propertyName));
-        }
-
-        if (_propertyKeepEntityOnMappingRemoved.ContainsKey(propertyName))
-        {
-            throw new ArgumentException($"Property ${propertyName} has been configured for KeepEntityOnMappingRemoved.", nameof(propertyName));
-        }
-
-        _propertyKeepEntityOnMappingRemoved.Add(propertyName, keep);
-    }
-}
-
 internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper
     where TSource : class
     where TTarget : class
@@ -122,7 +93,6 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<
     where TTarget : class
 {
     private CustomPropertyMapper<TSource, TTarget> _customPropertyMapper = new ();
-    private PropertyEntityRemover _propertyEntityRemover = new ();
     private HashSet<string> _excludedProperties = new HashSet<string>();
 
     public CustomTypeMapperBuilder(MapperBuilder builder)
@@ -134,25 +104,11 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<
 
     public ICustomPropertyMapper? CustomPropertyMapper => _customPropertyMapper.HasContent ? _customPropertyMapper : default;
 
-    public IPropertyEntityRemover? PropertyEntityRemover => _propertyEntityRemover.HasContent ? _propertyEntityRemover : default;
-
     public MapToDatabaseType? MapToDatabaseType { get; private set; }
 
     public ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value)
     {
         _customPropertyMapper.MapProperty(setter, value);
-        return this;
-    }
-
-    public ICustomTypeMapperConfiguration<TSource, TTarget> PropertyKeepEntityOnMappingRemoved(string propertyName, bool keep)
-    {
-        _propertyEntityRemover.KeepEntityOnMappingRemovedForProperty(propertyName, keep);
-        return this;
-    }
-
-    public ICustomTypeMapperConfiguration<TSource, TTarget> SetMappingKeepEntityOnMappingRemoved(bool keep)
-    {
-        _propertyEntityRemover.KeepEntityOnMappingRemoved = keep;
         return this;
     }
 

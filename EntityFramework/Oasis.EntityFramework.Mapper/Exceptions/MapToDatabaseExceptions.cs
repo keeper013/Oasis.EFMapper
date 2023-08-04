@@ -26,16 +26,8 @@ public sealed class UpdateToDatabaseWithoutRecordException : EfMapperException
 
 public sealed class MissingIdentityException : EfMapperException
 {
-    public MissingIdentityException(Type type)
-        : base($"Type {type.Name} needs a valid identity property for KeepOnMappingRemoved configuration.")
-    {
-    }
-}
-
-public sealed class CustomTypePropertyEntityRemoverException : EfMapperException
-{
-    public CustomTypePropertyEntityRemoverException(Type source, Type targetType, string propertyName)
-        : base($"No property of entity type or entity list type with name(s) \"{propertyName}\" was found when mapping from ${source} to ${targetType}")
+    public MissingIdentityException(Type type, string identityPropertyName)
+        : base($"Type {type.Name} needs a valid identity property of name ${identityPropertyName}.")
     {
     }
 }

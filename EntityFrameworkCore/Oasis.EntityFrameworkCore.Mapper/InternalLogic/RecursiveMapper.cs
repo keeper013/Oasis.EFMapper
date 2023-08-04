@@ -82,7 +82,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
     private readonly IEntityFactory _entityFactory;
     private readonly MapperSetLookUp _lookup;
     private readonly EntityBaseProxy _entityBaseProxy;
-    private readonly EntityRemover _entityRemover;
+    private readonly DependentPropertyManager _dependentPropertyManager;
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
     private readonly DbContext _databaseContext;
     private readonly MappingToDatabaseContext _mappingContext = new ();
@@ -92,7 +92,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
         EntityBaseProxy entityBaseProxy,
-        EntityRemover entityRemover,
+        DependentPropertyManager DependentPropertyManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
         IEntityFactory entityFactory,
         DbContext databaseContext)
@@ -101,7 +101,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         _scalarConverter = scalarConverter;
         _entityFactory = entityFactory;
         _lookup = lookup;
-        _entityRemover = entityRemover;
+        _dependentPropertyManager = DependentPropertyManager;
         _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
         _entityBaseProxy = entityBaseProxy;
         _databaseContext = databaseContext;
@@ -184,9 +184,9 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
     {
         if (source == default)
         {
-            if (target != default)
+            if (target != default && _dependentPropertyManager.IsDependent(_mappingContext.CurrentTarget, propertyName))
             {
-                _entityRemover.RemoveIfConfigured(_databaseContext, target, _mappingContext.MakeMappingData(propertyName));
+                _databaseContext.Set<TTarget>().Remove(target);
             }
 
             return default;
@@ -200,9 +200,10 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                 throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
             }
 
-            if (target != default && EntityBaseProxy.HasId<TTarget>() && !EntityBaseProxy.IdIsEmpty(target))
+            if (target != default && EntityBaseProxy.HasId<TTarget>() && !EntityBaseProxy.IdIsEmpty(target)
+                && _dependentPropertyManager.IsDependent(_mappingContext.CurrentTarget, propertyName))
             {
-                _entityRemover.RemoveIfConfigured(_databaseContext, target, _mappingContext.MakeMappingData(propertyName));
+                _databaseContext.Set<TTarget>().Remove(target);
             }
 
             return MapToNewTarget<TSource, TTarget>(source, false, existingTargetTracker, newTargetTracker, keepUnmatched);
@@ -210,9 +211,12 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
 
         if (target != default && !EntityBaseProxy.IdEquals(source, target))
         {
-            // TODO: id change is id change, not removal and add new, or, access database once, changing id is dangerous anyway.
-            // plus, map key properties change from boolean to enum: none, id only, id and concurrency token
-            _entityRemover.RemoveIfConfigured(_databaseContext, target, _mappingContext.MakeMappingData(propertyName));
+            // TODO, map key properties change from boolean to enum: none, id only, id and concurrency token
+            if (_dependentPropertyManager.IsDependent(_mappingContext.CurrentTarget, propertyName))
+            {
+                _databaseContext.Set<TTarget>().Remove(target);
+            }
+
             target = FindOrAddTarget<TSource, TTarget>(source, newTargetTracker, mapType);
         }
 
@@ -275,10 +279,14 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
 
         if (!(keepUnmatched.HasValue && keepUnmatched.Value))
         {
+            var toRemoveFromDatabase = _dependentPropertyManager.IsDependent(_mappingContext.CurrentTarget, propertyName);
             foreach (var toBeRemoved in shadowSet)
             {
                 target.Remove(toBeRemoved);
-                _entityRemover.RemoveIfConfigured(_databaseContext, toBeRemoved, _mappingContext.MakeMappingData(propertyName));
+                if (toRemoveFromDatabase)
+                {
+                    _databaseContext.Set<TTarget>().Remove(toBeRemoved);
+                }
             }
         }
     }

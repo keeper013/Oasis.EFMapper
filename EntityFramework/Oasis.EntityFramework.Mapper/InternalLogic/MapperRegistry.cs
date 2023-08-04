@@ -10,19 +10,17 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarTypes = new ();
-    private readonly Dictionary<Type, bool> _typeKeepEntityOnMappingRemovedConfiguration = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeIdProxies = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeConcurrencyTokenProxies = new ();
     private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet?>> _mapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _idComparers = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _concurrencyTokenComparers = new ();
-    private readonly Dictionary<Type, Dictionary<Type, bool>> _mappingKeepEntityOnMappingRemoved = new ();
-    private readonly Dictionary<Type, Dictionary<Type, IReadOnlyDictionary<string, bool>>> _propertyKeepEntityOnMappingRemoved = new ();
     private readonly Dictionary<Type, Dictionary<Type, MapToDatabaseType>> _mapToDatabaseDictionary = new ();
     private readonly Dictionary<Type, Dictionary<Type, ICustomTypeMapperConfiguration?>> _toBeRegistered = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
     private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
+    private readonly Dictionary<Type, ISet<string>> _dependentPropertiesDictionary = new ();
     private readonly Dictionary<Type, ExistingTargetTrackerMetaDataSet> _existingTargetTrackers = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityDefaultConstructors = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityListDefaultConstructors = new ();
@@ -31,7 +29,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly IMapperTypeValidator _entityMapperTypeValidator;
     private readonly KeyPropertyNameManager _keyPropertyNames;
     private readonly ExcludedPropertyManager _excludedPropertyManager;
-    private readonly bool _defaultKeepEntityOnMappingRemoved;
     private readonly MapToDatabaseType _defaultMapToDatabase;
 
     public MapperRegistry(ModuleBuilder module, IMapperBuilderConfiguration? configuration)
@@ -41,7 +38,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
         _scalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTypes);
         _entityMapperTypeValidator = new EntityMapperTypeValidator(_mapper);
         _excludedPropertyManager = new (configuration?.ExcludedProperties);
-        _defaultKeepEntityOnMappingRemoved = configuration?.KeepEntityOnMappingRemoved ?? true;
         _dynamicMethodBuilder = new (
             module.DefineType("Mapper", TypeAttributes.Public),
             _scalarMapperTypeValidator,
@@ -93,18 +89,13 @@ internal sealed class MapperRegistry : IRecursiveRegister
             }
             else
             {
-                throw new MissingIdentityException(type);
+                throw new MissingIdentityException(type, configuration.IdentityPropertyName!);
             }
         }
 
-        if (configuration.KeepEntityOnMappingRemoved.HasValue)
+        if (configuration.DependentProperties != null)
         {
-            if (properties.GetKeyProperty(_keyPropertyNames.GetIdentityPropertyName(type), false) == null)
-            {
-                throw new MissingIdentityException(type);
-            }
-
-            _typeKeepEntityOnMappingRemovedConfiguration.Add(type, configuration.KeepEntityOnMappingRemoved.Value);
+            _dependentPropertiesDictionary.Add(type, configuration.DependentProperties);
         }
 
         if (configuration.ExcludedProperties != null && configuration.ExcludedProperties.Any())
@@ -212,7 +203,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
     public bool IsConfigured(Type sourceType, Type targetType) => _toBeRegistered.Find(sourceType, targetType) != null;
 
     public bool IsConfigured(Type entityType) => _keyPropertyNames.ContainsConfiguration(entityType)
-        || _typeKeepEntityOnMappingRemovedConfiguration.ContainsKey(entityType)
         || _excludedPropertyManager.ContainsTypeConfiguration(entityType);
 
     public IScalarTypeConverter MakeScalarTypeConverter()
@@ -250,9 +240,9 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new NewTargetTrackerProvider(_loopDependencyMapping, entityFactory);
     }
 
-    public EntityRemover MakeEntityRemover()
+    public DependentPropertyManager MakeDependentPropertyManager()
     {
-        return new EntityRemover(_defaultKeepEntityOnMappingRemoved, _typeKeepEntityOnMappingRemovedConfiguration, _mappingKeepEntityOnMappingRemoved, _propertyKeepEntityOnMappingRemoved);
+        return new DependentPropertyManager(_dependentPropertiesDictionary);
     }
 
     public MapToDatabaseTypeManager MakeMapToDatabaseTypeManager()
@@ -311,22 +301,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
 
             if (!innerMapper.TryGetValue(targetType, out var mapperMetaDataSet))
             {
-                ISet<string>? keepEntityOnMappingRemovedProperties = null;
-                if (configuration?.PropertyEntityRemover != null)
-                {
-                    var remover = configuration.PropertyEntityRemover;
-                    if (remover.MappingKeepEntityOnMappingRemoved.HasValue)
-                    {
-                        _mappingKeepEntityOnMappingRemoved.AddIfNotExists(sourceType, targetType, remover.MappingKeepEntityOnMappingRemoved.Value);
-                    }
-
-                    if (remover.PropertyKeepEntityOnMappingRemoved != null)
-                    {
-                        _propertyKeepEntityOnMappingRemoved.AddIfNotExists(sourceType, targetType, remover.PropertyKeepEntityOnMappingRemoved);
-                        keepEntityOnMappingRemovedProperties = remover.PropertyKeepEntityOnMappingRemoved.Keys.ToHashSet();
-                    }
-                }
-
                 if (configuration?.MapToDatabaseType != null)
                 {
                     _mapToDatabaseDictionary.AddIfNotExists(sourceType, targetType, configuration.MapToDatabaseType.Value);
@@ -346,8 +320,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
                     sourceProperties,
                     targetProperties,
                     this,
-                    context,
-                    keepEntityOnMappingRemovedProperties);
+                    context);
                 innerMapper[targetType] = Utilities.BuildMapperMetaDataSet(configuration?.CustomPropertyMapper?.MapProperties, keyMapper, contentMapper);
             }
         }

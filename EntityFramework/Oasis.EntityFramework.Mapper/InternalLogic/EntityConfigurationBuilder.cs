@@ -5,8 +5,6 @@ using Oasis.EntityFramework.Mapper.Exceptions;
 internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration<MapperBuilder>, IEntityConfiguration<TEntity>, IEntityConfiguration
     where TEntity : class
 {
-    private readonly HashSet<string> _excludedProperties = new HashSet<string>();
-
     public EntityConfigurationBuilder(MapperBuilder configurator)
         : base(configurator)
     {
@@ -16,9 +14,9 @@ internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration
 
     public string? ConcurrencyTokenPropertyName { get; private set; }
 
-    public ISet<string>? ExcludedProperties => _excludedProperties.Any() ? _excludedProperties : default;
+    public ISet<string>? ExcludedProperties { get; private set; }
 
-    public bool? KeepEntityOnMappingRemoved { get; private set; }
+    public ISet<string>? DependentProperties { get; private set; }
 
     public IEntityConfiguration<TEntity> ExcludedPropertiesByName(params string[] names)
     {
@@ -36,7 +34,7 @@ internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration
             }
         }
 
-        _excludedProperties.UnionWith(names);
+        ExcludedProperties = new HashSet<string>(names);
         return this;
     }
 
@@ -51,6 +49,33 @@ internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration
         return this;
     }
 
+    public IEntityConfiguration<TEntity> SetDependentProperties(params string[] names)
+    {
+        if (names == null || !names.Any())
+        {
+            throw new ArgumentNullException(nameof(names));
+        }
+
+        var properties = typeof(TEntity).GetProperties(Utilities.PublicInstance);
+        foreach (var propertyName in names)
+        {
+            var property = properties.FirstOrDefault(p => string.Equals(p.Name, propertyName));
+            if (property == null)
+            {
+                throw new InvalidDependentException(typeof(TEntity), propertyName);
+            }
+
+            var propertyType = property.PropertyType;
+            if (!propertyType.IsEntityType() && !propertyType.IsListOfEntityType())
+            {
+                throw new InvalidDependentException(typeof(TEntity), propertyName);
+            }
+        }
+
+        DependentProperties = new HashSet<string>(names);
+        return this;
+    }
+
     public IEntityConfiguration<TEntity> SetIdentityPropertyName(string identityPropertyName)
     {
         IdentityPropertyName = identityPropertyName;
@@ -61,12 +86,6 @@ internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration
     {
         IdentityPropertyName = identityPropertyName;
         ConcurrencyTokenPropertyName = concurrencyTokenPropertyName;
-        return this;
-    }
-
-    public IEntityConfiguration<TEntity> SetKeepEntityOnMappingRemoved(bool keepEntityOnMappingRemoved)
-    {
-        KeepEntityOnMappingRemoved = keepEntityOnMappingRemoved;
         return this;
     }
 

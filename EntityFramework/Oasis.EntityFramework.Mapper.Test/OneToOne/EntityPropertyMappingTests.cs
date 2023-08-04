@@ -163,13 +163,8 @@ public sealed class EntityPropertyMappingTests : TestBase
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder()
-            .Configure<DependentRequired1_1>()
-                .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
-                .SetKeepEntityOnMappingRemoved(false)
-                .Finish()
-            .Configure<DependentRequired1_2>()
-                .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
-                .SetKeepEntityOnMappingRemoved(false)
+            .Configure<PrincipalRequired1>()
+                .SetDependentProperties(nameof(PrincipalRequired1.Inner1), nameof(PrincipalRequired1.Inner2))
                 .Finish()
             .RegisterTwoWay<PrincipalRequired1, PrincipalRequired2>()
             .Build();
@@ -243,40 +238,6 @@ public sealed class EntityPropertyMappingTests : TestBase
         Assert.AreEqual(2, result2.Inner1!.LongProp);
         Assert.NotNull(result2.Inner2);
         Assert.AreEqual("2", result2.Inner2!.StringProp);
-    }
-
-    [Test]
-    [Ignore("EF6 doesn't seems to handle replacing one to one relation entity very well, it updates first, and cause a unique constraint problem, deleting should come first.")]
-    public async Task UpdateOneToOneEntityKeepEntityOnMappingRemoved_ShouldSucceed()
-    {
-        // arrange
-        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>().Build();
-
-        await ReplaceOptinoalOneToOneMapping(mapper);
-
-        // assert
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            Assert.AreEqual(2, await databaseContext.Set<DependentOptional1_1>().CountAsync());
-            Assert.AreEqual(2, await databaseContext.Set<DependentOptional1_2>().CountAsync());
-        });
-    }
-
-    [Test]
-    [Ignore("EF6 doesn't seems to handle replacing one to one relation entity very well, it updates first, and cause a unique constraint problem, deleting should come first.")]
-    public async Task UpdateOneToOneEntity_WithDefaultKeepEntityOnMappingRemoved_ShouldSucceed()
-    {
-        // arrange
-        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>().Build();
-
-        await ReplaceOptinoalOneToOneMapping(mapper);
-
-        // assert
-        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-        {
-            Assert.AreEqual(2, await databaseContext.Set<DependentOptional1_1>().CountAsync());
-            Assert.AreEqual(2, await databaseContext.Set<DependentOptional1_2>().CountAsync());
-        });
     }
 
     [Test]

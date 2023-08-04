@@ -8,8 +8,6 @@ public interface IMapperBuilderConfiguration
 
     ISet<string>? ExcludedProperties { get; }
 
-    bool KeepEntityOnMappingRemoved { get; }
-
     MapToDatabaseType MapToDatabaseType { get; }
 
     bool ThrowForRedundantConfiguration { get; }
@@ -24,8 +22,6 @@ public interface IMapperBuilderConfigurationBuilder : IConfigurator<IMapperBuild
     IMapperBuilderConfigurationBuilder SetKeyPropertyNames(string? identityPropertyName, string? concurrencyTokenPropertyName = null);
 
     IMapperBuilderConfigurationBuilder ExcludedPropertiesByName(params string[]? names);
-
-    IMapperBuilderConfigurationBuilder SetKeepEntityOnMappingRemoved(bool? keepEntityOnMappingRemoved);
 
     IMapperBuilderConfigurationBuilder SetMapToDatabaseType(MapToDatabaseType? mapToDatabase);
 

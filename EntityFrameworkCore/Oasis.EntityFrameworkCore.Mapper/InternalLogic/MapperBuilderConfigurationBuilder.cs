@@ -8,7 +8,6 @@ internal sealed class MapperBuilderConfigurationBuilder : BuilderConfiguration<M
         : base(factory)
     {
         MapToDatabaseType = MapToDatabaseType.Upsert;
-        KeepEntityOnMappingRemoved = IMapperBuilder.DefaultKeepEntityOnMappingRemoved;
     }
 
     public string? IdentityPropertyName { get; private set; }
@@ -16,8 +15,6 @@ internal sealed class MapperBuilderConfigurationBuilder : BuilderConfiguration<M
     public string? ConcurrencyTokenPropertyName { get; private set; }
 
     public IReadOnlySet<string>? ExcludedProperties => _excludedProperties.Any() ? _excludedProperties : default;
-
-    public bool KeepEntityOnMappingRemoved { get; private set; }
 
     public MapToDatabaseType MapToDatabaseType { get; private set; }
 
@@ -42,12 +39,6 @@ internal sealed class MapperBuilderConfigurationBuilder : BuilderConfiguration<M
     public IMapperBuilderConfigurationBuilder SetIdentityPropertyName(string? identityPropertyName)
     {
         IdentityPropertyName = identityPropertyName;
-        return this;
-    }
-
-    public IMapperBuilderConfigurationBuilder SetKeepEntityOnMappingRemoved(bool? keepEntityOnMappingRemoved)
-    {
-        KeepEntityOnMappingRemoved = keepEntityOnMappingRemoved ?? IMapperBuilder.DefaultKeepEntityOnMappingRemoved;
         return this;
     }
 

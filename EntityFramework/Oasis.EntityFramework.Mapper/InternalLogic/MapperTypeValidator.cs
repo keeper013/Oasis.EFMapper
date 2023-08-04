@@ -1,7 +1,5 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
-using System.Diagnostics.CodeAnalysis;
-
 internal interface IMapperTypeValidator
 {
     bool IsValidType(Type type);
@@ -31,6 +29,12 @@ internal static class MapperTypeValidatorExtensions
     public static bool IsEntityType(this Type type)
     {
         return type.IsClass && !NonEntityClassTypes.Contains(type) && !IsOfGenericTypeDefinition(type, EnumerableType) && !type.GetInterfaces().Any(i => IsOfGenericTypeDefinition(i, EnumerableType));
+    }
+
+    public static bool IsListOfEntityType(this Type type)
+    {
+        var itemType = type.GetListItemType();
+        return itemType != null ? itemType.IsEntityType() : false;
     }
 
     public static Type? GetListType(this Type type)
@@ -101,12 +105,6 @@ internal sealed class EntityListMapperTypeValidator : MapperTypeValidator<Mapper
 
     public override bool IsValidType(Type type)
     {
-        return TryGetListItemType(type, out var itemType) && itemType!.IsEntityType();
-    }
-
-    private static bool TryGetListItemType(Type type, out Type? itemType)
-    {
-        itemType = type.GetListItemType();
-        return itemType != default;
+        return type.IsListOfEntityType();
     }
 }
