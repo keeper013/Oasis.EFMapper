@@ -2,6 +2,7 @@
 
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Reflection.Emit;
+using System.Text.RegularExpressions;
 
 internal enum KeyType
 {
@@ -69,11 +70,11 @@ internal sealed class DynamicMethodBuilder
         if (sourceIdentityProperty != default && targetIdentityProperty != default)
         {
             var methodName = BuildMapperMethodName(MapKeyPropertiesMethod, sourceType, targetType);
-            var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(void));
+            var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter), typeof(bool) }, typeof(void));
             var generator = method.GetILGenerator();
             GenerateKeyPropertiesMappingCode(generator, sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty);
             generator.Emit(OpCodes.Ret);
-            return new MethodMetaData(typeof(Utilities.MapScalarProperties<,>).MakeGenericType(sourceType, targetType), method.Name);
+            return new MethodMetaData(typeof(Utilities.MapKeyProperties<,>).MakeGenericType(sourceType, targetType), method.Name);
         }
 
         return null;
@@ -228,7 +229,11 @@ internal sealed class DynamicMethodBuilder
 
         if (sourceConcurrencyTokenProperty != default && targetConcurrencyTokenProperty != default)
         {
+            generator.Emit(OpCodes.Ldarg_3);
+            var jumpLabel = generator.DefineLabel();
+            generator.Emit(OpCodes.Brtrue_S, jumpLabel);
             GenerateScalarPropertyValueAssignmentIL(generator, sourceConcurrencyTokenProperty!, targetConcurrencyTokenProperty!);
+            generator.MarkLabel(jumpLabel);
         }
     }
 

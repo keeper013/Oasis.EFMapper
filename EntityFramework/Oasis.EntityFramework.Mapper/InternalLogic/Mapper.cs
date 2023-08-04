@@ -4,6 +4,24 @@ using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 
+internal enum MapKeyProperties : byte
+{
+    /// <summary>
+    /// Mapping neither id nor concurrency token
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// Mapping id only
+    /// </summary>
+    IdOnly = 1,
+
+    /// <summary>
+    /// Mapping both id and concurrency token
+    /// </summary>
+    IdAndConcurrencyToken = 2,
+}
+
 internal sealed class Mapper : IMapper
 {
     private readonly IScalarTypeConverter _scalarConverter;
@@ -57,7 +75,7 @@ internal sealed class Mapper : IMapper
         var newEntityTracker = _newTargetTrackerProvider.Provide<TSource, TTarget, int>();
         var existingTargetTracker = _existingTargetTrackerFactory.Make<TTarget>();
         var target = _entityFactory.Make<TTarget>();
-        _toMemoryRecursiveMapper.Map(source, target, true, existingTargetTracker, newEntityTracker);
+        _toMemoryRecursiveMapper.Map(source, target, MapKeyProperties.IdAndConcurrencyToken, existingTargetTracker, newEntityTracker);
         return target;
     }
 
@@ -94,7 +112,7 @@ internal sealed class MappingSession : IMappingSession
     {
         if (!_newTargetTracker.NewTargetIfNotExist<TTarget>(source.GetHashCode(), out var target))
         {
-            _toMemoryRecursiveMapper.Map(source, target, true, _existingTargetTracker, _newTargetTracker);
+            _toMemoryRecursiveMapper.Map(source, target, MapKeyProperties.IdAndConcurrencyToken, _existingTargetTracker, _newTargetTracker);
         }
 
         return target;

@@ -40,7 +40,7 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
         return _listTypeConstructor.Construct<TList, TItem>();
     }
 
-    internal void Map<TSource, TTarget>(TSource source, TTarget target, bool mapKeyProperties, IExistingTargetTracker? existingTargetTracker, INewTargetTracker<int>? newTargetTracker, MappingToDatabaseContext? context = null, bool? keepUnmatched = null)
+    internal void Map<TSource, TTarget>(TSource source, TTarget target, MapKeyProperties mapKeyProperties, IExistingTargetTracker? existingTargetTracker, INewTargetTracker<int>? newTargetTracker, MappingToDatabaseContext? context = null, bool? keepUnmatched = null)
         where TSource : class
         where TTarget : class
     {
@@ -67,9 +67,9 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
         using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
         (mapperSet.customPropertiesMapper as Action<TSource, TTarget>)?.Invoke(source, target);
 
-        if (mapKeyProperties)
+        if (mapKeyProperties != MapKeyProperties.None)
         {
-            (mapperSet.keyMapper as Utilities.MapScalarProperties<TSource, TTarget>)?.Invoke(source, target, _scalarConverter);
+            (mapperSet.keyMapper as Utilities.MapKeyProperties<TSource, TTarget>)?.Invoke(source, target, _scalarConverter, mapKeyProperties == MapKeyProperties.IdOnly);
         }
 
         (mapperSet.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, _scalarConverter, this, existingTargetTracker, newTargetTracker, keepUnmatched);
@@ -156,7 +156,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                     }
                     else
                     {
-                        Map(source, target, false, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
+                        Map(source, target, MapKeyProperties.None, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
                         return target;
                     }
                 }
@@ -175,7 +175,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             }
         }
 
-        return MapToNewTarget<TSource, TTarget>(source, sourceHasId, existingTargetTracker, newTargetTracker, keepUnmatched);
+        return MapToNewTarget<TSource, TTarget>(source, sourceHasId ? MapKeyProperties.IdOnly : MapKeyProperties.None, existingTargetTracker, newTargetTracker, keepUnmatched);
     }
 
     public override TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<int>? newTargetTracker, string propertyName, bool? keepUnmatched)
@@ -206,12 +206,11 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                 _databaseContext.Set<TTarget>().Remove(target);
             }
 
-            return MapToNewTarget<TSource, TTarget>(source, false, existingTargetTracker, newTargetTracker, keepUnmatched);
+            return MapToNewTarget<TSource, TTarget>(source, MapKeyProperties.None, existingTargetTracker, newTargetTracker, keepUnmatched);
         }
 
         if (target != default && !EntityBaseProxy.IdEquals(source, target))
         {
-            // TODO, map key properties change from boolean to enum: none, id only, id and concurrency token
             if (_dependentPropertyManager.IsDependent(_mappingContext.CurrentTarget, propertyName))
             {
                 _databaseContext.Set<TTarget>().Remove(target);
@@ -225,7 +224,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             target = FindOrAddTarget<TSource, TTarget>(source, newTargetTracker, mapType);
         }
 
-        Map(source, target, false, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
+        Map(source, target, MapKeyProperties.None, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
         return target;
     }
 
@@ -252,7 +251,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                         throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
                     }
 
-                    target.Add(MapToNewTarget<TSource, TTarget>(s, false, existingTargetTracker, newTargetTracker, keepUnmatched));
+                    target.Add(MapToNewTarget<TSource, TTarget>(s, MapKeyProperties.None, existingTargetTracker, newTargetTracker, keepUnmatched));
                 }
                 else
                 {
@@ -264,13 +263,13 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                             throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
                         }
 
-                        Map(s, t, false, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
+                        Map(s, t, MapKeyProperties.None, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
                         shadowSet.Remove(t);
                     }
                     else
                     {
                         t = FindOrAddTarget<TSource, TTarget>(s, newTargetTracker, mapType);
-                        Map(s, t, false, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
+                        Map(s, t, MapKeyProperties.None, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
                         target.Add(t);
                     }
                 }
@@ -310,7 +309,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         return Expression.Lambda<Func<TEntity, bool>>(equal, parameter);
     }
 
-    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, bool mapKeyProperties, IExistingTargetTracker? existingTargetTracker, INewTargetTracker<int>? newTargetTracker, bool? keepUnmatched)
+    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, MapKeyProperties mapKeyProperties, IExistingTargetTracker? existingTargetTracker, INewTargetTracker<int>? newTargetTracker, bool? keepUnmatched)
         where TSource : class
         where TTarget : class
     {
@@ -371,7 +370,8 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         var mapperSet = _lookup.LookUp(typeof(TSource), typeof(TTarget));
         if (mapperSet?.keyMapper != null)
         {
-            ((Utilities.MapScalarProperties<TSource, TTarget>)mapperSet.Value.keyMapper)(source, target, _scalarConverter);
+            // when entered this method, source is guaranteed to have an id
+            ((Utilities.MapKeyProperties<TSource, TTarget>)mapperSet.Value.keyMapper)(source, target, _scalarConverter, true);
         }
 
         return target;
@@ -401,7 +401,7 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper
         {
             if (target != default)
             {
-                Map(source, target, true, existingTargetTracker, newTargetTracker);
+                Map(source, target, MapKeyProperties.IdAndConcurrencyToken, existingTargetTracker, newTargetTracker);
                 return target;
             }
 
@@ -446,7 +446,7 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper
 
         if (!targetHasBeenMapped)
         {
-            Map(source, newTarget, true, existingTargetTracker, newTargetTracker);
+            Map(source, newTarget, MapKeyProperties.IdAndConcurrencyToken, existingTargetTracker, newTargetTracker);
         }
 
         return newTarget;
