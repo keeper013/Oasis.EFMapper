@@ -88,7 +88,7 @@ internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper
     }
 }
 
-internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<MapperBuilder>, ICustomTypeMapperConfiguration<TSource, TTarget>, ICustomTypeMapperConfiguration
+internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<MapperBuilder, IMapperBuilder>, ICustomTypeMapperConfiguration<TSource, TTarget>, ICustomTypeMapperConfiguration
     where TSource : class
     where TTarget : class
 {
@@ -137,11 +137,6 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<
     {
         MapToDatabaseType = mapToDatabase;
         return this;
-    }
-
-    public IMapperBuilder Finish()
-    {
-        return FinishInternal();
     }
 
     protected override void Configure(MapperBuilder configurator)

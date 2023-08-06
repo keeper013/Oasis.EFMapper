@@ -9,8 +9,9 @@ public interface IConfigurator<TConfigurator>
     TConfigurator Finish();
 }
 
-public abstract class BuilderConfiguration<TConfigurator>
-    where TConfigurator : class
+public abstract class BuilderConfiguration<TConfigurator, TInterface> : IConfigurator<TInterface>
+    where TInterface : class
+    where TConfigurator : TInterface
 {
     private readonly TConfigurator _configurator;
 
@@ -19,7 +20,7 @@ public abstract class BuilderConfiguration<TConfigurator>
         _configurator = configurator;
     }
 
-    protected TConfigurator FinishInternal()
+    public TInterface Finish()
     {
         Configure(_configurator);
         return _configurator;

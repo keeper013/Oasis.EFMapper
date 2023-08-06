@@ -1,6 +1,6 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
-internal sealed class MapperBuilderConfigurationBuilder : BuilderConfiguration<MapperBuilderFactory>, IMapperBuilderConfigurationBuilder, IMapperBuilderConfiguration
+internal sealed class MapperBuilderConfigurationBuilder : BuilderConfiguration<MapperBuilderFactory, IMapperBuilderFactory>, IMapperBuilderConfigurationBuilder, IMapperBuilderConfiguration
 {
     private readonly HashSet<string> _excludedProperties = new ();
 
@@ -59,11 +59,6 @@ internal sealed class MapperBuilderConfigurationBuilder : BuilderConfiguration<M
     {
         ThrowForRedundantConfiguration = doThrow ?? true;
         return this;
-    }
-
-    public IMapperBuilderFactory Finish()
-    {
-        return FinishInternal();
     }
 
     protected override void Configure(MapperBuilderFactory configurator)

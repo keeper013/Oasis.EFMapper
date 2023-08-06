@@ -2,7 +2,7 @@
 
 using Oasis.EntityFramework.Mapper.Exceptions;
 
-internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration<MapperBuilder>, IEntityConfiguration<TEntity>, IEntityConfiguration
+internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration<MapperBuilder, IMapperBuilder>, IEntityConfiguration<TEntity>, IEntityConfiguration
     where TEntity : class
 {
     public EntityConfigurationBuilder(MapperBuilder configurator)
@@ -36,11 +36,6 @@ internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration
 
         ExcludedProperties = new HashSet<string>(names);
         return this;
-    }
-
-    public IMapperBuilder Finish()
-    {
-        return FinishInternal();
     }
 
     public IEntityConfiguration<TEntity> SetConcurrencyTokenPropertyName(string concurrencyTokenPropertyName)
