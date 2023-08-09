@@ -27,9 +27,27 @@ internal sealed class RecursiveContextPopper : IDisposable
     }
 }
 
+internal enum RecursivelyRegisterType
+{
+    /// <summary>
+    /// Top level.
+    /// </summary>
+    TopLevel = 0,
+
+    /// <summary>
+    /// Entity property of an entity.
+    /// </summary>
+    EntityProperty = 1,
+
+    /// <summary>
+    /// List of entity property of an entity.
+    /// </summary>
+    ListOfEntityProperty = 2,
+}
+
 internal interface IRecursiveRegister
 {
-    void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context);
+    void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context, RecursivelyRegisterType recursivelyRegisterType);
 
     void RegisterEntityListDefaultConstructorMethod(Type type);
 }
@@ -68,7 +86,7 @@ internal sealed class RecursiveRegisterContext : RecursiveContext
         }
     }
 
-    public void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered)
+    public void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered, RecursivelyRegisterType recursivelyRegisterType)
     {
         if (hasRegistered)
         {
@@ -79,7 +97,7 @@ internal sealed class RecursiveRegisterContext : RecursiveContext
         }
         else
         {
-            recursiveRegister.RecursivelyRegister(sourceType, targetType, this);
+            recursiveRegister.RecursivelyRegister(sourceType, targetType, this, recursivelyRegisterType);
         }
     }
 }

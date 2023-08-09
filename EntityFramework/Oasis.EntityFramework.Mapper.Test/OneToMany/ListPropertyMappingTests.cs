@@ -275,8 +275,9 @@ public class ListPropertyMappingTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var subInstance1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
-            var subInstance2 = new SubScalarEntity1(2, 3, "4", new byte[] { 2 });
             databaseContext.Set<CollectionEntity1>().Add(new CollectionEntity1(1, new List<SubScalarEntity1> { subInstance1 }));
+            await databaseContext.SaveChangesAsync();
+            var subInstance2 = new SubScalarEntity1(2, 3, "4", new byte[] { 2 });
             databaseContext.Set<SubScalarEntity1>().Add(subInstance2);
             await databaseContext.SaveChangesAsync();
         });

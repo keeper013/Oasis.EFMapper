@@ -24,10 +24,10 @@ public sealed class UpdateToDatabaseWithoutRecordException : EfMapperException
     }
 }
 
-public sealed class MissingIdentityException : EfMapperException
+public sealed class MissingKeyPropertyException : EfMapperException
 {
-    public MissingIdentityException(Type type, string identityPropertyName)
-        : base($"Type {type.Name} needs a valid identity property of name ${identityPropertyName}.")
+    public MissingKeyPropertyException(Type type, string keyName, string identityPropertyName)
+        : base($"Type {type.Name} needs a valid {keyName} property of name {identityPropertyName}.")
     {
     }
 }
@@ -36,6 +36,14 @@ public sealed class MapToDatabaseTypeException : EfMapperException
 {
     public MapToDatabaseTypeException(Type sourceType, Type targetType, MapToDatabaseType mapType)
         : base($"Mapping from {sourceType.Name} to {targetType.Name}, {mapType} is configured as not allowed.")
+    {
+    }
+}
+
+public sealed class ConcurrencyTokenException : EfMapperException
+{
+    public ConcurrencyTokenException(Type sourceType, Type targetType)
+        : base($"Concurrency token mismatch when mapping from {sourceType.Name} to {targetType.Name}.")
     {
     }
 }

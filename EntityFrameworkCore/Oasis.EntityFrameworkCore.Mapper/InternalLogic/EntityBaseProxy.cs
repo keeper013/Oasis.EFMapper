@@ -1,6 +1,7 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
+using System.Linq.Expressions;
 
 internal interface IIdPropertyTracker
 {
@@ -16,21 +17,27 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
     private readonly IReadOnlyDictionary<Type, TypeKeyProxy> _entityConcurrencyTokenProxies;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _entityIdComparers;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _entityConcurrencyTokenComparers;
-    private readonly IScalarTypeConverter _scalarConverter;
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _targetIdEqualsSourceId;
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _sourceIdListContainsTargetId;
+    private readonly IScalarTypeConverter _scalarTypeConverter;
 
     public EntityBaseProxy(
         Dictionary<Type, TypeKeyProxyMetaDataSet> entityIdProxies,
         Dictionary<Type, TypeKeyProxyMetaDataSet> entityConcurrencyTokenProxies,
         Dictionary<Type, Dictionary<Type, MethodMetaData>> entityIdComparers,
         Dictionary<Type, Dictionary<Type, MethodMetaData>> entityConcurrencyTokenComparers,
+        Dictionary<Type, Dictionary<Type, MethodMetaData>> sourceIdForTarget,
+        Dictionary<Type, Dictionary<Type, MethodMetaData>> sourceIdListContainsTargetId,
         Type type,
         IScalarTypeConverter scalarConverter)
     {
         _entityIdProxies = MakeTypeKeyProxyDictionary(entityIdProxies, type);
         _entityConcurrencyTokenProxies = MakeTypeKeyProxyDictionary(entityConcurrencyTokenProxies, type);
-        _entityIdComparers = MakeComparerDictionary(entityIdComparers, type);
-        _entityConcurrencyTokenComparers = MakeComparerDictionary(entityConcurrencyTokenComparers, type);
-        _scalarConverter = scalarConverter;
+        _entityIdComparers = Utilities.MakeDelegateDictionary(entityIdComparers, type);
+        _entityConcurrencyTokenComparers = Utilities.MakeDelegateDictionary(entityConcurrencyTokenComparers, type);
+        _targetIdEqualsSourceId = Utilities.MakeDelegateDictionary(sourceIdForTarget, type);
+        _sourceIdListContainsTargetId = Utilities.MakeDelegateDictionary(sourceIdListContainsTargetId, type);
+        _scalarTypeConverter = scalarConverter;
     }
 
     public bool HasId<TEntity>()
@@ -43,18 +50,6 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         where TEntity : class
     {
         return _entityConcurrencyTokenProxies.ContainsKey(typeof(TEntity));
-    }
-
-    public object GetId<TEntity>(TEntity entity)
-        where TEntity : class
-    {
-        var type = typeof(TEntity);
-        if (_entityIdProxies.TryGetValue(type, out var value))
-        {
-            return ((Utilities.GetScalarProperty<TEntity>)value.get!)(entity);
-        }
-
-        throw new KeyPropertyMissingException(type, "identity");
     }
 
     public bool IdIsEmpty<TEntity>(TEntity entity)
@@ -89,7 +84,7 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         var targetType = typeof(TTarget);
         if (_entityIdComparers.TryGetValue(sourceType, out var inner) && inner.TryGetValue(targetType, out var areEqual))
         {
-            return ((Utilities.ScalarPropertiesAreEqual<TSource, TTarget>)areEqual)(source, target, _scalarConverter);
+            return ((Utilities.ScalarPropertiesAreEqual<TSource, TTarget>)areEqual)(source, target, _scalarTypeConverter);
         }
 
         throw new KeyPropertyMissingException(sourceType, targetType, "identity");
@@ -103,7 +98,7 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         var targetType = typeof(TTarget);
         if (_entityConcurrencyTokenComparers.TryGetValue(sourceType, out var inner) && inner.TryGetValue(targetType, out var areEqual))
         {
-            return ((Utilities.ScalarPropertiesAreEqual<TSource, TTarget>)areEqual)(source, target, _scalarConverter);
+            return ((Utilities.ScalarPropertiesAreEqual<TSource, TTarget>)areEqual)(source, target, _scalarTypeConverter);
         }
 
         throw new KeyPropertyMissingException(sourceType, targetType, "concurrency token");
@@ -120,6 +115,36 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         throw new KeyPropertyMissingException(type, "identity");
     }
 
+    public Expression<Func<TTarget, bool>> GetContainsTargetIdExpression<TSource, TTarget>(List<TSource> sourceList)
+        where TSource : class
+        where TTarget : class
+    {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        var del = _sourceIdListContainsTargetId.Find(sourceType, targetType);
+        if (del == null)
+        {
+            throw new InvalidOperationException($"Missing source id list contains target id method when mapping from {sourceType.Name} to {targetType.Name}");
+        }
+
+        return ((Utilities.GetSourceIdListContainsTargetId<TSource, TTarget>)del)(sourceList, _scalarTypeConverter);
+    }
+
+    public Expression<Func<TTarget, bool>> GetIdEqualsExpression<TSource, TTarget>(TSource source)
+        where TSource : class
+        where TTarget : class
+    {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        var del = _targetIdEqualsSourceId.Find(sourceType, targetType);
+        if (del == null)
+        {
+            throw new InvalidOperationException($"Missing source id for target method when mapping from {sourceType.Name} to {targetType.Name}");
+        }
+
+        return ((Utilities.GetSourceIdEqualsTargetId<TSource, TTarget>)del)(source, _scalarTypeConverter);
+    }
+
     private Dictionary<Type, TypeKeyProxy> MakeTypeKeyProxyDictionary(Dictionary<Type, TypeKeyProxyMetaDataSet> proxies, Type type)
     {
         var result = new Dictionary<Type, TypeKeyProxy>();
@@ -127,29 +152,9 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         {
             var typeKeyDataSet = pair.Value;
             var proxy = new TypeKeyProxy(
-                typeKeyDataSet.get.HasValue ? Delegate.CreateDelegate(typeKeyDataSet.get.Value.type, type.GetMethod(typeKeyDataSet.get.Value.name)!) : default,
                 Delegate.CreateDelegate(typeKeyDataSet.isEmpty.type, type.GetMethod(typeKeyDataSet.isEmpty.name)!),
                 typeKeyDataSet.property);
             result.Add(pair.Key, proxy);
-        }
-
-        return result;
-    }
-
-    private Dictionary<Type, IReadOnlyDictionary<Type, Delegate>> MakeComparerDictionary(IDictionary<Type, Dictionary<Type, MethodMetaData>> comparers, Type type)
-    {
-        var result = new Dictionary<Type, IReadOnlyDictionary<Type, Delegate>>();
-        foreach (var pair in comparers)
-        {
-            var innerDictionary = new Dictionary<Type, Delegate>();
-            foreach (var innerPair in pair.Value)
-            {
-                var comparer = innerPair.Value;
-                var @delegate = Delegate.CreateDelegate(comparer.type, type.GetMethod(comparer.name)!);
-                innerDictionary.Add(innerPair.Key, @delegate);
-            }
-
-            result.Add(pair.Key, innerDictionary);
         }
 
         return result;

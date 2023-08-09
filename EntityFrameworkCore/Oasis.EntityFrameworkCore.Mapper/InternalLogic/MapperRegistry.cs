@@ -17,6 +17,8 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _concurrencyTokenComparers = new ();
     private readonly Dictionary<Type, Dictionary<Type, MapToDatabaseType>> _mapToDatabaseDictionary = new ();
     private readonly Dictionary<Type, Dictionary<Type, ICustomTypeMapperConfiguration?>> _toBeRegistered = new ();
+    private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _sourceIdEqualsTargetId = new ();
+    private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _sourceIdListContainsTargetId = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
     private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
@@ -89,7 +91,12 @@ internal sealed class MapperRegistry : IRecursiveRegister
             }
             else
             {
-                throw new MissingIdentityException(type, configuration.IdentityPropertyName);
+                throw new MissingKeyPropertyException(type, "identity", configuration.IdentityPropertyName);
+            }
+
+            if (!string.IsNullOrEmpty(configuration.ConcurrencyTokenPropertyName) && properties.GetKeyProperty(configuration.IdentityPropertyName, false) == null)
+            {
+                throw new MissingKeyPropertyException(type, "concurrency token", configuration.ConcurrencyTokenPropertyName);
             }
         }
 
@@ -227,7 +234,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
 
     public EntityBaseProxy MakeEntityBaseProxy(Type type, IScalarTypeConverter scalarTypeConverter)
     {
-        return new EntityBaseProxy(_typeIdProxies, _typeConcurrencyTokenProxies, _idComparers, _concurrencyTokenComparers, type, scalarTypeConverter);
+        return new EntityBaseProxy(_typeIdProxies, _typeConcurrencyTokenProxies, _idComparers, _concurrencyTokenComparers, _sourceIdEqualsTargetId, _sourceIdListContainsTargetId, type, scalarTypeConverter);
     }
 
     public IEntityFactory MakeEntityFactory(Type type)
@@ -258,7 +265,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
     }
 
-    public void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context)
+    public void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context, RecursivelyRegisterType recursivelyRegisterType)
     {
         if (!context.Contains(sourceType, targetType))
         {
@@ -272,7 +279,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
             var configuration = _toBeRegistered.Pop(sourceType, targetType);
 
             using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
-            (var sourceExcludedProperties, var targetExcludedProperties) = _excludedPropertyManager.GetExcludedPropertyNames(sourceType, targetType);
+            var (sourceExcludedProperties, targetExcludedProperties) = _excludedPropertyManager.GetExcludedPropertyNames(sourceType, targetType);
             var sourceProperties = sourceExcludedProperties != null
                 ? sourceType.GetProperties(Utilities.PublicInstance).Where(p => !sourceExcludedProperties.Contains(p.Name)).ToList()
                 : sourceType.GetProperties(Utilities.PublicInstance).ToList();
@@ -284,9 +291,15 @@ internal sealed class MapperRegistry : IRecursiveRegister
                 targetProperties = targetProperties.Except(configuration.CustomPropertyMapper.MappedTargetProperties).ToList();
             }
 
-            (var sourceIdentityProperty, var targetIdentityProperty, var sourceConcurrencyTokenProperty, var targetConcurrencyTokenProperty) =
+            var (sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty) =
                 ExtractKeyProperties(sourceType, targetType, sourceProperties, targetProperties, sourceExcludedProperties, targetExcludedProperties);
 
+            if (recursivelyRegisterType == RecursivelyRegisterType.ListOfEntityProperty)
+            {
+                RegisterEntityListProperty(sourceType, sourceIdentityProperty, targetType, targetIdentityProperty);
+            }
+
+            RegisterSourceIdEqualsTargetIdMethod(sourceType, sourceIdentityProperty, targetType, targetIdentityProperty);
             RegisterKeyProperty(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder, _typeIdProxies, KeyType.Id);
             RegisterKeyProperty(sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder, _typeConcurrencyTokenProxies, KeyType.ConcurrencyToken);
             RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder);
@@ -299,7 +312,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
                 _mapper[sourceType] = innerMapper;
             }
 
-            if (!innerMapper.TryGetValue(targetType, out var mapperMetaDataSet))
+            if (!innerMapper.ContainsKey(targetType))
             {
                 if (configuration?.MapToDatabaseType != null)
                 {
@@ -326,6 +339,12 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
         else
         {
+            if (recursivelyRegisterType == RecursivelyRegisterType.ListOfEntityProperty)
+            {
+                var (sourceIdentityProperty, targetIdentityProperty) = GetIdentityProperties(sourceType, targetType);
+                RegisterEntityListProperty(sourceType, sourceIdentityProperty, targetType, targetIdentityProperty);
+            }
+
             context.DumpLoopDependency();
         }
     }
@@ -351,7 +370,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
         KeyType keyType)
     {
         return new TypeKeyProxyMetaDataSet(
-            keyType == KeyType.Id ? methodBuilder.BuildUpGetIdMethod(type, property) : null,
             methodBuilder.BuildUpKeyIsEmptyMethod(keyType, type, property),
             property);
     }
@@ -384,7 +402,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
             throw new InvalidEntityTypeException(targetType);
         }
 
-        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping, _targetsToBeTracked));
+        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping, _targetsToBeTracked), RecursivelyRegisterType.TopLevel);
     }
 
     private void RegisterEntityDefaultConstructorMethod(Type type)
@@ -393,6 +411,25 @@ internal sealed class MapperRegistry : IRecursiveRegister
         {
             _entityDefaultConstructors.Add(type, _dynamicMethodBuilder.BuildUpConstructorMethod(type));
         }
+    }
+
+    private (PropertyInfo?, PropertyInfo?) GetIdentityProperties(Type sourceType, Type targetType)
+    {
+        var sourceIdentityPropertyName = _keyPropertyNames.GetIdentityPropertyName(sourceType);
+        var sourceIdentityProperty = string.IsNullOrEmpty(sourceIdentityPropertyName) ? default : sourceType.GetProperty(sourceIdentityPropertyName, Utilities.PublicInstance);
+        if (sourceIdentityProperty != default && !sourceIdentityProperty.VerifyGetterSetter(false))
+        {
+            sourceIdentityProperty = default;
+        }
+
+        var targetIdentityPropertyName = _keyPropertyNames.GetIdentityPropertyName(targetType);
+        var targetIdentityProperty = string.IsNullOrEmpty(targetIdentityPropertyName) ? default : targetType.GetProperty(targetIdentityPropertyName, Utilities.PublicInstance);
+        if (targetIdentityProperty != default && !targetIdentityProperty.VerifyGetterSetter(true))
+        {
+            targetIdentityProperty = default;
+        }
+
+        return (sourceIdentityProperty, targetIdentityProperty);
     }
 
     private (PropertyInfo?, PropertyInfo?, PropertyInfo?, PropertyInfo?) ExtractKeyProperties(
@@ -458,6 +495,28 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
 
         return (sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty);
+    }
+
+    private void RegisterSourceIdEqualsTargetIdMethod(Type sourceType, PropertyInfo? sourceIdentityProperty, Type targetType, PropertyInfo? targetIdentityProperty)
+    {
+        if (sourceIdentityProperty != null && targetIdentityProperty != null)
+        {
+            _sourceIdEqualsTargetId.AddIfNotExists(
+                sourceType,
+                targetType,
+                () => _dynamicMethodBuilder.BuildUpSourceIdEqualsTargetIdMethod(sourceType, sourceIdentityProperty, targetType, targetIdentityProperty));
+        }
+    }
+
+    private void RegisterEntityListProperty(Type sourceType, PropertyInfo? sourceIdentityProperty, Type targetType, PropertyInfo? targetIdentityProperty)
+    {
+        if (sourceIdentityProperty != null && targetIdentityProperty != null)
+        {
+            _sourceIdListContainsTargetId.AddIfNotExists(
+                sourceType,
+                targetType,
+                () => _dynamicMethodBuilder.BuildUpSourceIdListContainsTargetIdMethod(sourceType, sourceIdentityProperty, targetType, targetIdentityProperty));
+        }
     }
 
     private void RegisterKeyProperty(

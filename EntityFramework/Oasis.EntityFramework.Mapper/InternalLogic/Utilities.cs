@@ -1,5 +1,7 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
+using System.Linq.Expressions;
+
 internal static class Utilities
 {
     public const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
@@ -31,6 +33,17 @@ internal static class Utilities
         where TTarget : class;
 
     public delegate bool StartTrackingNewTarget<TTarget, TKey>(ISet<TKey> set, TTarget target)
+        where TTarget : class;
+
+    public delegate object? GetSourceIdForTarget<TSource>(TSource source, IScalarTypeConverter converter)
+        where TSource : class;
+
+    public delegate Expression<Func<TTarget, bool>> GetSourceIdListContainsTargetId<TSource, TTarget>(List<TSource> sourceList, IScalarTypeConverter converter)
+        where TSource : class
+        where TTarget : class;
+
+    public delegate Expression<Func<TTarget, bool>> GetSourceIdEqualsTargetId<TSource, TTarget>(TSource source, IScalarTypeConverter converter)
+        where TSource : class
         where TTarget : class;
 
     public delegate IExistingTargetTracker BuildExistingTargetTracker(Delegate startTracking);
@@ -110,15 +123,18 @@ internal static class Utilities
 
     internal static void AddIfNotExists<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, Func<T> func, bool? extraCondition = null)
     {
-        if (!dict.TryGetValue(sourceType, out var innerDict))
+        if (!extraCondition.HasValue || extraCondition.Value)
         {
-            innerDict = new Dictionary<Type, T>();
-            dict[sourceType] = innerDict;
-        }
+            if (!dict.TryGetValue(sourceType, out var innerDict))
+            {
+                innerDict = new Dictionary<Type, T>();
+                dict[sourceType] = innerDict;
+            }
 
-        if (!innerDict.ContainsKey(targetType) && (!extraCondition.HasValue || extraCondition.Value))
-        {
-            innerDict![targetType] = func();
+            if (!innerDict.ContainsKey(targetType))
+            {
+                innerDict![targetType] = func();
+            }
         }
     }
 
@@ -143,6 +159,31 @@ internal static class Utilities
         return dict.TryGetValue(sourceType, out var innerDict) && innerDict.TryGetValue(targetType, out var item)
             ? item : default;
     }
+
+    internal static T? Find<T>(this IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, T>> dict, Type sourceType, Type targetType)
+    {
+        return dict.TryGetValue(sourceType, out var innerDict) && innerDict.TryGetValue(targetType, out var item)
+            ? item : default;
+    }
+
+    internal static Dictionary<Type, IReadOnlyDictionary<Type, Delegate>> MakeDelegateDictionary(IDictionary<Type, Dictionary<Type, MethodMetaData>> metaDataDict, Type type)
+    {
+        var result = new Dictionary<Type, IReadOnlyDictionary<Type, Delegate>>();
+        foreach (var pair in metaDataDict)
+        {
+            var innerDictionary = new Dictionary<Type, Delegate>();
+            foreach (var innerPair in pair.Value)
+            {
+                var comparer = innerPair.Value;
+                var @delegate = Delegate.CreateDelegate(comparer.type, type.GetMethod(comparer.name)!);
+                innerDictionary.Add(innerPair.Key, @delegate);
+            }
+
+            result.Add(pair.Key, innerDictionary);
+        }
+
+        return result;
+    }
 }
 
 public record struct MethodMetaData(Type type, string name);
@@ -152,10 +193,10 @@ internal record struct MapperSet(Delegate? customPropertiesMapper, Delegate? key
 internal record struct ExistingTargetTrackerSet(Delegate buildExistingTargetTracker, Delegate startTrackingTarget);
 
 // get method is only needed for id, not for concurrency token, so it's nullable here
-internal record struct TypeKeyProxyMetaDataSet(MethodMetaData? get, MethodMetaData isEmpty, PropertyInfo property);
+internal record struct TypeKeyProxyMetaDataSet(MethodMetaData isEmpty, PropertyInfo property);
 
 // get method is only needed for id, not for concurrency token, so it's nullable here
-internal record struct TypeKeyProxy(Delegate? get, Delegate isEmpty, PropertyInfo property);
+internal record struct TypeKeyProxy(Delegate isEmpty, PropertyInfo property);
 
 internal record struct MapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData? keyMapper, MethodMetaData? contentMapper);
 

@@ -69,7 +69,7 @@ internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper
         PropertyInfo propertyInfo = GetProperty(memberAccess);
         if (!_mappedProperties.Add(propertyInfo))
         {
-            throw new ArgumentException($"Property {propertyInfo.Name} has been mapped for custom property mapper from ${typeof(TSource).Name} to {typeof(TTarget).Name}", nameof(memberAccess));
+            throw new ArgumentException($"Property {propertyInfo.Name} has been mapped for custom property mapper from {typeof(TSource).Name} to {typeof(TTarget).Name}", nameof(memberAccess));
         }
 
         ParameterExpression instance = Expression.Parameter(typeof(TEntity), "instance");

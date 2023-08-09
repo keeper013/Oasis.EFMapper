@@ -1,6 +1,7 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
 using Oasis.EntityFramework.Mapper.Exceptions;
+using System.Linq.Expressions;
 using System.Reflection.Emit;
 
 internal enum KeyType
@@ -18,18 +19,21 @@ internal enum KeyType
 
 internal sealed class DynamicMethodBuilder
 {
-    private const char MapKeyPropertiesMethod = 'k';
-    private const char CompareIdMethod = 'i';
-    private const char CompareConcurrencyTokenMethod = 'o';
-    private const char GetId = 'd';
-    private const char IdEmpty = 'b';
+    private const char BuildExistingTargetTracker = 'b';
+    private const char CompareConcurrencyTokenMethod = 'c';
+    private const char CompareIdMethod = 'o';
     private const char ConcurrencyTokenEmpty = 'n';
-    private const char BuildExistingTargetTracker = 'u';
-    private const char StartTrackExistingTarget = 's';
-    private const char Construct = 'c';
+    private const char Construct = 's';
+    private const char GetId = 'g';
+    private const char IdEmpty = 'i';
+    private const char MapKeyPropertiesMethod = 'm';
+    private const char StartTrackExistingTarget = 't';
+    private const char SourceIdForTarget = 'u';
+    private const char SourceIdEqualsTargetId = 'r';
+    private const char SourceIdListContainsTargetId = 'e';
 
     private static readonly MethodInfo ObjectEqual = typeof(object).GetMethod(nameof(object.Equals), new[] { typeof(object) })!;
-    private static readonly Type _delegateType = typeof(Delegate);
+    private static readonly Type DelegateType = typeof(Delegate);
     private readonly GenericMapperMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethods().First(m => string.Equals(m.Name, nameof(IScalarTypeConverter.Convert)) && m.IsGenericMethod));
     private readonly GenericMapperMethodCache _entityPropertyMapperCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapEntityProperty), Utilities.PublicInstance)!);
     private readonly GenericMapperMethodCache _entityListPropertyMapperCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapListProperty), Utilities.PublicInstance)!);
@@ -68,7 +72,7 @@ internal sealed class DynamicMethodBuilder
     {
         if (sourceIdentityProperty != default && targetIdentityProperty != default)
         {
-            var methodName = BuildMapperMethodName(MapKeyPropertiesMethod, sourceType, targetType);
+            var methodName = BuildMethodName(MapKeyPropertiesMethod, sourceType, targetType);
             var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter), typeof(bool) }, typeof(void));
             var generator = method.GetILGenerator();
             GenerateKeyPropertiesMappingCode(generator, sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty);
@@ -97,7 +101,7 @@ internal sealed class DynamicMethodBuilder
 
         if (generateScalarPropertyMappingCode || generateEntityPropertyMappingCode || generateEntityListPropertyMappingCode)
         {
-            var methodName = BuildMapperMethodName(sourceType, targetType);
+            var methodName = BuildMethodName(sourceType, targetType);
             var method = BuildMethod(
                 methodName,
                 new[] { sourceType, targetType, typeof(IScalarTypeConverter), typeof(IRecursiveMapper<int>), typeof(IExistingTargetTracker), typeof(INewTargetTracker<int>), typeof(bool?) },
@@ -133,17 +137,225 @@ internal sealed class DynamicMethodBuilder
         PropertyInfo sourceKeyProperty,
         PropertyInfo targetKeyProperty)
     {
-        return BuildUpKeyEqualComparerMethod(sourceType, targetType, sourceKeyProperty, targetKeyProperty, keyType == KeyType.Id ? CompareIdMethod : CompareConcurrencyTokenMethod);
-    }
+        var methodName = BuildPropertyCompareMethodName(keyType == KeyType.Id ? CompareIdMethod : CompareConcurrencyTokenMethod, sourceType, targetType);
+        var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(bool));
+        var generator = method.GetILGenerator();
 
-    public MethodMetaData BuildUpGetIdMethod(Type type, PropertyInfo identityProperty)
-    {
-        return BuildUpGetKeyMethod(type, identityProperty, GetId);
+        var sourcePropertyType = sourceKeyProperty.PropertyType;
+        var targetPropertyType = targetKeyProperty.PropertyType;
+        var equalMethod = _areEqualCache.GetMethodFor(targetPropertyType);
+        var needToConvert = sourcePropertyType != targetPropertyType;
+
+        if (needToConvert)
+        {
+            generator.Emit(OpCodes.Ldarg_2);
+        }
+
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceKeyProperty.GetMethod!);
+
+        if (needToConvert)
+        {
+            generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourcePropertyType, targetPropertyType));
+        }
+
+        if (equalMethod == default && targetPropertyType.IsValueType)
+        {
+            generator.Emit(OpCodes.Box, targetPropertyType);
+        }
+
+        generator.Emit(OpCodes.Ldarg_1);
+        generator.Emit(OpCodes.Callvirt, targetKeyProperty.GetMethod!);
+        if (equalMethod == default && targetPropertyType.IsValueType)
+        {
+            generator.Emit(OpCodes.Box, targetPropertyType);
+        }
+
+        if (equalMethod != default)
+        {
+            generator.Emit(OpCodes.Call, equalMethod);
+        }
+        else
+        {
+            generator.Emit(OpCodes.Call, _areEqualCache.DefaultMethod);
+        }
+
+        generator.Emit(OpCodes.Ret);
+
+        return new MethodMetaData(typeof(Utilities.ScalarPropertiesAreEqual<,>).MakeGenericType(sourceType, targetType), method.Name);
     }
 
     public MethodMetaData BuildUpKeyIsEmptyMethod(KeyType keyType, Type type, PropertyInfo identityProperty)
     {
-        return BuildUpKeyIsEmptyMethod(type, identityProperty, keyType == KeyType.Id ? IdEmpty : ConcurrencyTokenEmpty);
+        var methodName = BuildMethodName(keyType == KeyType.Id ? IdEmpty : ConcurrencyTokenEmpty, type);
+        var method = BuildMethod(methodName, new[] { type }, typeof(bool));
+        var generator = method.GetILGenerator();
+
+        var propertyType = identityProperty.PropertyType;
+        var methodInfo = _isDefaultValueCache.GetMethodFor(propertyType);
+        if (methodInfo != default)
+        {
+            generator.Emit(OpCodes.Ldarg_0);
+            generator.Emit(OpCodes.Callvirt, identityProperty.GetMethod!);
+            generator.Emit(OpCodes.Call, methodInfo);
+        }
+        else
+        {
+            if (propertyType.IsValueType)
+            {
+                if (propertyType.IsPrimitive)
+                {
+                    generator.Emit(OpCodes.Ldarg_0);
+                    generator.Emit(OpCodes.Callvirt, identityProperty.GetMethod!);
+                    generator.Emit(OpCodes.Ldc_I4_0);
+                    generator.Emit(OpCodes.Ceq);
+                }
+                else
+                {
+                    generator.DeclareLocal(propertyType);
+                    generator.DeclareLocal(propertyType);
+                    generator.Emit(OpCodes.Ldarg_0);
+                    generator.Emit(OpCodes.Callvirt, identityProperty.GetMethod!);
+                    generator.Emit(OpCodes.Stloc_0);
+                    generator.Emit(OpCodes.Ldloca_S, 0);
+                    generator.Emit(OpCodes.Ldloca_S, 1);
+                    generator.Emit(OpCodes.Initobj, propertyType);
+                    generator.Emit(OpCodes.Ldloc_1);
+                    generator.Emit(OpCodes.Box, propertyType);
+                    generator.Emit(OpCodes.Constrained, propertyType);
+                    generator.Emit(OpCodes.Callvirt, ObjectEqual);
+                }
+            }
+            else
+            {
+                generator.Emit(OpCodes.Ldarg_0);
+                generator.Emit(OpCodes.Callvirt, identityProperty.GetMethod!);
+                generator.Emit(OpCodes.Call, _isDefaultValueCache.DefaultMethod);
+            }
+        }
+
+        generator.Emit(OpCodes.Ret);
+
+        return new MethodMetaData(typeof(Utilities.ScalarPropertyIsEmpty<>).MakeGenericType(type), method.Name);
+    }
+
+    public MethodMetaData BuildUpSourceIdListContainsTargetIdMethod(Type sourceType, PropertyInfo sourceIdentityProperty, Type targetType, PropertyInfo targetIdentityProperty)
+    {
+        var methodName = BuildMethodName(SourceIdListContainsTargetId, sourceType, targetType);
+        var sourceListType = typeof(List<>).MakeGenericType(sourceType);
+        var method = BuildMethod(
+            methodName,
+            new[] { sourceListType, typeof(IScalarTypeConverter) },
+            typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(targetType, typeof(bool))));
+        var generator = method.GetILGenerator();
+        var sourceIdentityType = sourceIdentityProperty.PropertyType;
+        var targetIdentityType = targetIdentityProperty.PropertyType;
+        var needToConvert = sourceIdentityType != targetIdentityType;
+        var idListType = typeof(List<>).MakeGenericType(targetIdentityType);
+        var countMethod = sourceListType.GetProperty(nameof(List<int>.Count), Utilities.PublicInstance)!.GetMethod!;
+        var idListConstructor = idListType.GetConstructor(new[] { typeof(int) })!;
+        var getEnumeratorMethod = sourceListType.GetMethod(nameof(List<int>.GetEnumerator), Utilities.PublicInstance)!;
+        var enumeratorType = typeof(List<>.Enumerator).MakeGenericType(sourceType);
+        var getCurrentMethod = enumeratorType.GetProperty(nameof(List<int>.Enumerator.Current), Utilities.PublicInstance)!.GetMethod!;
+        var addMethod = idListType.GetMethod(nameof(List<int>.Add), Utilities.PublicInstance)!;
+        var moveNextMethod = enumeratorType.GetMethod(nameof(List<int>.Enumerator.MoveNext), Utilities.PublicInstance)!;
+        var disposeMethod = enumeratorType.GetMethod(nameof(List<int>.Enumerator.Dispose), Utilities.PublicInstance)!;
+        var makeContainsIdExpressionMethod =
+            typeof(ExpressionUtilities).GetMethod(nameof(ExpressionUtilities.MakeContainsIdExpression), BindingFlags.Static | BindingFlags.Public)!
+            .MakeGenericMethod(targetType, targetIdentityType);
+
+        var listLocalVariable = generator.DeclareLocal(idListType);
+        var enumeratorLocalVariable = generator.DeclareLocal(enumeratorType);
+        var sourceLocalVaraible = generator.DeclareLocal(sourceType);
+
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, countMethod);
+        generator.Emit(OpCodes.Newobj, idListConstructor);
+        generator.Emit(OpCodes.Stloc, listLocalVariable);
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, getEnumeratorMethod);
+        generator.Emit(OpCodes.Stloc, enumeratorLocalVariable);
+
+        generator.BeginExceptionBlock();
+        var startingJumpLabel = generator.DefineLabel();
+        var loopJumpLabel = generator.DefineLabel();
+        generator.Emit(OpCodes.Br_S, startingJumpLabel);
+        generator.MarkLabel(loopJumpLabel);
+        generator.Emit(OpCodes.Ldloca_S, enumeratorLocalVariable);
+        generator.Emit(OpCodes.Call, getCurrentMethod);
+        generator.Emit(OpCodes.Stloc, sourceLocalVaraible);
+        generator.Emit(OpCodes.Ldloc, listLocalVariable);
+        if (needToConvert)
+        {
+            generator.Emit(OpCodes.Ldarg_1);
+        }
+
+        generator.Emit(OpCodes.Ldloc, sourceLocalVaraible);
+        generator.Emit(OpCodes.Callvirt, sourceIdentityProperty.GetMethod!);
+        if (needToConvert)
+        {
+            generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourceIdentityType, targetIdentityType));
+        }
+
+        generator.Emit(OpCodes.Callvirt, addMethod);
+        generator.MarkLabel(startingJumpLabel);
+        generator.Emit(OpCodes.Ldloca_S, enumeratorLocalVariable);
+        generator.Emit(OpCodes.Call, moveNextMethod);
+        generator.Emit(OpCodes.Brtrue_S, loopJumpLabel);
+        var leaveLabel = generator.DefineLabel();
+        generator.Emit(OpCodes.Leave_S, leaveLabel);
+
+        generator.BeginFinallyBlock();
+        generator.Emit(OpCodes.Ldloca_S, enumeratorLocalVariable);
+        generator.Emit(OpCodes.Constrained, enumeratorType);
+        generator.Emit(OpCodes.Callvirt, disposeMethod);
+        generator.Emit(OpCodes.Endfinally);
+        generator.EndExceptionBlock();
+
+        generator.MarkLabel(leaveLabel);
+        generator.Emit(OpCodes.Ldloc, listLocalVariable);
+        generator.Emit(OpCodes.Ldstr, targetIdentityProperty.Name);
+        generator.Emit(OpCodes.Call, makeContainsIdExpressionMethod);
+        generator.Emit(OpCodes.Ret);
+
+        return new MethodMetaData(typeof(Utilities.GetSourceIdListContainsTargetId<,>).MakeGenericType(sourceType, targetType), method.Name);
+    }
+
+    public MethodMetaData BuildUpSourceIdEqualsTargetIdMethod(Type sourceType, PropertyInfo sourceIdentityProperty, Type targetType, PropertyInfo targetIdentityProperty)
+    {
+        var methodName = BuildMethodName(SourceIdEqualsTargetId, sourceType, targetType);
+        var method = BuildMethod(
+            methodName,
+            new[] { sourceType, typeof(IScalarTypeConverter) },
+            typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(targetType, typeof(bool))));
+        var generator = method.GetILGenerator();
+        var sourceIdentityType = sourceIdentityProperty.PropertyType;
+        var targetIdentityType = targetIdentityProperty.PropertyType;
+        var needToConvert = sourceIdentityType != targetIdentityType;
+        var typeOfMethod = typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle), BindingFlags.Static | BindingFlags.Public)!;
+        var makeIdEqualsExpression =
+            typeof(ExpressionUtilities).GetMethod(nameof(ExpressionUtilities.MakeIdEqualsExpression), BindingFlags.Static | BindingFlags.Public)!
+            .MakeGenericMethod(targetType, targetIdentityType);
+
+        if (needToConvert)
+        {
+            generator.Emit(OpCodes.Ldarg_1);
+        }
+
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Callvirt, sourceIdentityProperty.GetMethod!);
+        if (needToConvert)
+        {
+            generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourceIdentityType, targetIdentityType));
+        }
+
+        generator.Emit(OpCodes.Ldtoken, targetIdentityType);
+        generator.Emit(OpCodes.Call, typeOfMethod);
+        generator.Emit(OpCodes.Ldstr, targetIdentityProperty.Name);
+        generator.Emit(OpCodes.Call, makeIdEqualsExpression);
+        generator.Emit(OpCodes.Ret);
+
+        return new MethodMetaData(typeof(Utilities.GetSourceIdEqualsTargetId<,>).MakeGenericType(sourceType, targetType), method.Name);
     }
 
     public MethodMetaData BuildUpBuildExistingTargetTrackerMethod(Type targetType, PropertyInfo identityProperty)
@@ -151,8 +363,8 @@ internal sealed class DynamicMethodBuilder
         var methodName = BuildMethodName(BuildExistingTargetTracker, targetType);
         var identityType = identityProperty.PropertyType;
         var classType = typeof(ExistingTargetTracker<>).MakeGenericType(identityType);
-        var constructor = classType.GetConstructor(new Type[] { _delegateType })!;
-        var method = BuildMethod(methodName, new[] { _delegateType }, typeof(IExistingTargetTracker));
+        var constructor = classType.GetConstructor(new Type[] { DelegateType })!;
+        var method = BuildMethod(methodName, new[] { DelegateType }, typeof(IExistingTargetTracker));
         var generator = method.GetILGenerator();
         generator.Emit(OpCodes.Ldarg_0);
         generator.Emit(OpCodes.Newobj, constructor);
@@ -197,7 +409,7 @@ internal sealed class DynamicMethodBuilder
         return $"{type.Namespace}_{type.Name}".Replace(".", "_").Replace("`", "_");
     }
 
-    private static string BuildMapperMethodName(char type, Type sourceType, Type targetType)
+    private static string BuildMethodName(char type, Type sourceType, Type targetType)
     {
         return $"_{type}_{GetTypeName(sourceType)}__MapTo__{GetTypeName(targetType)}";
     }
@@ -207,7 +419,7 @@ internal sealed class DynamicMethodBuilder
         return $"_{prefix}__{GetTypeName(entityType)}";
     }
 
-    private static string BuildMapperMethodName(Type sourceType, Type targetType)
+    private static string BuildMethodName(Type sourceType, Type targetType)
     {
         return $"_{GetTypeName(sourceType)}__MapTo__{GetTypeName(targetType)}";
     }
@@ -288,7 +500,7 @@ internal sealed class DynamicMethodBuilder
                 var targetPropertyType = targetProperty.PropertyType;
 
                 // cascading mapper creation: if entity mapper doesn't exist, create it
-                context.RegisterIf(recursiveRegister, sourcePropertyType, targetPropertyType, _entityMapperTypeValidator.CanConvert(sourcePropertyType, targetPropertyType));
+                context.RegisterIf(recursiveRegister, sourcePropertyType, targetPropertyType, _entityMapperTypeValidator.CanConvert(sourcePropertyType, targetPropertyType), RecursivelyRegisterType.EntityProperty);
                 matchedProperties.Add((sourceProperty, sourcePropertyType, targetProperty, targetPropertyType));
             }
         }
@@ -342,7 +554,7 @@ internal sealed class DynamicMethodBuilder
                 var targetItemType = targetType.GetListItemType()!;
 
                 // cascading mapper creation: if list item mapper doesn't exist, create it
-                context.RegisterIf(recursiveRegister, sourceItemType, targetItemType, _entityListMapperTypeValidator.CanConvert(sourceItemType, targetItemType));
+                context.RegisterIf(recursiveRegister, sourceItemType, targetItemType, _entityListMapperTypeValidator.CanConvert(sourceItemType, targetItemType), RecursivelyRegisterType.ListOfEntityProperty);
                 recursiveRegister.RegisterEntityListDefaultConstructorMethod(targetType);
                 matchedProperties.Add((sourceProperty, sourceItemType, targetProperty, targetItemType));
             }
@@ -380,48 +592,6 @@ internal sealed class DynamicMethodBuilder
         }
     }
 
-    private MethodMetaData BuildUpKeyEqualComparerMethod(
-        Type sourceType,
-        Type targetType,
-        PropertyInfo sourceProperty,
-        PropertyInfo targetProperty,
-        char prefix)
-    {
-        var methodName = BuildPropertyCompareMethodName(prefix, sourceType, targetType);
-        var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(bool));
-        var generator = method.GetILGenerator();
-        GenerateScalarPropertyEqualIL(generator, sourceProperty, targetProperty);
-        return new MethodMetaData(typeof(Utilities.ScalarPropertiesAreEqual<,>).MakeGenericType(sourceType, targetType), method.Name);
-    }
-
-    private MethodMetaData BuildUpGetKeyMethod(Type type, PropertyInfo keyProperty, char prefix)
-    {
-        var methodName = BuildMethodName(prefix, type);
-        var method = BuildMethod(methodName, new[] { type }, typeof(object));
-        var generator = method.GetILGenerator();
-
-        generator.Emit(OpCodes.Ldarg_0);
-        generator.Emit(OpCodes.Callvirt, keyProperty.GetMethod!);
-        var keyPropertyType = keyProperty.PropertyType;
-        if (keyPropertyType.IsValueType)
-        {
-            generator.Emit(OpCodes.Box, keyPropertyType);
-        }
-
-        generator.Emit(OpCodes.Ret);
-
-        return new MethodMetaData(typeof(Utilities.GetScalarProperty<>).MakeGenericType(type), method.Name);
-    }
-
-    private MethodMetaData BuildUpKeyIsEmptyMethod(Type type, PropertyInfo keyProperty, char prefix)
-    {
-        var methodName = BuildMethodName(prefix, type);
-        var method = BuildMethod(methodName, new[] { type }, typeof(bool));
-        var generator = method.GetILGenerator();
-        GenerateScalarPropertyEmptyIL(generator, keyProperty);
-        return new MethodMetaData(typeof(Utilities.ScalarPropertyIsEmpty<>).MakeGenericType(type), method.Name);
-    }
-
     private MethodBuilder BuildMethod(string methodName, Type[] parameterTypes, Type returnType)
     {
         var methodBuilder = _typeBuilder.DefineMethod(methodName, MethodAttributes.Public | MethodAttributes.Static);
@@ -450,99 +620,6 @@ internal sealed class DynamicMethodBuilder
         }
 
         generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
-    }
-
-    private void GenerateScalarPropertyEmptyIL(ILGenerator generator, PropertyInfo property)
-    {
-        var propertyType = property.PropertyType;
-        var methodInfo = _isDefaultValueCache.GetMethodFor(propertyType);
-        if (methodInfo != default)
-        {
-            generator.Emit(OpCodes.Ldarg_0);
-            generator.Emit(OpCodes.Callvirt, property.GetMethod!);
-            generator.Emit(OpCodes.Call, methodInfo);
-        }
-        else
-        {
-            if (propertyType.IsValueType)
-            {
-                if (propertyType.IsPrimitive)
-                {
-                    generator.Emit(OpCodes.Ldarg_0);
-                    generator.Emit(OpCodes.Callvirt, property.GetMethod!);
-                    generator.Emit(OpCodes.Ldc_I4_0);
-                    generator.Emit(OpCodes.Ceq);
-                }
-                else
-                {
-                    generator.DeclareLocal(propertyType);
-                    generator.DeclareLocal(propertyType);
-                    generator.Emit(OpCodes.Ldarg_0);
-                    generator.Emit(OpCodes.Callvirt, property.GetMethod!);
-                    generator.Emit(OpCodes.Stloc_0);
-                    generator.Emit(OpCodes.Ldloca_S, 0);
-                    generator.Emit(OpCodes.Ldloca_S, 1);
-                    generator.Emit(OpCodes.Initobj, propertyType);
-                    generator.Emit(OpCodes.Ldloc_1);
-                    generator.Emit(OpCodes.Box, propertyType);
-                    generator.Emit(OpCodes.Constrained, propertyType);
-                    generator.Emit(OpCodes.Callvirt, ObjectEqual);
-                }
-            }
-            else
-            {
-                generator.Emit(OpCodes.Ldarg_0);
-                generator.Emit(OpCodes.Callvirt, property.GetMethod!);
-                generator.Emit(OpCodes.Call, _isDefaultValueCache.DefaultMethod);
-            }
-        }
-
-        generator.Emit(OpCodes.Ret);
-    }
-
-    private void GenerateScalarPropertyEqualIL(ILGenerator generator, PropertyInfo sourceProperty, PropertyInfo targetProperty)
-    {
-        var sourcePropertyType = sourceProperty.PropertyType;
-        var targetPropertyType = targetProperty.PropertyType;
-        var equalMethod = _areEqualCache.GetMethodFor(targetPropertyType);
-        if (sourcePropertyType != targetPropertyType)
-        {
-            generator.Emit(OpCodes.Ldarg_2);
-            generator.Emit(OpCodes.Ldarg_0);
-            generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
-            generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourcePropertyType, targetPropertyType));
-            if (equalMethod == default && targetPropertyType.IsValueType)
-            {
-                generator.Emit(OpCodes.Box, targetPropertyType);
-            }
-        }
-        else
-        {
-            generator.Emit(OpCodes.Ldarg_0);
-            generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
-            if (equalMethod == default && sourcePropertyType.IsValueType)
-            {
-                generator.Emit(OpCodes.Box, sourcePropertyType);
-            }
-        }
-
-        generator.Emit(OpCodes.Ldarg_1);
-        generator.Emit(OpCodes.Callvirt, targetProperty.GetMethod!);
-        if (equalMethod == default && targetPropertyType.IsValueType)
-        {
-            generator.Emit(OpCodes.Box, targetPropertyType);
-        }
-
-        if (equalMethod != default)
-        {
-            generator.Emit(OpCodes.Call, equalMethod);
-        }
-        else
-        {
-            generator.Emit(OpCodes.Call, _areEqualCache.DefaultMethod);
-        }
-
-        generator.Emit(OpCodes.Ret);
     }
 }
 

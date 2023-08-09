@@ -123,8 +123,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         if (sourceHasId)
         {
             TTarget? target;
-            var id = _entityBaseProxy.GetId(source);
-            var identityEqualsExpression = BuildIdEqualsExpression<TTarget>(_entityBaseProxy, _scalarConverter, id);
+            var identityEqualsExpression = _entityBaseProxy.GetIdEqualsExpression<TSource, TTarget>(source);
             if (includer != default)
             {
                 var includerString = includer.ToString();
@@ -152,7 +151,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                         && !_entityBaseProxy.ConcurrencyTokenIsEmpty(source) && !_entityBaseProxy.ConcurrencyTokenIsEmpty(target)
                         && !_entityBaseProxy.ConcurrencyTokenEquals(source, target))
                     {
-                        throw new ConcurrencyTokenException(typeof(TSource), typeof(TTarget), id);
+                        throw new ConcurrencyTokenException(typeof(TSource), typeof(TTarget));
                     }
                     else
                     {
@@ -237,6 +236,8 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         {
             var hashCodeSet = new HashSet<int>(source.Count);
             var mapType = _mapToDatabaseTypeManager.Get<TSource, TTarget>();
+            var sourceHasIdProperty = EntityBaseProxy.HasId<TSource>();
+            var unmatchedSources = new List<TSource>();
             foreach (var s in source)
             {
                 if (!hashCodeSet.Add(s.GetHashCode()))
@@ -244,7 +245,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                     throw new DuplicatedListItemException(typeof(TSource));
                 }
 
-                if (!EntityBaseProxy.HasId<TSource>() || EntityBaseProxy.IdIsEmpty(s))
+                if (!sourceHasIdProperty || EntityBaseProxy.IdIsEmpty(s))
                 {
                     if (!mapType.AllowsInsert())
                     {
@@ -268,10 +269,37 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                     }
                     else
                     {
-                        t = FindOrAddTarget<TSource, TTarget>(s, newTargetTracker, mapType);
-                        Map(s, t, MapKeyProperties.None, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
-                        target.Add(t);
+                        unmatchedSources.Add(s);
                     }
+                }
+            }
+
+            if (unmatchedSources.Any())
+            {
+                var targetsFound = _databaseContext.Set<TTarget>().Where(_entityBaseProxy.GetContainsTargetIdExpression<TSource, TTarget>(unmatchedSources)).ToList();
+                if (targetsFound.Any() && !mapType.AllowsUpdate())
+                {
+                    throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
+                }
+
+                if (targetsFound.Count() != unmatchedSources.Count() && !mapType.AllowsInsert())
+                {
+                    throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
+                }
+
+                foreach (var s in unmatchedSources)
+                {
+                    var t = targetsFound.Where(t => _entityBaseProxy.IdEquals(s, t)).FirstOrDefault();
+                    if (t != default)
+                    {
+                        Map(s, t, MapKeyProperties.None, existingTargetTracker, newTargetTracker, _mappingContext, keepUnmatched);
+                    }
+                    else
+                    {
+                        t = MapToNewTarget<TSource, TTarget>(s, MapKeyProperties.IdOnly, existingTargetTracker, newTargetTracker, keepUnmatched);
+                    }
+
+                    target.Add(t);
                 }
             }
         }
@@ -288,25 +316,6 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                 }
             }
         }
-    }
-
-    private static Expression<Func<TEntity, bool>> BuildIdEqualsExpression<TEntity>(
-        IIdPropertyTracker identityPropertyTracker,
-        IScalarTypeConverter scalarConverter,
-        object? value)
-       where TEntity : class
-    {
-        var parameter = Expression.Parameter(typeof(TEntity), "entity");
-        var identityProperty = identityPropertyTracker.GetIdProperty<TEntity>();
-
-        var equal = identityProperty.PropertyType.IsInstanceOfType(value) ?
-            Expression.Equal(
-                Expression.Property(parameter, identityProperty),
-                Expression.Convert(Expression.Constant(value), identityProperty.PropertyType))
-            : Expression.Equal(
-                Expression.Property(parameter, identityProperty),
-                Expression.Constant(scalarConverter.Convert(value, identityProperty.PropertyType)));
-        return Expression.Lambda<Func<TEntity, bool>>(equal, parameter);
     }
 
     private TTarget MapToNewTarget<TSource, TTarget>(TSource source, MapKeyProperties mapKeyProperties, IExistingTargetTracker? existingTargetTracker, INewTargetTracker<int>? newTargetTracker, bool? keepUnmatched)
@@ -338,7 +347,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         where TSource : class
         where TTarget : class
     {
-        var identityEqualsExpression = BuildIdEqualsExpression<TTarget>(_entityBaseProxy, _scalarConverter, EntityBaseProxy.GetId(source));
+        var identityEqualsExpression = _entityBaseProxy.GetIdEqualsExpression<TSource, TTarget>(source);
         var target = _databaseContext.Set<TTarget>().FirstOrDefault(identityEqualsExpression);
         if (target == null)
         {
