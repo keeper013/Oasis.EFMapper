@@ -57,13 +57,7 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
             }
         }
 
-        var mapperSetFound = _lookup.LookUp(sourceType, targetType);
-        if (!mapperSetFound.HasValue)
-        {
-            return;
-        }
-
-        var mapperSet = mapperSetFound.Value;
+        var mapperSet = _lookup.LookUp(sourceType, targetType);
         using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
         (mapperSet.customPropertiesMapper as Action<TSource, TTarget>)?.Invoke(source, target);
 
@@ -377,10 +371,10 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         }
 
         var mapperSet = _lookup.LookUp(typeof(TSource), typeof(TTarget));
-        if (mapperSet?.keyMapper != null)
+        if (mapperSet.keyMapper != null)
         {
             // when entered this method, source is guaranteed to have an id
-            ((Utilities.MapKeyProperties<TSource, TTarget>)mapperSet.Value.keyMapper)(source, target, _scalarConverter, true);
+            ((Utilities.MapKeyProperties<TSource, TTarget>)mapperSet.keyMapper)(source, target, _scalarConverter, true);
         }
 
         return target;

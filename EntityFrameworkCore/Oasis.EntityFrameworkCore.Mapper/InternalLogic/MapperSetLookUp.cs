@@ -1,7 +1,5 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-using Oasis.EntityFrameworkCore.Mapper.Exceptions;
-
 internal sealed class MapperSetLookUp
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet?>> _mappers;
@@ -35,16 +33,8 @@ internal sealed class MapperSetLookUp
         _mappers = mapper;
     }
 
-    public MapperSet? LookUp(Type sourceType, Type targetType)
+    public MapperSet LookUp(Type sourceType, Type targetType)
     {
-        MapperSet? mapperSet = default;
-        var mapperSetFound = _mappers.TryGetValue(sourceType, out var innerDictionary)
-            && innerDictionary.TryGetValue(targetType, out mapperSet);
-        if (!mapperSetFound)
-        {
-            throw new MapperMissingException(sourceType, targetType);
-        }
-
-        return mapperSet;
+        return _mappers.Find(sourceType, targetType)!.Value;
     }
 }
