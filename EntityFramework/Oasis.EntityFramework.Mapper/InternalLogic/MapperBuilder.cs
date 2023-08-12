@@ -28,13 +28,14 @@ internal sealed class MapperBuilder : IMapperBuilder
         var entityFactory = _mapperRegistry.MakeEntityFactory(type);
         var newTargetTrackerProvider = _mapperRegistry.MakeNewTargetTrackerProvider(entityFactory);
         var dependentPropertyManager = _mapperRegistry.MakeDependentPropertyManager();
+        var keepUnmatchedManager = _mapperRegistry.KeepUnmatchedManager;
         var mapToDatabaseTypeManager = _mapperRegistry.MakeMapToDatabaseTypeManager();
         var existingTargetTrackerFactory = _mapperRegistry.MakeExistingTargetTrackerFactory(type);
 
         // release some memory ahead
         _mapperRegistry.Clear();
 
-        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTrackerFactory, proxy, newTargetTrackerProvider, dependentPropertyManager, mapToDatabaseTypeManager, entityFactory);
+        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTrackerFactory, proxy, newTargetTrackerProvider, dependentPropertyManager, keepUnmatchedManager, mapToDatabaseTypeManager, entityFactory);
     }
 
     public IMapperBuilder Register<TSource, TTarget>()
@@ -92,7 +93,7 @@ internal sealed class MapperBuilder : IMapperBuilder
         var type = typeof(TEntity);
         if (_throwForRedundantConfiguration && _mapperRegistry.IsConfigured(type))
         {
-            throw new RedundantConfiguratedException(type);
+            throw new RedundantConfigurationException(type);
         }
 
         return new EntityConfigurationBuilder<TEntity>(this);
@@ -106,7 +107,7 @@ internal sealed class MapperBuilder : IMapperBuilder
         var targetType = typeof(TTarget);
         if (_throwForRedundantConfiguration && _mapperRegistry.IsConfigured(sourceType, targetType))
         {
-            throw new RedundantConfiguratedException(sourceType, targetType);
+            throw new RedundantConfigurationException(sourceType, targetType);
         }
 
         return new CustomTypeMapperBuilder<TSource, TTarget>(this);
@@ -115,9 +116,44 @@ internal sealed class MapperBuilder : IMapperBuilder
     internal void Configure<TEntity>(IEntityConfiguration configuration)
     {
         if (configuration.IdentityPropertyName == null && configuration.ConcurrencyTokenPropertyName == null && configuration.ExcludedProperties == null
-                && configuration.DependentProperties == null)
+                && configuration.KeepUnmatchedProperties == null && configuration.DependentProperties == null)
         {
-            throw new EmptyConfiguratedException(typeof(IEntityConfiguration));
+            throw new EmptyConfigurationException(typeof(IEntityConfiguration));
+        }
+
+        var properties = typeof(TEntity).GetProperties(Utilities.PublicInstance);
+        if (!string.IsNullOrEmpty(configuration.IdentityPropertyName))
+        {
+            var identityProperty = properties.GetKeyProperty(configuration.IdentityPropertyName, false);
+            if (identityProperty == default)
+            {
+                throw new MissingKeyPropertyException(typeof(TEntity), "identity", configuration.IdentityPropertyName);
+            }
+
+            if (!string.IsNullOrEmpty(configuration.ConcurrencyTokenPropertyName) && properties.GetKeyProperty(configuration.IdentityPropertyName, false) == null)
+            {
+                throw new MissingKeyPropertyException(typeof(TEntity), "concurrency token", configuration.ConcurrencyTokenPropertyName);
+            }
+        }
+
+        if (configuration.ExcludedProperties != null && configuration.ExcludedProperties.Any())
+        {
+            foreach (var propertyName in configuration.ExcludedProperties)
+            {
+                if (!properties.Any(p => string.Equals(p.Name, propertyName)))
+                {
+                    throw new UselessExcludeException(typeof(TEntity), propertyName);
+                }
+            }
+
+            if (configuration.KeepUnmatchedProperties != null)
+            {
+                var excluded = configuration.KeepUnmatchedProperties.FirstOrDefault(p => configuration.ExcludedProperties.Contains(p));
+                if (!string.IsNullOrEmpty(excluded))
+                {
+                    throw new KeepUnmatchedPropertyExcludedException(typeof(TEntity), excluded);
+                }
+            }
         }
 
         _mapperRegistry.Configure(typeof(TEntity), configuration);
@@ -125,9 +161,9 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     internal void Configure<TSource, TTarget>(ICustomTypeMapperConfiguration configuration)
     {
-        if (configuration.CustomPropertyMapper == null && configuration.ExcludedProperties == null && configuration.MapToDatabaseType == null)
+        if (configuration.CustomPropertyMapper == null && configuration.KeepUnmatchedProperties == null && configuration.ExcludedProperties == null && configuration.MapToDatabaseType == null)
         {
-            throw new EmptyConfiguratedException(typeof(ICustomTypeMapperConfiguration));
+            throw new EmptyConfigurationException(typeof(ICustomTypeMapperConfiguration));
         }
 
         if (configuration.ExcludedProperties != null)
@@ -138,6 +174,27 @@ internal sealed class MapperBuilder : IMapperBuilder
                 if (excluded != null)
                 {
                     throw new CustomMappingPropertyExcludedException(typeof(TSource), typeof(TTarget), excluded.Name);
+                }
+            }
+
+            if (configuration.KeepUnmatchedProperties != null)
+            {
+                var excluded = configuration.KeepUnmatchedProperties.FirstOrDefault(p => configuration.ExcludedProperties.Contains(p));
+                if (!string.IsNullOrEmpty(excluded))
+                {
+                    throw new KeepUnmatchedPropertyExcludedException(typeof(TSource), typeof(TTarget), excluded);
+                }
+            }
+        }
+
+        if (configuration.CustomPropertyMapper != null)
+        {
+            if (configuration.KeepUnmatchedProperties != null)
+            {
+                var keepUnmatched = configuration.CustomPropertyMapper.MappedTargetProperties.FirstOrDefault(p => configuration.KeepUnmatchedProperties.Contains(p.Name));
+                if (keepUnmatched != null)
+                {
+                    throw new CustomMappingPropertyKeepUnmatchedException(typeof(TSource), typeof(TTarget), keepUnmatched.Name);
                 }
             }
         }

@@ -11,7 +11,9 @@ public interface IEntityConfiguration<TEntity> : IConfigurator<IMapperBuilder>
 
     IEntityConfiguration<TEntity> SetKeyPropertyNames(string identityPropertyName, string? concurrencyTokenPropertyName = null);
 
-    IEntityConfiguration<TEntity> ExcludedPropertiesByName(params string[] names);
+    IEntityConfiguration<TEntity> ExcludePropertiesByName(params string[] names);
+
+    IEntityConfiguration<TEntity> KeepUnmatched(params string[] names);
 
     IEntityConfiguration<TEntity> SetDependentProperties(params string[] names);
 }
@@ -25,6 +27,8 @@ public interface ICustomTypeMapperConfiguration<TSource, TTarget> : IConfigurato
     ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value);
 
     ICustomTypeMapperConfiguration<TSource, TTarget> ExcludePropertiesByName(params string[] names);
+
+    ICustomTypeMapperConfiguration<TSource, TTarget> KeepUnmatched(params string[] names);
 }
 
 public interface IMapperBuilder

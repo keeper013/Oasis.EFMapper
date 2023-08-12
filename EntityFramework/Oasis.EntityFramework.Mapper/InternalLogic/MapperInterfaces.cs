@@ -38,8 +38,6 @@ public interface IExistingTargetTracker
         where TTarget : class;
 }
 
-public record struct DependentPropertyData(Type targetType, string propertyName);
-
 /// <summary>
 /// Recursive mapper interface. This interface has to be public, or else generate code will have problem accessing its methods.
 /// </summary>
@@ -47,11 +45,11 @@ public record struct DependentPropertyData(Type targetType, string propertyName)
 public interface IRecursiveMapper<TKeyType>
     where TKeyType : struct
 {
-    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName, bool? keepUnmatched)
+    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
         where TSource : class
         where TTarget : class;
 
-    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName, bool? keepUnmatched)
+    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
         where TSource : class
         where TTarget : class;
 

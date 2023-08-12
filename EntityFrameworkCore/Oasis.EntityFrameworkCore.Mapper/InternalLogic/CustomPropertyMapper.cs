@@ -93,14 +93,15 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<
     where TTarget : class
 {
     private CustomPropertyMapper<TSource, TTarget> _customPropertyMapper = new ();
-    private HashSet<string> _excludedProperties = new HashSet<string>();
 
     public CustomTypeMapperBuilder(MapperBuilder builder)
         : base(builder)
     {
     }
 
-    public IReadOnlySet<string>? ExcludedProperties => _excludedProperties.Any() ? _excludedProperties : default;
+    public IReadOnlySet<string>? ExcludedProperties { get; set; }
+
+    public IReadOnlySet<string>? KeepUnmatchedProperties { get; set; }
 
     public ICustomPropertyMapper? CustomPropertyMapper => _customPropertyMapper.HasContent ? _customPropertyMapper : default;
 
@@ -114,22 +115,48 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<
 
     public ICustomTypeMapperConfiguration<TSource, TTarget> ExcludePropertiesByName(params string[] names)
     {
-        if (names == null || !names.Any())
+        if (names != null && names.Any())
         {
-            throw new ArgumentNullException(nameof(names));
-        }
-
-        var sourceProperties = typeof(TSource).GetProperties(Utilities.PublicInstance);
-        var targetProperties = typeof(TTarget).GetProperties(Utilities.PublicInstance);
-        foreach (var propertyName in names)
-        {
-            if (!sourceProperties.Any(p => string.Equals(p.Name, propertyName)) || !targetProperties.Any(p => string.Equals(p.Name, propertyName)))
+            var sourceProperties = typeof(TSource).GetProperties(Utilities.PublicInstance);
+            var targetProperties = typeof(TTarget).GetProperties(Utilities.PublicInstance);
+            foreach (var propertyName in names)
             {
-                throw new UselessExcludeException(typeof(TSource), typeof(TTarget), propertyName);
+                if (!sourceProperties.Any(p => string.Equals(p.Name, propertyName)) || !targetProperties.Any(p => string.Equals(p.Name, propertyName)))
+                {
+                    throw new UselessExcludeException(typeof(TSource), typeof(TTarget), propertyName);
+                }
             }
+
+            ExcludedProperties = new HashSet<string>(names);
         }
 
-        _excludedProperties.UnionWith(names);
+        return this;
+    }
+
+    public ICustomTypeMapperConfiguration<TSource, TTarget> KeepUnmatched(params string[] names)
+    {
+        if (names != null && names.Any())
+        {
+            var sourceProperties = typeof(TSource).GetProperties(Utilities.PublicInstance);
+            var targetProperties = typeof(TTarget).GetProperties(Utilities.PublicInstance);
+            foreach (var propertyName in names)
+            {
+                var sourceProperty = sourceProperties.FirstOrDefault(p => string.Equals(p.Name, propertyName));
+                var targetProperty = targetProperties.FirstOrDefault(p => string.Equals(p.Name, propertyName));
+                if (sourceProperty == null || targetProperty == null)
+                {
+                    throw new InvaildEntityListPropertyException(typeof(TSource), typeof(TTarget), propertyName);
+                }
+
+                if (!sourceProperty.PropertyType.IsListOfEntityType() || !targetProperty.PropertyType.IsListOfEntityType())
+                {
+                    throw new InvaildEntityListPropertyException(typeof(TSource), typeof(TTarget), propertyName);
+                }
+            }
+
+            KeepUnmatchedProperties = new HashSet<string>(names);
+        }
+
         return this;
     }
 

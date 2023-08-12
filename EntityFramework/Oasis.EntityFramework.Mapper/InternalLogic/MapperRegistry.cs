@@ -31,6 +31,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly IMapperTypeValidator _entityMapperTypeValidator;
     private readonly KeyPropertyNameManager _keyPropertyNames;
     private readonly ExcludedPropertyManager _excludedPropertyManager;
+    private readonly KeepUnmatchedManager _keepUnmatchedManager;
     private readonly MapToDatabaseType _defaultMapToDatabase;
 
     public MapperRegistry(ModuleBuilder module, IMapperBuilderConfiguration? configuration)
@@ -40,12 +41,15 @@ internal sealed class MapperRegistry : IRecursiveRegister
         _scalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTypes);
         _entityMapperTypeValidator = new EntityMapperTypeValidator(_mapper);
         _excludedPropertyManager = new (configuration?.ExcludedProperties);
+        _keepUnmatchedManager = new ();
         _dynamicMethodBuilder = new (
             module.DefineType("Mapper", TypeAttributes.Public),
             _scalarMapperTypeValidator,
             _entityMapperTypeValidator,
             new EntityListMapperTypeValidator(_mapper));
     }
+
+    public KeepUnmatchedManager KeepUnmatchedManager => _keepUnmatchedManager;
 
     public void Register(Type sourceType, Type targetType)
     {
@@ -71,6 +75,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
             _excludedPropertyManager.Add(sourceType, targetType, configuration.ExcludedProperties);
         }
 
+        if (configuration.KeepUnmatchedProperties != null)
+        {
+            _keepUnmatchedManager.Add(sourceType, targetType, configuration.KeepUnmatchedProperties);
+        }
+
         _toBeRegistered.AddOrUpdateNull(sourceType, targetType, configuration);
     }
 
@@ -84,20 +93,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         var properties = type.GetProperties(Utilities.PublicInstance);
         if (!string.IsNullOrEmpty(configuration.IdentityPropertyName))
         {
-            var identityProperty = properties.GetKeyProperty(configuration.IdentityPropertyName, false);
-            if (identityProperty != default)
-            {
-                _keyPropertyNames.Add(type, new KeyPropertyConfiguration(configuration.IdentityPropertyName!, configuration.ConcurrencyTokenPropertyName));
-            }
-            else
-            {
-                throw new MissingKeyPropertyException(type, "identity", configuration.IdentityPropertyName!);
-            }
-
-            if (!string.IsNullOrEmpty(configuration.ConcurrencyTokenPropertyName) && properties.GetKeyProperty(configuration.IdentityPropertyName, false) == null)
-            {
-                throw new MissingKeyPropertyException(type, "concurrency token", configuration.ConcurrencyTokenPropertyName!);
-            }
+            _keyPropertyNames.Add(type, new KeyPropertyConfiguration(configuration.IdentityPropertyName!, configuration.ConcurrencyTokenPropertyName));
         }
 
         if (configuration.DependentProperties != null)
@@ -107,15 +103,12 @@ internal sealed class MapperRegistry : IRecursiveRegister
 
         if (configuration.ExcludedProperties != null && configuration.ExcludedProperties.Any())
         {
-            foreach (var propertyName in configuration.ExcludedProperties)
-            {
-                if (!properties.Any(p => string.Equals(p.Name, propertyName)))
-                {
-                    throw new UselessExcludeException(type, propertyName);
-                }
-            }
-
             _excludedPropertyManager.Add(type, configuration.ExcludedProperties);
+        }
+
+        if (configuration.KeepUnmatchedProperties != null && configuration.KeepUnmatchedProperties.Any())
+        {
+            _keepUnmatchedManager.Add(type, configuration.KeepUnmatchedProperties);
         }
     }
 
@@ -210,7 +203,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
     public bool IsConfigured(Type sourceType, Type targetType) => _toBeRegistered.Find(sourceType, targetType) != null;
 
     public bool IsConfigured(Type entityType) => _keyPropertyNames.ContainsConfiguration(entityType)
-        || _excludedPropertyManager.ContainsTypeConfiguration(entityType);
+        || _excludedPropertyManager.ContainsTypeConfiguration(entityType) || _keepUnmatchedManager.ContainsTypeConfiguration(entityType);
 
     public IScalarTypeConverter MakeScalarTypeConverter()
     {

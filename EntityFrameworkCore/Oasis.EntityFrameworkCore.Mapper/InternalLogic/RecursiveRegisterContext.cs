@@ -105,4 +105,6 @@ internal sealed class RecursiveRegisterContext : RecursiveContext
 internal sealed class MappingToDatabaseContext : RecursiveContext
 {
     public Type CurrentTarget => Stack.Peek().Item2;
+
+    public (Type, Type) Current => Stack.Peek();
 }

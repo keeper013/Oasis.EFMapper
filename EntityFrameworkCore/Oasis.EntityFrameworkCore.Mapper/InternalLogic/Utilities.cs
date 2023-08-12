@@ -16,8 +16,7 @@ internal static class Utilities
         IScalarTypeConverter converter,
         IRecursiveMapper<TKeyType> mapper,
         IExistingTargetTracker? existingTargetTracker,
-        INewTargetTracker<TKeyType>? newTargetTracker,
-        bool? keepUnmatched)
+        INewTargetTracker<TKeyType>? newTargetTracker)
         where TSource : class
         where TTarget : class
         where TKeyType : struct;

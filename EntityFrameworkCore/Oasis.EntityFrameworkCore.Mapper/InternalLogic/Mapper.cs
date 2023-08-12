@@ -32,6 +32,7 @@ internal sealed class Mapper : IMapper
     private readonly EntityBaseProxy _entityBaseProxy;
     private readonly NewTargetTrackerProvider _newTargetTrackerProvider;
     private readonly DependentPropertyManager _dependentPropertyManager;
+    private readonly KeepUnmatchedManager _keepUnmatchedManager;
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
     private readonly ToMemoryRecursiveMapper _toMemoryRecursiveMapper;
 
@@ -43,6 +44,7 @@ internal sealed class Mapper : IMapper
         EntityBaseProxy entityBaseProxy,
         NewTargetTrackerProvider newTargetTrackerProvider,
         DependentPropertyManager dependentPropertyManager,
+        KeepUnmatchedManager keepUnmatchedManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
         IEntityFactory entityFactory)
     {
@@ -54,6 +56,7 @@ internal sealed class Mapper : IMapper
         _entityBaseProxy = entityBaseProxy;
         _newTargetTrackerProvider = newTargetTrackerProvider;
         _dependentPropertyManager = dependentPropertyManager;
+        _keepUnmatchedManager = keepUnmatchedManager;
         _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
         _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, entityFactory);
     }
@@ -65,7 +68,7 @@ internal sealed class Mapper : IMapper
 
     public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
     {
-        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _lookup, _existingTargetTrackerFactory.Make(), _entityBaseProxy, _dependentPropertyManager, _mapToDatabaseTypeManager, _entityFactory, _newTargetTrackerProvider.Provide<int>(), databaseContext);
+        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _lookup, _existingTargetTrackerFactory.Make(), _entityBaseProxy, _dependentPropertyManager, _keepUnmatchedManager, _mapToDatabaseTypeManager, _entityFactory, _newTargetTrackerProvider.Provide<int>(), databaseContext);
     }
 
     public TTarget Map<TSource, TTarget>(TSource source)
@@ -79,14 +82,14 @@ internal sealed class Mapper : IMapper
         return target;
     }
 
-    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, DbContext databaseContext, bool? keepUnmatched = null)
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, DbContext databaseContext)
         where TSource : class
         where TTarget : class
     {
         var newTargetTracker = _newTargetTrackerProvider.Provide<TSource, TTarget, int>();
         var existingTargetTracker = _existingTargetTrackerFactory.Make<TTarget>();
-        var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy, _dependentPropertyManager, _mapToDatabaseTypeManager, _entityFactory, databaseContext);
-        return await toDatabaseRecursiveMapper.MapAsync(source, includer, existingTargetTracker, newTargetTracker, keepUnmatched);
+        var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityBaseProxy, _dependentPropertyManager, _keepUnmatchedManager, _mapToDatabaseTypeManager, _entityFactory, databaseContext);
+        return await toDatabaseRecursiveMapper.MapAsync(source, includer, existingTargetTracker, newTargetTracker);
     }
 }
 
@@ -132,6 +135,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         IExistingTargetTracker existingTargetTracker,
         EntityBaseProxy entityBaseProxy,
         DependentPropertyManager dependentPropertyManager,
+        KeepUnmatchedManager keepUnmatchedManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
         IEntityFactory entityFactory,
         INewTargetTracker<int> newTargetTracker,
@@ -139,14 +143,14 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
     {
         _existingTargetTracker = existingTargetTracker;
         _newTargetTracker = newTargetTracker;
-        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, dependentPropertyManager, mapToDatabaseTypeManager, entityFactory, databaseContext);
+        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityBaseProxy, dependentPropertyManager, keepUnmatchedManager, mapToDatabaseTypeManager, entityFactory, databaseContext);
     }
 
-    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, bool? keepUnmatched = null)
+    public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
         where TSource : class
         where TTarget : class
     {
-        return await _toDatabaseRecursiveMapper.MapAsync(source, includer, _existingTargetTracker, _newTargetTracker, keepUnmatched);
+        return await _toDatabaseRecursiveMapper.MapAsync(source, includer, _existingTargetTracker, _newTargetTracker);
     }
 }
 

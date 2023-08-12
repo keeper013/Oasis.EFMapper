@@ -588,7 +588,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
             .MakeMapperBuilder();
 
         // act & assert
-        Assert.Throws<RedundantConfiguratedException>(() => builder
+        Assert.Throws<RedundantConfigurationException>(() => builder
             .Configure<EntityWithoutDefaultConstructor>()
                 .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
                 .Finish()

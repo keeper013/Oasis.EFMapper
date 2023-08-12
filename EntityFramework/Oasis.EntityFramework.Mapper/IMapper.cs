@@ -13,14 +13,14 @@ public interface IMapper
 
     IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext);
 
-    Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, DbContext databaseContext, bool? keepUnmatched = null)
+    Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, DbContext databaseContext)
         where TSource : class
         where TTarget : class;
 }
 
 public interface IMappingToDatabaseSession
 {
-    Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, bool? keepUnmatched = null)
+    Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
         where TSource : class
         where TTarget : class;
 }

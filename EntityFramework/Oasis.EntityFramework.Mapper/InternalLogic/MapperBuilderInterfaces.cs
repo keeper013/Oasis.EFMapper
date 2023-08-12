@@ -13,6 +13,8 @@ internal interface ICustomTypeMapperConfiguration
 
     ISet<string>? ExcludedProperties { get; }
 
+    ISet<string>? KeepUnmatchedProperties { get; }
+
     MapToDatabaseType? MapToDatabaseType { get; }
 }
 
@@ -23,6 +25,8 @@ internal interface IEntityConfiguration
     string? ConcurrencyTokenPropertyName { get; }
 
     ISet<string>? ExcludedProperties { get; }
+
+    ISet<string>? KeepUnmatchedProperties { get; }
 
     ISet<string>? DependentProperties { get; }
 }

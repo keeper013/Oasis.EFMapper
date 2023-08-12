@@ -45,11 +45,11 @@ public interface IExistingTargetTracker
 public interface IRecursiveMapper<TKeyType>
     where TKeyType : struct
 {
-    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName, bool? keepUnmatched)
+    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
         where TSource : class
         where TTarget : class;
 
-    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName, bool? keepUnmatched)
+    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
         where TSource : class
         where TTarget : class;
 

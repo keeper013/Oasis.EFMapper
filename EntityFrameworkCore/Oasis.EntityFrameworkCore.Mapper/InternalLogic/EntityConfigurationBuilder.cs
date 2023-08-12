@@ -16,25 +16,46 @@ internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration
 
     public IReadOnlySet<string>? ExcludedProperties { get; private set; }
 
+    public IReadOnlySet<string>? KeepUnmatchedProperties { get; private set; }
+
     public IReadOnlySet<string>? DependentProperties { get; private set; }
 
-    public IEntityConfiguration<TEntity> ExcludedPropertiesByName(params string[] names)
+    public IEntityConfiguration<TEntity> ExcludePropertiesByName(params string[] names)
     {
-        if (names == null || !names.Any())
+        if (names != null && names.Any())
         {
-            throw new ArgumentNullException(nameof(names));
-        }
-
-        var properties = typeof(TEntity).GetProperties(Utilities.PublicInstance);
-        foreach (var propertyName in names)
-        {
-            if (!properties.Any(p => string.Equals(p.Name, propertyName)))
+            var properties = typeof(TEntity).GetProperties(Utilities.PublicInstance);
+            foreach (var propertyName in names)
             {
-                throw new UselessExcludeException(typeof(TEntity), propertyName);
+                if (!properties.Any(p => string.Equals(p.Name, propertyName)))
+                {
+                    throw new UselessExcludeException(typeof(TEntity), propertyName);
+                }
             }
+
+            ExcludedProperties = new HashSet<string>(names);
         }
 
-        ExcludedProperties = new HashSet<string>(names);
+        return this;
+    }
+
+    public IEntityConfiguration<TEntity> KeepUnmatched(params string[] names)
+    {
+        if (names != null && names.Any())
+        {
+            var properties = typeof(TEntity).GetProperties(Utilities.PublicInstance);
+            foreach (var propertyName in names)
+            {
+                var property = properties.FirstOrDefault(p => string.Equals(p.Name, propertyName));
+                if (property == null || !property.PropertyType.IsListOfEntityType())
+                {
+                    throw new InvaildEntityListPropertyException(typeof(TEntity), propertyName);
+                }
+            }
+
+            KeepUnmatchedProperties = new HashSet<string>(names);
+        }
+
         return this;
     }
 

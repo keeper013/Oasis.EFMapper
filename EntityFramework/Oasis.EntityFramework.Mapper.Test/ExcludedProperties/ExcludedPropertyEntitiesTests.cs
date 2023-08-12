@@ -33,7 +33,7 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
         var mapperBuilder = MakeDefaultMapperBuilder();
 
         // act & assert
-        Assert.Throws<UselessExcludeException>(() => mapperBuilder.Configure<ExcludedPropertyEntity2>().ExcludedPropertiesByName("NonExistProperty"));
+        Assert.Throws<UselessExcludeException>(() => mapperBuilder.Configure<ExcludedPropertyEntity2>().ExcludePropertiesByName("NonExistProperty"));
     }
 
     [Test]
@@ -72,7 +72,7 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
         var mapperBuilder = MakeDefaultMapperBuilder();
         var mapper = mapperBuilder
             .Configure<ExcludedPropertyEntity2>()
-                .ExcludedPropertiesByName(nameof(ExcludedPropertyEntity2.StringProp))
+                .ExcludePropertiesByName(nameof(ExcludedPropertyEntity2.StringProp))
                 .Finish()
             .Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().Build();
 
@@ -95,7 +95,7 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
         var mapperBuilder = MakeDefaultMapperBuilder();
         var mapper = mapperBuilder
             .Configure<ExcludedPropertyEntity1>()
-                .ExcludedPropertiesByName(nameof(ExcludedPropertyEntity1.StringProp))
+                .ExcludePropertiesByName(nameof(ExcludedPropertyEntity1.StringProp))
                 .Finish()
             .Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().Build();
 

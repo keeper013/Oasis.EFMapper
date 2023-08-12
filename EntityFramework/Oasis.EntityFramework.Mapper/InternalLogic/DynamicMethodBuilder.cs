@@ -104,7 +104,7 @@ internal sealed class DynamicMethodBuilder
             var methodName = BuildMethodName(sourceType, targetType);
             var method = BuildMethod(
                 methodName,
-                new[] { sourceType, targetType, typeof(IScalarTypeConverter), typeof(IRecursiveMapper<int>), typeof(IExistingTargetTracker), typeof(INewTargetTracker<int>), typeof(bool?) },
+                new[] { sourceType, targetType, typeof(IScalarTypeConverter), typeof(IRecursiveMapper<int>), typeof(IExistingTargetTracker), typeof(INewTargetTracker<int>) },
                 typeof(void));
             var generator = method.GetILGenerator();
 
@@ -530,7 +530,6 @@ internal sealed class DynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg, 4);
             generator.Emit(OpCodes.Ldarg, 5);
             generator.Emit(OpCodes.Ldstr, matched.Item3.Name);
-            generator.Emit(OpCodes.Ldarg, 6);
             generator.Emit(OpCodes.Callvirt, _entityPropertyMapperCache.CreateIfNotExist(matched.Item2, matched.Item4));
             generator.Emit(OpCodes.Callvirt, matched.Item3.SetMethod!);
         }
@@ -587,7 +586,6 @@ internal sealed class DynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg, 4);
             generator.Emit(OpCodes.Ldarg, 5);
             generator.Emit(OpCodes.Ldstr, match.Item3.Name);
-            generator.Emit(OpCodes.Ldarg, 6);
             generator.Emit(OpCodes.Callvirt, _entityListPropertyMapperCache.CreateIfNotExist(match.Item2, match.Item4));
         }
     }

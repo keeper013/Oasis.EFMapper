@@ -1,7 +1,5 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-using Oasis.EntityFrameworkCore.Mapper.Exceptions;
-
 internal class ExcludedPropertyManager
 {
     private readonly IReadOnlySet<string> _excludedProperties;
