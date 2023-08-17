@@ -20,6 +20,18 @@ public class KeyPropertyTypeTests : TestBase
     }
 
     [Fact]
+    public async Task TestByteNByte()
+    {
+        await Test<byte, byte?>(i => i);
+    }
+
+    [Fact]
+    public async Task TestNByteByte()
+    {
+        await Test<byte?, byte>(i => i ?? 0);
+    }
+
+    [Fact]
     public async Task TestShort()
     {
         await Test<short>();
@@ -32,6 +44,42 @@ public class KeyPropertyTypeTests : TestBase
     }
 
     [Fact]
+    public async Task TestShortNShort()
+    {
+        await Test<short, short?>(i => i);
+    }
+
+    [Fact]
+    public async Task TestNShortShort()
+    {
+        await Test<short?, short>(i => i ?? 0);
+    }
+
+    [Fact]
+    public async Task TestByteShort()
+    {
+        await Test<byte, short>(i => i);
+    }
+
+    [Fact]
+    public async Task TestByteNShort()
+    {
+        await Test<byte, short?>(i => i);
+    }
+
+    [Fact]
+    public async Task TestNByteNShort()
+    {
+        await Test<byte?, short?>(i => i);
+    }
+
+    [Fact]
+    public async Task TestNByteShort()
+    {
+        await Test<byte?, short>(i => i ?? 0);
+    }
+
+    [Fact]
     public async Task TestUShort()
     {
         await Test<ushort>();
@@ -41,6 +89,30 @@ public class KeyPropertyTypeTests : TestBase
     public async Task TestNUShort()
     {
         await Test<ushort?>();
+    }
+
+    [Fact]
+    public async Task TestByteUShort()
+    {
+        await Test<byte, ushort>(i => i);
+    }
+
+    [Fact]
+    public async Task TestByteNUShort()
+    {
+        await Test<byte, ushort?>(i => i);
+    }
+
+    [Fact]
+    public async Task TestNByteUShort()
+    {
+        await Test<byte?, ushort>(i => i ?? 0);
+    }
+
+    [Fact]
+    public async Task TestNByteNUShort()
+    {
+        await Test<byte?, ushort?>(i => i);
     }
 
     [Fact]
@@ -134,6 +206,32 @@ public class KeyPropertyTypeTests : TestBase
         });
 
         var instance = mapper.Map<SomeSourceEntity<T>, SomeTargetEntity<T>>(entity);
+        Assert.NotEqual(default, instance.Id);
+        Assert.NotEqual(default, instance.ConcurrencyToken);
+        Assert.Equal(2, instance.SomeProperty);
+    }
+
+    private async Task Test<TSourceIdentity, TTargetIdentity>(Func<TSourceIdentity, TTargetIdentity> func)
+    {
+        // arrange
+        var mapper = MakeDefaultMapperBuilder()
+            .WithScalarConverter(func)
+            .Register<SomeSourceEntity<TSourceIdentity>, SomeTargetEntity<TTargetIdentity>>().Build();
+
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            databaseContext.Set<SomeSourceEntity<TSourceIdentity>>().Add(new SomeSourceEntity<TSourceIdentity>(2));
+            await databaseContext.SaveChangesAsync();
+        });
+
+        // act
+        SomeSourceEntity<TSourceIdentity> entity = null!;
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            entity = await databaseContext.Set<SomeSourceEntity<TSourceIdentity>>().AsNoTracking().FirstAsync();
+        });
+
+        var instance = mapper.Map<SomeSourceEntity<TSourceIdentity>, SomeTargetEntity<TTargetIdentity>>(entity);
         Assert.NotEqual(default, instance.Id);
         Assert.NotEqual(default, instance.ConcurrencyToken);
         Assert.Equal(2, instance.SomeProperty);

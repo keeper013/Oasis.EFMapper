@@ -1,7 +1,6 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
 using Oasis.EntityFramework.Mapper.Exceptions;
-using System.Linq.Expressions;
 using System.Reflection.Emit;
 
 internal sealed class MapperBuilder : IMapperBuilder
@@ -59,20 +58,20 @@ internal sealed class MapperBuilder : IMapperBuilder
         return this;
     }
 
-    IMapperBuilder IMapperBuilder.WithFactoryMethod<TList, TItem>(Expression<Func<TList>> factoryMethod, bool throwIfRedundant)
+    IMapperBuilder IMapperBuilder.WithFactoryMethod<TList, TItem>(Func<TList> factoryMethod, bool throwIfRedundant)
     {
-        _mapperRegistry.WithFactoryMethod(typeof(TList), typeof(TItem), factoryMethod.Compile(), throwIfRedundant);
+        _mapperRegistry.WithFactoryMethod(typeof(TList), typeof(TItem), factoryMethod, throwIfRedundant);
         return this;
     }
 
-    public IMapperBuilder WithFactoryMethod<TEntity>(Expression<Func<TEntity>> factoryMethod, bool throwIfRedundant = false)
+    public IMapperBuilder WithFactoryMethod<TEntity>(Func<TEntity> factoryMethod, bool throwIfRedundant = false)
         where TEntity : class
     {
-        _mapperRegistry.WithFactoryMethod(typeof(TEntity), factoryMethod.Compile(), throwIfRedundant);
+        _mapperRegistry.WithFactoryMethod(typeof(TEntity), factoryMethod, throwIfRedundant);
         return this;
     }
 
-    public IMapperBuilder WithScalarConverter<TSource, TTarget>(Expression<Func<TSource, TTarget>> expression, bool throwIfRedundant = false)
+    public IMapperBuilder WithScalarConverter<TSource, TTarget>(Func<TSource, TTarget> func, bool throwIfRedundant = false)
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
@@ -81,7 +80,7 @@ internal sealed class MapperBuilder : IMapperBuilder
             throw new SameTypeException(targetType);
         }
 
-        _mapperRegistry.WithScalarConverter(typeof(TSource), typeof(TTarget), expression.Compile(), throwIfRedundant);
+        _mapperRegistry.WithScalarConverter(typeof(TSource), typeof(TTarget), func, throwIfRedundant);
         return this;
     }
 
@@ -125,12 +124,12 @@ internal sealed class MapperBuilder : IMapperBuilder
             var identityProperty = properties.GetKeyProperty(configuration.IdentityPropertyName, false);
             if (identityProperty == default)
             {
-                throw new MissingKeyPropertyException(typeof(TEntity), "identity", configuration.IdentityPropertyName);
+                throw new MissingKeyPropertyException(typeof(TEntity), "identity", configuration.IdentityPropertyName!);
             }
 
             if (!string.IsNullOrEmpty(configuration.ConcurrencyTokenPropertyName) && properties.GetKeyProperty(configuration.IdentityPropertyName, false) == null)
             {
-                throw new MissingKeyPropertyException(typeof(TEntity), "concurrency token", configuration.ConcurrencyTokenPropertyName);
+                throw new MissingKeyPropertyException(typeof(TEntity), "concurrency token", configuration.ConcurrencyTokenPropertyName!);
             }
         }
 

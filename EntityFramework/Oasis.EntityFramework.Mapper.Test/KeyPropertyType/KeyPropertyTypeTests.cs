@@ -65,7 +65,6 @@ public class KeyPropertyTypeTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             action(databaseContext);
-            //databaseContext.Set<SomeSourceEntity<T>>().Add(new SomeSourceEntity<T>(2));
             await databaseContext.SaveChangesAsync();
         });
 

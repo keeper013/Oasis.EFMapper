@@ -26,8 +26,8 @@ public sealed class UpdateToDatabaseWithoutRecordException : EfCoreMapperExcepti
 
 public sealed class MissingKeyPropertyException : EfCoreMapperException
 {
-    public MissingKeyPropertyException(Type type, string keyName, string identityPropertyName)
-        : base($"Type {type.Name} needs a valid {keyName} property of name {identityPropertyName}.")
+    public MissingKeyPropertyException(Type type, string keyName, string keyPropertyName)
+        : base($"Type {type.Name} needs a valid {keyName} property of name {keyPropertyName}.")
     {
     }
 }
