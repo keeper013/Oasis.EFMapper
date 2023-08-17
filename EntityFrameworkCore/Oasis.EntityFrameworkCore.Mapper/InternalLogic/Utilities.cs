@@ -20,18 +20,12 @@ internal static class Utilities
         where TTarget : class
         where TKeyType : struct;
 
-    public delegate object GetScalarProperty<TEntity>(TEntity entity)
-        where TEntity : class;
-
     public delegate bool ScalarPropertyIsEmpty<TEntity>(TEntity entity)
         where TEntity : class;
 
     public delegate bool ScalarPropertiesAreEqual<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
         where TSource : class
         where TTarget : class;
-
-    public delegate object? GetSourceIdForTarget<TSource>(TSource source, IScalarTypeConverter converter)
-        where TSource : class;
 
     public delegate Expression<Func<TTarget, bool>> GetSourceIdListContainsTargetId<TSource, TTarget>(List<TSource> sourceList, IScalarTypeConverter converter)
         where TSource : class
@@ -195,8 +189,6 @@ internal record struct MethodMetaData(Type type, string name);
 internal record struct TargetByIdTrackerMethods(Delegate find, Delegate track);
 
 internal record struct MapperSet(Delegate? customPropertiesMapper, Delegate? keyMapper, Delegate? contentMapper);
-
-internal record struct ExistingTargetTrackerSet(Delegate buildExistingTargetTracker, Delegate startTrackingTarget);
 
 // get method is only needed for id, not for concurrency token, so it's nullable here
 internal record struct TypeKeyProxyMetaDataSet(MethodMetaData isEmpty, PropertyInfo property);

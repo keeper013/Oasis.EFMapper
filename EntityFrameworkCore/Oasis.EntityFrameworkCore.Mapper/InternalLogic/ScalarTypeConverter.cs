@@ -28,24 +28,4 @@ internal sealed class ScalarTypeConverter : IScalarTypeConverter
 
         return ((Func<TSource, TTarget>)converter)(source);
     }
-
-    public object? Convert(object? value, Type targetType)
-    {
-        if (value != default)
-        {
-            var sourceType = value.GetType();
-
-            if (sourceType != targetType)
-            {
-                if (!_scalarConverterDictionary.TryGetValue(sourceType, out var innerDictionary) || !innerDictionary.TryGetValue(targetType, out var converter))
-                {
-                    throw new ScalarConverterMissingException(sourceType, targetType);
-                }
-
-                return converter.DynamicInvoke(new[] { value });
-            }
-        }
-
-        return value;
-    }
 }
