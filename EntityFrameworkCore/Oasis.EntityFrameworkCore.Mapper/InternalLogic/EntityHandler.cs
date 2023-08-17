@@ -1,6 +1,6 @@
-﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
+﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-using Oasis.EntityFramework.Mapper.Exceptions;
+using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 using System.Linq.Expressions;
 
 internal interface IIdPropertyTracker
@@ -11,7 +11,7 @@ internal interface IIdPropertyTracker
 /// <summary>
 /// This class stores generated functions that handles entity id and concurrency token related matters.
 /// </summary>
-internal sealed class EntityBaseProxy : IIdPropertyTracker
+internal sealed class EntityHandler : IIdPropertyTracker
 {
     private readonly IReadOnlyDictionary<Type, TypeKeyProxy> _entityIdProxies;
     private readonly IReadOnlyDictionary<Type, TypeKeyProxy> _entityConcurrencyTokenProxies;
@@ -19,15 +19,18 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _entityConcurrencyTokenComparers;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _targetIdEqualsSourceId;
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _sourceIdListContainsTargetId;
+    private readonly IReadOnlyDictionary<Type, Delegate> _factoryMethods;
     private readonly IScalarTypeConverter _scalarTypeConverter;
 
-    public EntityBaseProxy(
+    public EntityHandler(
         Dictionary<Type, TypeKeyProxyMetaDataSet> entityIdProxies,
         Dictionary<Type, TypeKeyProxyMetaDataSet> entityConcurrencyTokenProxies,
         Dictionary<Type, Dictionary<Type, MethodMetaData>> entityIdComparers,
         Dictionary<Type, Dictionary<Type, MethodMetaData>> entityConcurrencyTokenComparers,
         Dictionary<Type, Dictionary<Type, MethodMetaData>> sourceIdForTarget,
         Dictionary<Type, Dictionary<Type, MethodMetaData>> sourceIdListContainsTargetId,
+        Dictionary<Type, Delegate> factoryMethods,
+        Dictionary<Type, MethodMetaData> generatedConstructors,
         Type type,
         IScalarTypeConverter scalarConverter)
     {
@@ -37,6 +40,13 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         _entityConcurrencyTokenComparers = Utilities.MakeDelegateDictionary(entityConcurrencyTokenComparers, type);
         _targetIdEqualsSourceId = Utilities.MakeDelegateDictionary(sourceIdForTarget, type);
         _sourceIdListContainsTargetId = Utilities.MakeDelegateDictionary(sourceIdListContainsTargetId, type);
+        var dict = new Dictionary<Type, Delegate>(factoryMethods);
+        foreach (var kvp in generatedConstructors)
+        {
+            dict.Add(kvp.Key, Delegate.CreateDelegate(kvp.Value.type, type.GetMethod(kvp.Value.name)!));
+        }
+
+        _factoryMethods = dict;
         _scalarTypeConverter = scalarConverter;
     }
 
@@ -143,6 +153,12 @@ internal sealed class EntityBaseProxy : IIdPropertyTracker
         }
 
         return ((Utilities.GetSourceIdEqualsTargetId<TSource, TTarget>)del)(source, _scalarTypeConverter);
+    }
+
+    public TEntity Make<TEntity>()
+        where TEntity : class
+    {
+        return ((Func<TEntity>)_factoryMethods[typeof(TEntity)])();
     }
 
     private Dictionary<Type, TypeKeyProxy> MakeTypeKeyProxyDictionary(Dictionary<Type, TypeKeyProxyMetaDataSet> proxies, Type type)

@@ -15,8 +15,7 @@ internal static class Utilities
         TTarget target,
         IScalarTypeConverter converter,
         IRecursiveMapper<TKeyType> mapper,
-        IExistingTargetTracker? existingTargetTracker,
-        INewTargetTracker<TKeyType>? newTargetTracker)
+        IRecursiveMappingContext context)
         where TSource : class
         where TTarget : class
         where TKeyType : struct;
@@ -31,9 +30,6 @@ internal static class Utilities
         where TSource : class
         where TTarget : class;
 
-    public delegate bool StartTrackingNewTarget<TTarget, TKey>(ISet<TKey> set, TTarget target)
-        where TTarget : class;
-
     public delegate object? GetSourceIdForTarget<TSource>(TSource source, IScalarTypeConverter converter)
         where TSource : class;
 
@@ -45,7 +41,15 @@ internal static class Utilities
         where TSource : class
         where TTarget : class;
 
-    public delegate IExistingTargetTracker BuildExistingTargetTracker(Delegate startTracking);
+    public delegate TTarget? EntityTrackerFindById<TSource, TTarget, TKeyType>(Dictionary<TKeyType, object> dict, TSource source, IScalarTypeConverter converter)
+        where TSource : class
+        where TTarget : class
+        where TKeyType : notnull;
+
+    public delegate void EntityTrackerTrackById<TSource, TTarget, TKeyType>(Dictionary<TKeyType, object> dict, TSource source, TTarget target, IScalarTypeConverter converter)
+        where TSource : class
+        where TTarget : class
+        where TKeyType : notnull;
 
     public static bool AllowsInsert(this MapToDatabaseType mapToDatabaseType) => (mapToDatabaseType & MapToDatabaseType.Insert) == MapToDatabaseType.Insert;
 
@@ -78,6 +82,8 @@ internal static class Utilities
     public static bool IsConstructable(this Type type) => type.IsClass && !type.IsAbstract;
 
     public static bool IsList(this Type listType) => listType.IsGenericType && listType.GetGenericTypeDefinition() == typeof(List<>);
+
+    public static Type GetUnderlyingType(this Type type) => Nullable.GetUnderlyingType(type) ?? type;
 
     internal static MapperMetaDataSet? BuildMapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData? keyMapper, MethodMetaData? contentMapper)
     {
@@ -164,7 +170,7 @@ internal static class Utilities
             ? item : default;
     }
 
-    internal static Dictionary<Type, IReadOnlyDictionary<Type, Delegate>> MakeDelegateDictionary(IDictionary<Type, Dictionary<Type, MethodMetaData>> metaDataDict, Type type)
+    internal static Dictionary<Type, IReadOnlyDictionary<Type, Delegate>> MakeDelegateDictionary(IReadOnlyDictionary<Type, Dictionary<Type, MethodMetaData>> metaDataDict, Type type)
     {
         var result = new Dictionary<Type, IReadOnlyDictionary<Type, Delegate>>();
         foreach (var pair in metaDataDict)
@@ -184,7 +190,9 @@ internal static class Utilities
     }
 }
 
-public record struct MethodMetaData(Type type, string name);
+internal record struct MethodMetaData(Type type, string name);
+
+internal record struct TargetByIdTrackerMethods(Delegate find, Delegate track);
 
 internal record struct MapperSet(Delegate? customPropertiesMapper, Delegate? keyMapper, Delegate? contentMapper);
 
@@ -198,4 +206,4 @@ internal record struct TypeKeyProxy(Delegate isEmpty, PropertyInfo property);
 
 internal record struct MapperMetaDataSet(Delegate? customPropertiesMapper, MethodMetaData? keyMapper, MethodMetaData? contentMapper);
 
-internal record struct ExistingTargetTrackerMetaDataSet(MethodMetaData buildExistingTargetTracker, MethodMetaData startTrackingTarget);
+internal record struct TargetByIdTrackerMetaDataSet(MethodMetaData find, MethodMetaData track);

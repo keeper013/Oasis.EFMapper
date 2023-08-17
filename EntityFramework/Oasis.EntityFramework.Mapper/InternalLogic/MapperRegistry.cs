@@ -19,11 +19,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Dictionary<Type, ICustomTypeMapperConfiguration?>> _toBeRegistered = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _sourceIdEqualsTargetId = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _sourceIdListContainsTargetId = new ();
+    private readonly Dictionary<Type, Dictionary<Type, Dictionary<Type, TargetByIdTrackerMetaDataSet>>> _targetByIdTrackers = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
     private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
     private readonly Dictionary<Type, ISet<string>> _dependentPropertiesDictionary = new ();
-    private readonly Dictionary<Type, ExistingTargetTrackerMetaDataSet> _existingTargetTrackers = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityDefaultConstructors = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityListDefaultConstructors = new ();
     private readonly HashSet<Type> _targetsToBeTracked = new ();
@@ -90,7 +90,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
             throw new InvalidEntityTypeException(type);
         }
 
-        var properties = type.GetProperties(Utilities.PublicInstance);
         if (!string.IsNullOrEmpty(configuration.IdentityPropertyName))
         {
             _keyPropertyNames.Add(type, new KeyPropertyConfiguration(configuration.IdentityPropertyName!, configuration.ConcurrencyTokenPropertyName));
@@ -220,24 +219,9 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new MapperSetLookUp(_mapper, type);
     }
 
-    public ExistingTargetTrackerFactory MakeExistingTargetTrackerFactory(Type type)
+    public EntityHandler MakeEntityHandler(Type type, IScalarTypeConverter scalarTypeConverter)
     {
-        return new ExistingTargetTrackerFactory(_existingTargetTrackers, _targetsToBeTracked, type);
-    }
-
-    public EntityBaseProxy MakeEntityBaseProxy(Type type, IScalarTypeConverter scalarTypeConverter)
-    {
-        return new EntityBaseProxy(_typeIdProxies, _typeConcurrencyTokenProxies, _idComparers, _concurrencyTokenComparers, _sourceIdEqualsTargetId, _sourceIdListContainsTargetId, type, scalarTypeConverter);
-    }
-
-    public IEntityFactory MakeEntityFactory(Type type)
-    {
-        return new EntityFactory(_factoryMethods, _entityDefaultConstructors, type);
-    }
-
-    public NewTargetTrackerProvider MakeNewTargetTrackerProvider(IEntityFactory entityFactory)
-    {
-        return new NewTargetTrackerProvider(_loopDependencyMapping, entityFactory);
+        return new EntityHandler(_typeIdProxies, _typeConcurrencyTokenProxies, _idComparers, _concurrencyTokenComparers, _sourceIdEqualsTargetId, _sourceIdListContainsTargetId, _factoryMethods, _entityDefaultConstructors, type, scalarTypeConverter);
     }
 
     public DependentPropertyManager MakeDependentPropertyManager()
@@ -250,6 +234,23 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new MapToDatabaseTypeManager(_defaultMapToDatabase, _mapToDatabaseDictionary);
     }
 
+    public RecursiveMappingContextFactory MakeRecursiveMappingContextFactory(Type type, EntityHandler entityHandler, IScalarTypeConverter scalarTypeConverter)
+    {
+        var targetIdentityTypeMapping = new Dictionary<Type, Type>();
+        var targetByIdTrackerFactories = new Dictionary<Type, ITargetByIdTrackerFactory>();
+        foreach (var kvp in _targetByIdTrackers)
+        {
+            var factory = (ITargetByIdTrackerFactory)Activator.CreateInstance(typeof(TargetByIdTrackerFactory<>).MakeGenericType(kvp.Key), kvp.Value, scalarTypeConverter, type)!;
+            targetByIdTrackerFactories.Add(kvp.Key, factory);
+            foreach (var targetType in kvp.Value.SelectMany(v => v.Value.Keys).Distinct())
+            {
+                targetIdentityTypeMapping.Add(targetType, kvp.Key);
+            }
+        }
+
+        return new RecursiveMappingContextFactory(entityHandler, targetIdentityTypeMapping, targetByIdTrackerFactories);
+    }
+
     public void RegisterEntityListDefaultConstructorMethod(Type listType)
     {
         if (listType.IsConstructable() && !listType.IsList() && !_entityListDefaultConstructors.ContainsKey(listType) && !_entityListFactoryMethods.ContainsKey(listType))
@@ -258,7 +259,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
     }
 
-    public void RecursivelyRegister(Type sourceType, Type targetType, RecursiveRegisterContext context, RecursivelyRegisterType recursivelyRegisterType)
+    public void RecursivelyRegister(Type sourceType, Type targetType, IRecursiveRegisterContext context, RecursivelyRegisterType recursivelyRegisterType)
     {
         if (!context.Contains(sourceType, targetType))
         {
@@ -297,7 +298,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
             RegisterKeyProperty(sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder, _typeConcurrencyTokenProxies, KeyType.ConcurrencyToken);
             RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder);
             RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder);
-            RegisterExistingTargetTracker(targetType, targetIdentityProperty, context);
+            RegisterTargetByIdTracker(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty);
 
             if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet?>? innerMapper))
             {
@@ -351,7 +352,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         _mapper.Clear();
         _idComparers.Clear();
         _concurrencyTokenComparers.Clear();
-        _existingTargetTrackers.Clear();
+        _targetByIdTrackers.Clear();
         _entityDefaultConstructors.Clear();
         _entityListDefaultConstructors.Clear();
     }
@@ -544,16 +545,20 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
     }
 
-    private void RegisterExistingTargetTracker(Type targetType, PropertyInfo? targetIdentityProperty, RecursiveRegisterContext context)
+    private void RegisterTargetByIdTracker(Type sourceType, Type targetType, PropertyInfo? sourceIdentityProperty, PropertyInfo? targetIdentityProperty)
     {
-        if (targetIdentityProperty != default && !_existingTargetTrackers.ContainsKey(targetType))
+        if (sourceIdentityProperty != default && targetIdentityProperty != default)
         {
-            _existingTargetTrackers.Add(
-                targetType,
-                new ExistingTargetTrackerMetaDataSet(
-                    _dynamicMethodBuilder.BuildUpBuildExistingTargetTrackerMethod(targetType, targetIdentityProperty),
-                    _dynamicMethodBuilder.BuildUpStartTrackExistingTargetMethod(targetType, targetIdentityProperty)));
-            context.DumpTargetsToBeTracked();
+            var targetKeyUnderlyingType = targetIdentityProperty.PropertyType.GetUnderlyingType();
+            if (!_targetByIdTrackers.TryGetValue(targetKeyUnderlyingType, out var trackers))
+            {
+                trackers = new Dictionary<Type, Dictionary<Type, TargetByIdTrackerMetaDataSet>>();
+                _targetByIdTrackers.Add(targetKeyUnderlyingType, trackers);
+            }
+
+            trackers.AddIfNotExists(sourceType, targetType, () => new TargetByIdTrackerMetaDataSet(
+                _dynamicMethodBuilder.BuildUpTargetByIdTrackerFindMethod(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty),
+                _dynamicMethodBuilder.BuildUpTargetByIdTrackerTrackMethod(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty)));
         }
     }
 }

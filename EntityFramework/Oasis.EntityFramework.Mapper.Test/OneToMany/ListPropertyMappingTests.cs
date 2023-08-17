@@ -19,31 +19,30 @@ public class ListPropertyMappingTests : TestBase
         var entity1 = new CollectionEntity1(1, new[] { sc1, sc1 });
 
         // Assert
-        Assert.Throws<DuplicatedListItemException>(() =>
-        {
-            // Act
-            mapper.Map<CollectionEntity1, CollectionEntity2>(entity1);
-        });
+        var result = mapper.Map<CollectionEntity1, CollectionEntity2>(entity1);
+        Assert.AreEqual(2, result.Scs!.Count);
+        Assert.AreEqual(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
     }
 
     [Test]
-    public void MapListProperties_ToDatabase_SameInstance_ShouldThrowException()
+    public async Task MapListProperties_ToDatabase_SameInstance_ShouldThrowException()
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity2, CollectionEntity1>().Build();
         var sc2 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
         var entity2 = new CollectionEntity2(1, new[] { sc2, sc2 });
 
-        // Assert
-        Assert.ThrowsAsync<DuplicatedListItemException>(async () =>
+        // Act & Assert
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            // Act
-            await ExecuteWithNewDatabaseContext(async (databaseContext) =>
-            {
-                await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null, databaseContext);
-            });
+            var result = await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null, databaseContext);
+            Assert.AreEqual(2, result.Scs!.Count);
+            Assert.AreEqual(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
+            await databaseContext.SaveChangesAsync();
+            var subs = await databaseContext.Set<SubScalarEntity1>().ToListAsync();
+            Assert.AreEqual(1, subs.Count);
         });
-        
+
     }
 
     [Test]

@@ -24,18 +24,16 @@ internal sealed class MapperBuilder : IMapperBuilder
         var scalarTypeConverter = _mapperRegistry.MakeScalarTypeConverter();
         var listTypeConstructor = _mapperRegistry.MakeListTypeConstructor(type);
         var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
-        var proxy = _mapperRegistry.MakeEntityBaseProxy(type, scalarTypeConverter);
-        var entityFactory = _mapperRegistry.MakeEntityFactory(type);
-        var newTargetTrackerProvider = _mapperRegistry.MakeNewTargetTrackerProvider(entityFactory);
+        var entityHandler = _mapperRegistry.MakeEntityHandler(type, scalarTypeConverter);
+        var recursiveMappingContextFactory = _mapperRegistry.MakeRecursiveMappingContextFactory(type, entityHandler, scalarTypeConverter);
         var dependentPropertyManager = _mapperRegistry.MakeDependentPropertyManager();
         var keepUnmatchedManager = _mapperRegistry.KeepUnmatchedManager;
         var mapToDatabaseTypeManager = _mapperRegistry.MakeMapToDatabaseTypeManager();
-        var existingTargetTrackerFactory = _mapperRegistry.MakeExistingTargetTrackerFactory(type);
 
         // release some memory ahead
         _mapperRegistry.Clear();
 
-        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, existingTargetTrackerFactory, proxy, newTargetTrackerProvider, dependentPropertyManager, keepUnmatchedManager, mapToDatabaseTypeManager, entityFactory);
+        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, entityHandler, dependentPropertyManager, keepUnmatchedManager, mapToDatabaseTypeManager, recursiveMappingContextFactory);
     }
 
     public IMapperBuilder Register<TSource, TTarget>()

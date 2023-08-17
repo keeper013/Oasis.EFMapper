@@ -19,11 +19,9 @@ public class ListPropertyMappingTests : TestBase
         var entity1 = new CollectionEntity1(1, new[] { sc1, sc1 });
 
         // Assert
-        Assert.Throws<DuplicatedListItemException>(() =>
-        {
-            // Act
-            mapper.Map<CollectionEntity1, CollectionEntity2>(entity1);
-        });
+        var result = mapper.Map<CollectionEntity1, CollectionEntity2>(entity1);
+        Assert.Equal(2, result.Scs!.Count);
+        Assert.Equal(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
     }
 
     [Fact]
@@ -34,14 +32,15 @@ public class ListPropertyMappingTests : TestBase
         var sc2 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
         var entity2 = new CollectionEntity2(1, new[] { sc2, sc2 });
 
-        // Assert
+        // Act & Assert
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            await Assert.ThrowsAsync<DuplicatedListItemException>(async () =>
-            {
-                // Act
-                await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null, databaseContext);
-            });
+            var result = await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null, databaseContext);
+            Assert.Equal(2, result.Scs!.Count);
+            Assert.Equal(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
+            await databaseContext.SaveChangesAsync();
+            var subs = await databaseContext.Set<SubScalarEntity1>().ToListAsync();
+            Assert.Single(subs);
         });
     }
 

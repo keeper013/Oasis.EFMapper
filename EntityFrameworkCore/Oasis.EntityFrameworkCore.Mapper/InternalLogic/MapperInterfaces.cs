@@ -7,34 +7,37 @@ public interface IScalarTypeConverter
     object? Convert(object? value, Type targetType);
 }
 
-/// <summary>
-/// This interface is used to avoid infinite loop when mapping (e.g. A -> B -> C -> A).
-/// When such infinite loop is detected (mapping an entity that has been mapped before, the process will not map the entity again).
-/// </summary>
-/// <typeparam name="TKeyType">Type of identifyer of new instance in memory, normally should be type of hash code.</typeparam>
-public interface INewTargetTracker<TKeyType>
-    where TKeyType : struct
+public interface IRecursiveContext
 {
-    /// <summary>
-    /// Create a new instance of mapping target if the source hasn't been mapped.
-    /// </summary>
-    /// <typeparam name="TTarget">Type of mapping target.</typeparam>
-    /// <param name="key">Key of source, usually hash code of the instance.</param>
-    /// <param name="target">Instance of target.</param>
-    /// <returns>true if source of the key has been mapped, else false.</returns>
-    bool NewTargetIfNotExist<TTarget>(TKeyType key, out TTarget target)
-        where TTarget : class;
+    void Push(Type sourceType, Type targetType);
+
+    void Pop();
+
+    bool Contains(Type sourceType, Type targetType);
 }
 
-public interface IExistingTargetTracker
+public interface IEntityTracker<TTarget>
+    where TTarget : class
 {
+    void Track(TTarget target);
+}
+
+public interface IRecursiveMappingContext : IRecursiveContext
+{
+    Type CurrentTarget { get; }
+
+    (Type, Type) Current { get; }
+
     /// <summary>
-    /// Starts tracking a target by Id.
+    /// If target is tracked by hash code or id, return tracked target, or else make a new target and track it, then return the target.
     /// </summary>
+    /// <typeparam name="TSource">Source type.</typeparam>
     /// <typeparam name="TTarget">Target type.</typeparam>
-    /// <param name="target">Target to track.</param>
-    /// <returns>true if the target isn't tracked yet, else false.</returns>
-    bool StartTracking<TTarget>(TTarget target)
+    /// <param name="source">Source object.</param>
+    /// <param name="tracker">Entity tracker in case target is not traced.</param>
+    /// <returns>true if the target has not tracked before calling the function else false.</returns>
+    TTarget? GetTracked<TSource, TTarget>(TSource source, out IEntityTracker<TTarget>? tracker)
+        where TSource : class
         where TTarget : class;
 }
 
@@ -45,11 +48,11 @@ public interface IExistingTargetTracker
 public interface IRecursiveMapper<TKeyType>
     where TKeyType : struct
 {
-    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
+    TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IRecursiveMappingContext context, string propertyName)
         where TSource : class
         where TTarget : class;
 
-    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<TKeyType>? newTargetTracker, string propertyName)
+    void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IRecursiveMappingContext context, string propertyName)
         where TSource : class
         where TTarget : class;
 

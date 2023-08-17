@@ -15,21 +15,21 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
         IScalarTypeConverter scalarConverter,
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
-        EntityBaseProxy entityBaseProxy)
+        EntityHandler entityHandler)
     {
         _scalarConverter = scalarConverter;
         _listTypeConstructor = listTypeConstructor;
         _lookup = lookup;
-        EntityBaseProxy = entityBaseProxy;
+        EntityHandler = entityHandler;
     }
 
-    protected EntityBaseProxy EntityBaseProxy { get; }
+    protected EntityHandler EntityHandler { get; }
 
-    public abstract TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<int>? newTargetTracker, string propertyName)
+    public abstract TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IRecursiveMappingContext context, string propertyName)
         where TSource : class
         where TTarget : class;
 
-    public abstract void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<int>? newTargetTracker, string propertyName)
+    public abstract void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IRecursiveMappingContext context, string propertyName)
         where TSource : class
         where TTarget : class;
 
@@ -40,22 +40,12 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
         return _listTypeConstructor.Construct<TList, TItem>();
     }
 
-    internal void Map<TSource, TTarget>(TSource source, TTarget target, MapKeyProperties mapKeyProperties, IExistingTargetTracker? existingTargetTracker, INewTargetTracker<int>? newTargetTracker, MappingToDatabaseContext? context = null)
+    internal void Map<TSource, TTarget>(TSource source, TTarget target, MapKeyProperties mapKeyProperties, IRecursiveMappingContext context)
         where TSource : class
         where TTarget : class
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
-
-        if (EntityBaseProxy.HasId<TTarget>() && !EntityBaseProxy.IdIsEmpty(target))
-        {
-            if (existingTargetTracker != null && !existingTargetTracker.StartTracking(target))
-            {
-                // Only do mapping if the target hasn't been mapped.
-                // This will be useful to break from infinite loop caused by navigation properties.
-                return;
-            }
-        }
 
         var mapperSet = _lookup.LookUp(sourceType, targetType);
         using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
@@ -66,60 +56,55 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
             (mapperSet.keyMapper as Utilities.MapKeyProperties<TSource, TTarget>)?.Invoke(source, target, _scalarConverter, mapKeyProperties == MapKeyProperties.IdOnly);
         }
 
-        (mapperSet.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, _scalarConverter, this, existingTargetTracker, newTargetTracker);
+        (mapperSet.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, _scalarConverter, this, context);
     }
 }
 
 internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
 {
-    private readonly IScalarTypeConverter _scalarConverter;
-    private readonly IEntityFactory _entityFactory;
-    private readonly MapperSetLookUp _lookup;
-    private readonly EntityBaseProxy _entityBaseProxy;
     private readonly DependentPropertyManager _dependentPropertyManager;
     private readonly KeepUnmatchedManager _keepUnmatchedManager;
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
     private readonly DbContext _databaseContext;
-    private readonly MappingToDatabaseContext _mappingContext = new ();
 
     public ToDatabaseRecursiveMapper(
         IScalarTypeConverter scalarConverter,
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
-        EntityBaseProxy entityBaseProxy,
+        EntityHandler entityHandler,
         DependentPropertyManager dependentPropertyManager,
         KeepUnmatchedManager keepUnmatchedManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
-        IEntityFactory entityFactory,
         DbContext databaseContext)
-        : base(scalarConverter, listTypeConstructor, lookup, entityBaseProxy)
+        : base(scalarConverter, listTypeConstructor, lookup, entityHandler)
     {
-        _scalarConverter = scalarConverter;
-        _entityFactory = entityFactory;
-        _lookup = lookup;
         _dependentPropertyManager = dependentPropertyManager;
         _keepUnmatchedManager = keepUnmatchedManager;
         _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
-        _entityBaseProxy = entityBaseProxy;
         _databaseContext = databaseContext;
     }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(
         TSource source,
         Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer,
-        IExistingTargetTracker? existingTargetTracker,
-        INewTargetTracker<int>? newTargetTracker)
+        IRecursiveMappingContext context)
         where TSource : class
         where TTarget : class
     {
         const string AsNoTrackingMethodCall = ".AsNoTracking";
 
-        var sourceHasId = _entityBaseProxy.HasId<TSource>() && !_entityBaseProxy.IdIsEmpty(source);
+        var sourceHasId = EntityHandler.HasId<TSource>() && !EntityHandler.IdIsEmpty(source);
         var mapType = _mapToDatabaseTypeManager.Get<TSource, TTarget>();
+        var trackedTarget = context.GetTracked<TSource, TTarget>(source, out var tracker);
+        if (trackedTarget != null)
+        {
+            return trackedTarget;
+        }
+
         if (sourceHasId)
         {
             TTarget? target;
-            var identityEqualsExpression = _entityBaseProxy.GetIdEqualsExpression<TSource, TTarget>(source);
+            var identityEqualsExpression = EntityHandler.GetIdEqualsExpression<TSource, TTarget>(source);
             if (includer != default)
             {
                 var includerString = includer.ToString();
@@ -143,17 +128,8 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                 }
                 else
                 {
-                    if (_entityBaseProxy.HasConcurrencyToken<TSource>() && _entityBaseProxy.HasConcurrencyToken<TTarget>()
-                        && !_entityBaseProxy.ConcurrencyTokenIsEmpty(source) && !_entityBaseProxy.ConcurrencyTokenIsEmpty(target)
-                        && !_entityBaseProxy.ConcurrencyTokenEquals(source, target))
-                    {
-                        throw new ConcurrencyTokenException(typeof(TSource), typeof(TTarget));
-                    }
-                    else
-                    {
-                        Map(source, target, MapKeyProperties.None, existingTargetTracker, newTargetTracker, _mappingContext);
-                        return target;
-                    }
+                    MapToExistingTarget(source, target, MapKeyProperties.None, context, tracker!);
+                    return target;
                 }
             }
         }
@@ -170,16 +146,16 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             }
         }
 
-        return MapToNewTarget<TSource, TTarget>(source, sourceHasId ? MapKeyProperties.IdOnly : MapKeyProperties.None, existingTargetTracker, newTargetTracker);
+        return MapToNewTarget(source, sourceHasId ? MapKeyProperties.IdOnly : MapKeyProperties.None, context, tracker!);
     }
 
-    public override TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<int>? newTargetTracker, string propertyName)
+    public override TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IRecursiveMappingContext context, string propertyName)
         where TSource : class
         where TTarget : class
     {
         if (source == default)
         {
-            if (target != default && _dependentPropertyManager.IsDependent(_mappingContext.CurrentTarget, propertyName))
+            if (target != default && _dependentPropertyManager.IsDependent(context.CurrentTarget, propertyName))
             {
                 _databaseContext.Set<TTarget>().Remove(target);
             }
@@ -187,92 +163,111 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             return default;
         }
 
+        var trackedTarget = context.GetTracked<TSource, TTarget>(source, out var tracker);
+        if (trackedTarget != null)
+        {
+            return trackedTarget;
+        }
+
         var mapType = _mapToDatabaseTypeManager.Get<TSource, TTarget>();
-        if (!EntityBaseProxy.HasId<TSource>() || EntityBaseProxy.IdIsEmpty(source))
+        if (!EntityHandler.HasId<TSource>() || EntityHandler.IdIsEmpty(source))
         {
             if (!mapType.AllowsInsert())
             {
                 throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
             }
 
-            if (target != default && EntityBaseProxy.HasId<TTarget>() && !EntityBaseProxy.IdIsEmpty(target)
-                && _dependentPropertyManager.IsDependent(_mappingContext.CurrentTarget, propertyName))
+            if (target != default && EntityHandler.HasId<TTarget>() && !EntityHandler.IdIsEmpty(target)
+                && _dependentPropertyManager.IsDependent(context.CurrentTarget, propertyName))
             {
                 _databaseContext.Set<TTarget>().Remove(target);
             }
 
-            return MapToNewTarget<TSource, TTarget>(source, MapKeyProperties.None, existingTargetTracker, newTargetTracker);
+            return MapToNewTarget(source, MapKeyProperties.None, context, tracker!);
         }
 
-        if (target != default && !EntityBaseProxy.IdEquals(source, target))
+        if (target != default)
         {
-            if (_dependentPropertyManager.IsDependent(_mappingContext.CurrentTarget, propertyName))
+            if (EntityHandler.IdEquals(source, target))
             {
-                _databaseContext.Set<TTarget>().Remove(target);
+                MapToExistingTarget(source, target, MapKeyProperties.None, context, tracker!);
             }
+            else
+            {
+                if (_dependentPropertyManager.IsDependent(context.CurrentTarget, propertyName))
+                {
+                    _databaseContext.Set<TTarget>().Remove(target);
+                }
 
-            target = FindOrAddTarget<TSource, TTarget>(source, newTargetTracker, mapType);
+                target = MapToExistingOrNewTarget(source, context, tracker!, mapType);
+            }
         }
-
-        if (target == default)
+        else
         {
-            target = FindOrAddTarget<TSource, TTarget>(source, newTargetTracker, mapType);
+            target = MapToExistingOrNewTarget(source, context, tracker!, mapType);
         }
 
-        Map(source, target, MapKeyProperties.None, existingTargetTracker, newTargetTracker, _mappingContext);
         return target;
     }
 
-    public override void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<int>? newTargetTracker, string propertyName)
+    public override void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IRecursiveMappingContext context, string propertyName)
         where TSource : class
         where TTarget : class
     {
         var shadowSet = new HashSet<TTarget>(target);
         if (source != default)
         {
-            var hashCodeSet = new HashSet<int>(source.Count);
             var mapType = _mapToDatabaseTypeManager.Get<TSource, TTarget>();
-            var sourceHasIdProperty = EntityBaseProxy.HasId<TSource>();
-            var unmatchedSources = new List<TSource>();
+            var sourceHasIdProperty = EntityHandler.HasId<TSource>();
+            var unmatchedSources = new List<(TSource, IEntityTracker<TTarget>)>();
             foreach (var s in source)
             {
-                if (!hashCodeSet.Add(s.GetHashCode()))
+                if (s == default)
                 {
-                    throw new DuplicatedListItemException(typeof(TSource));
+                    continue;
                 }
 
-                if (!sourceHasIdProperty || EntityBaseProxy.IdIsEmpty(s))
+                var trackedTarget = context.GetTracked<TSource, TTarget>(s, out var tracker);
+                if (trackedTarget != null)
                 {
-                    if (!mapType.AllowsInsert())
-                    {
-                        throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
-                    }
-
-                    target.Add(MapToNewTarget<TSource, TTarget>(s, MapKeyProperties.None, existingTargetTracker, newTargetTracker));
+                    target.Add(trackedTarget);
                 }
                 else
                 {
-                    var t = target.FirstOrDefault(i => EntityBaseProxy.IdEquals(s, i));
-                    if (t != default)
+                    if (!sourceHasIdProperty || EntityHandler.IdIsEmpty(s))
                     {
-                        if (!mapType.AllowsUpdate())
+                        if (!mapType.AllowsInsert())
                         {
-                            throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
+                            throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
                         }
 
-                        Map(s, t, MapKeyProperties.None, existingTargetTracker, newTargetTracker, _mappingContext);
-                        shadowSet.Remove(t);
+                        target.Add(MapToNewTarget<TSource, TTarget>(s, MapKeyProperties.None, context, tracker!));
                     }
                     else
                     {
-                        unmatchedSources.Add(s);
+                        var t = target.FirstOrDefault(i => EntityHandler.IdEquals(s, i));
+                        if (t != default)
+                        {
+                            if (!mapType.AllowsUpdate())
+                            {
+                                throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
+                            }
+
+                            MapToExistingTarget(s, t, MapKeyProperties.None, context, tracker!);
+
+                            shadowSet.Remove(t);
+                        }
+                        else
+                        {
+                            unmatchedSources.Add((s, tracker!));
+                        }
                     }
                 }
             }
 
             if (unmatchedSources.Any())
             {
-                var targetsFound = _databaseContext.Set<TTarget>().Where(_entityBaseProxy.GetContainsTargetIdExpression<TSource, TTarget>(unmatchedSources)).ToList();
+                var targetsFound = _databaseContext.Set<TTarget>().Where(EntityHandler.GetContainsTargetIdExpression<TSource, TTarget>(unmatchedSources.Select(s => s.Item1).ToList())).ToList();
                 if (targetsFound.Any() && !mapType.AllowsUpdate())
                 {
                     throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
@@ -285,14 +280,14 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
 
                 foreach (var s in unmatchedSources)
                 {
-                    var t = targetsFound.Where(t => _entityBaseProxy.IdEquals(s, t)).FirstOrDefault();
+                    var t = targetsFound.Where(t => EntityHandler.IdEquals(s.Item1, t)).FirstOrDefault();
                     if (t != default)
                     {
-                        Map(s, t, MapKeyProperties.None, existingTargetTracker, newTargetTracker, _mappingContext);
+                        MapToExistingTarget(s.Item1, t, MapKeyProperties.None, context, s.Item2);
                     }
                     else
                     {
-                        t = MapToNewTarget<TSource, TTarget>(s, MapKeyProperties.IdOnly, existingTargetTracker, newTargetTracker);
+                        t = MapToNewTarget(s.Item1, MapKeyProperties.IdOnly, context, s.Item2);
                     }
 
                     target.Add(t);
@@ -300,8 +295,8 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             }
         }
 
-        var current = _mappingContext.Current;
-        if (!_keepUnmatchedManager.KeepUnmatched(current.Item1, current.Item2, propertyName))
+        var current = context.Current;
+        if (shadowSet.Any() && !_keepUnmatchedManager.KeepUnmatched(current.Item1, current.Item2, propertyName))
         {
             var toRemoveFromDatabase = _dependentPropertyManager.IsDependent(current.Item2, propertyName);
             foreach (var toBeRemoved in shadowSet)
@@ -315,36 +310,37 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         }
     }
 
-    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, MapKeyProperties mapKeyProperties, IExistingTargetTracker? existingTargetTracker, INewTargetTracker<int>? newTargetTracker)
+    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, MapKeyProperties mapKeyProperties, IRecursiveMappingContext context, IEntityTracker<TTarget> tracker)
         where TSource : class
         where TTarget : class
     {
-        TTarget newTarget;
-        bool targetHasBeenMapped;
-        if (newTargetTracker != null)
-        {
-            targetHasBeenMapped = newTargetTracker.NewTargetIfNotExist(source.GetHashCode(), out newTarget);
-        }
-        else
-        {
-            newTarget = _entityFactory.Make<TTarget>();
-            targetHasBeenMapped = false;
-        }
-
-        if (!targetHasBeenMapped)
-        {
-            Map(source, newTarget, mapKeyProperties, existingTargetTracker, newTargetTracker, _mappingContext);
-            _databaseContext.Set<TTarget>().Add(newTarget);
-        }
-
+        var newTarget = EntityHandler.Make<TTarget>();
+        tracker.Track(newTarget);
+        Map(source, newTarget, mapKeyProperties, context);
+        _databaseContext.Set<TTarget>().Add(newTarget);
         return newTarget;
     }
 
-    private TTarget FindOrAddTarget<TSource, TTarget>(TSource source, INewTargetTracker<int>? newTargetTracker, MapToDatabaseType mapType)
+    private void MapToExistingTarget<TSource, TTarget>(TSource source, TTarget existingTarget, MapKeyProperties mapKeyProperties, IRecursiveMappingContext context, IEntityTracker<TTarget> tracker)
         where TSource : class
         where TTarget : class
     {
-        var identityEqualsExpression = _entityBaseProxy.GetIdEqualsExpression<TSource, TTarget>(source);
+        if (EntityHandler.HasConcurrencyToken<TSource>() && EntityHandler.HasConcurrencyToken<TTarget>()
+            && !EntityHandler.ConcurrencyTokenIsEmpty(source) && !EntityHandler.ConcurrencyTokenIsEmpty(existingTarget)
+            && !EntityHandler.ConcurrencyTokenEquals(source, existingTarget))
+        {
+            throw new ConcurrencyTokenException(typeof(TSource), typeof(TTarget));
+        }
+
+        tracker.Track(existingTarget);
+        Map(source, existingTarget, mapKeyProperties, context);
+    }
+
+    private TTarget MapToExistingOrNewTarget<TSource, TTarget>(TSource source, IRecursiveMappingContext context, IEntityTracker<TTarget> tracker, MapToDatabaseType mapType)
+        where TSource : class
+        where TTarget : class
+    {
+        var identityEqualsExpression = EntityHandler.GetIdEqualsExpression<TSource, TTarget>(source);
         var target = _databaseContext.Set<TTarget>().FirstOrDefault(identityEqualsExpression);
         if (target == null)
         {
@@ -353,108 +349,84 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                 throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
             }
 
-            if (newTargetTracker != null)
-            {
-                if (!newTargetTracker.NewTargetIfNotExist(source.GetHashCode(), out TTarget newTarget))
-                {
-                    _databaseContext.Set<TTarget>().Add(newTarget);
-                }
-
-                target = newTarget;
-            }
-            else
-            {
-                target = _entityFactory.Make<TTarget>();
-                _databaseContext.Set<TTarget>().Add(target);
-            }
+            target = EntityHandler.Make<TTarget>();
+            _databaseContext.Set<TTarget>().Add(target);
         }
-        else if (!mapType.AllowsUpdate())
+        else
         {
-            throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
+            if (!mapType.AllowsUpdate())
+            {
+                throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
+            }
+
+            if (EntityHandler.HasConcurrencyToken<TSource>() && EntityHandler.HasConcurrencyToken<TTarget>()
+                && !EntityHandler.ConcurrencyTokenIsEmpty(source) && !EntityHandler.ConcurrencyTokenIsEmpty(target)
+                && !EntityHandler.ConcurrencyTokenEquals(source, target))
+            {
+                throw new ConcurrencyTokenException(typeof(TSource), typeof(TTarget));
+            }
         }
 
-        var mapperSet = _lookup.LookUp(typeof(TSource), typeof(TTarget));
-        if (mapperSet.keyMapper != null)
-        {
-            // when entered this method, source is guaranteed to have an id
-            ((Utilities.MapKeyProperties<TSource, TTarget>)mapperSet.keyMapper)(source, target, _scalarConverter, true);
-        }
-
+        tracker.Track(target);
+        Map(source, target, MapKeyProperties.IdOnly, context);
         return target;
     }
 }
 
 internal sealed class ToMemoryRecursiveMapper : RecursiveMapper
 {
-    private readonly IEntityFactory _entityFactory;
-
     public ToMemoryRecursiveMapper(
         IScalarTypeConverter scalarConverter,
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
-        EntityBaseProxy entityBaseProxy,
-        IEntityFactory entityFactory)
-        : base(scalarConverter, listTypeConstructor, lookup, entityBaseProxy)
+        EntityHandler entityHandler)
+        : base(scalarConverter, listTypeConstructor, lookup, entityHandler)
     {
-        _entityFactory = entityFactory;
     }
 
-    public override TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<int>? newTargetTracker, string propertyName)
+    public override TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IRecursiveMappingContext context, string propertyName)
         where TSource : class
         where TTarget : class
     {
         if (source != default)
         {
-            if (target != default)
+            var trackedTarget = context.GetTracked<TSource, TTarget>(source, out var tracker);
+            if (trackedTarget != null)
             {
-                Map(source, target, MapKeyProperties.IdAndConcurrencyToken, existingTargetTracker, newTargetTracker);
+                return trackedTarget;
+            }
+            else
+            {
+                if (target == default)
+                {
+                    target = EntityHandler.Make<TTarget>();
+                }
+
+                tracker!.Track(target);
+                Map(source, target!, MapKeyProperties.IdAndConcurrencyToken, context);
                 return target;
             }
-
-            return MapToNewTarget<TSource, TTarget>(source, existingTargetTracker, newTargetTracker);
         }
 
         return default;
     }
 
-    public override void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IExistingTargetTracker existingTargetTracker, INewTargetTracker<int>? newTargetTracker, string propertyName)
+    public override void MapListProperty<TSource, TTarget>(ICollection<TSource>? source, ICollection<TTarget> target, IRecursiveMappingContext context, string propertyName)
     {
         if (source != default)
         {
-            var hashCodeSet = new HashSet<int>(source.Count);
             foreach (var s in source)
             {
-                if (!hashCodeSet.Add(s.GetHashCode()))
+                var t = context.GetTracked<TSource, TTarget>(s, out var tracker);
+                if (t == default)
                 {
-                    throw new DuplicatedListItemException(typeof(TSource));
+                    t = EntityHandler.Make<TTarget>();
+                    tracker!.Track(t);
+                    Map(s, t, MapKeyProperties.IdAndConcurrencyToken, context);
                 }
 
-                target.Add(MapToNewTarget<TSource, TTarget>(s, existingTargetTracker, newTargetTracker));
+                target.Add(t);
             }
         }
-    }
-
-    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, IExistingTargetTracker existingTargetTracker, INewTargetTracker<int>? newTargetTracker)
-        where TSource : class
-        where TTarget : class
-    {
-        TTarget newTarget;
-        bool targetHasBeenMapped;
-        if (newTargetTracker != null)
-        {
-            targetHasBeenMapped = newTargetTracker.NewTargetIfNotExist(source.GetHashCode(), out newTarget);
-        }
-        else
-        {
-            newTarget = _entityFactory.Make<TTarget>();
-            targetHasBeenMapped = false;
-        }
-
-        if (!targetHasBeenMapped)
-        {
-            Map(source, newTarget, MapKeyProperties.IdAndConcurrencyToken, existingTargetTracker, newTargetTracker);
-        }
-
-        return newTarget;
     }
 }
