@@ -16,11 +16,10 @@ internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper
 
     public Delegate MapProperties => MapPropertiesFunc;
 
-    public void MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value)
+    public void MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Func<TSource, TProperty> value)
     {
         var setterAction = CreateSetter(setter);
-        var valueFunc = value.Compile();
-        _propertyMappingFunctions.Add((source, target) => setterAction(target, valueFunc(source)));
+        _propertyMappingFunctions.Add((source, target) => setterAction(target, value(source)));
     }
 
     private static PropertyInfo GetProperty<TEntity, TProperty>(Expression<Func<TEntity, TProperty>> expression)
@@ -107,7 +106,7 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<
 
     public MapToDatabaseType? MapToDatabaseType { get; private set; }
 
-    public ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value)
+    public ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Func<TSource, TProperty> value)
     {
         _customPropertyMapper.MapProperty(setter, value);
         return this;

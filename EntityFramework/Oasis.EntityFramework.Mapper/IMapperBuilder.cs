@@ -24,7 +24,7 @@ public interface ICustomTypeMapperConfiguration<TSource, TTarget> : IConfigurato
 {
     ICustomTypeMapperConfiguration<TSource, TTarget> SetMapToDatabaseType(MapToDatabaseType mapToDatabase);
 
-    ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Expression<Func<TSource, TProperty>> value);
+    ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Func<TSource, TProperty> value);
 
     ICustomTypeMapperConfiguration<TSource, TTarget> ExcludePropertiesByName(params string[] names);
 
