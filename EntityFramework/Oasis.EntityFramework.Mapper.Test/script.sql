@@ -68,6 +68,20 @@ CREATE TABLE "LongSourceEntity" (
 );
 
 
+CREATE TABLE "ManyToManyChild2" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_ManyToManyChild2" PRIMARY KEY AUTOINCREMENT,
+    "Name" TEXT NOT NULL,
+    "ConcurrencyToken" INTEGER NULL
+);
+
+
+CREATE TABLE "ManyToManyParent2" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_ManyToManyParent2" PRIMARY KEY AUTOINCREMENT,
+    "Name" TEXT NOT NULL,
+    "ConcurrencyToken" INTEGER NULL
+);
+
+
 CREATE TABLE "NByteSourceEntity" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_NByteSourceEntity" PRIMARY KEY AUTOINCREMENT,
     "ConcurrencyToken" INTEGER NULL,
@@ -208,6 +222,15 @@ CREATE TABLE "SubScalarEntity1" (
 );
 
 
+CREATE TABLE "ManyToManyChild2ManyToManyParent2" (
+    "ChildrenId" INTEGER NOT NULL,
+    "ParentsId" INTEGER NOT NULL,
+    CONSTRAINT "PK_ManyToManyChild2ManyToManyParent2" PRIMARY KEY ("ChildrenId", "ParentsId"),
+    CONSTRAINT "FK_ManyToManyChild2ManyToManyParent2_ManyToManyChild2_ChildrenId" FOREIGN KEY ("ChildrenId") REFERENCES "ManyToManyChild2" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_ManyToManyChild2ManyToManyParent2_ManyToManyParent2_ParentsId" FOREIGN KEY ("ParentsId") REFERENCES "ManyToManyParent2" ("Id") ON DELETE CASCADE
+);
+
+
 CREATE TABLE "DependentOptional1_1" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_DependentOptional1_1" PRIMARY KEY AUTOINCREMENT,
     "LongProp" INTEGER NOT NULL,
@@ -262,6 +285,9 @@ CREATE INDEX "IX_DependentPropertyDependent1_PrincipalForListId" ON "DependentPr
 
 
 CREATE INDEX "IX_DependentPropertyDependent1_PrincipalIdForList" ON "DependentPropertyDependent1" ("PrincipalIdForList");
+
+
+CREATE INDEX "IX_ManyToManyChild2ManyToManyParent2_ParentsId" ON "ManyToManyChild2ManyToManyParent2" ("ParentsId");
 
 
 CREATE UNIQUE INDEX "IX_RecursiveEntity1_Parent_Id" ON "RecursiveEntity1" ("Parent_Id");

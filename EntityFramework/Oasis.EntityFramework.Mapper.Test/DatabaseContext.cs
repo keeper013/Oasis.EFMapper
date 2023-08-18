@@ -3,6 +3,7 @@
 using Oasis.EntityFramework.Mapper.Test.DependentProperty;
 using Oasis.EntityFramework.Mapper.Test.KeepUnmatched;
 using Oasis.EntityFramework.Mapper.Test.KeyPropertyType;
+using Oasis.EntityFramework.Mapper.Test.ManyToMany;
 using Oasis.EntityFramework.Mapper.Test.OneToMany;
 using Oasis.EntityFramework.Mapper.Test.OneToOne;
 using Oasis.EntityFramework.Mapper.Test.Scalar;
@@ -39,6 +40,8 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<PrincipalRequired1>().ToTable(nameof(PrincipalRequired1));
         modelBuilder.Entity<SessionTestingList1_1>().ToTable(nameof(SessionTestingList1_1));
         modelBuilder.Entity<SessionTestingList1_2>().ToTable(nameof(SessionTestingList1_2));
+        modelBuilder.Entity<ManyToManyParent2>().ToTable(nameof(ManyToManyParent2));
+        modelBuilder.Entity<ManyToManyChild2>().ToTable(nameof(ManyToManyChild2));
         modelBuilder.Entity<ScalarItem1>().ToTable(nameof(ScalarItem1));
         modelBuilder.Entity<ByteSourceEntity>().ToTable(nameof(ByteSourceEntity));
         modelBuilder.Entity<NByteSourceEntity>().ToTable(nameof(NByteSourceEntity));
@@ -69,6 +72,12 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<UnmatchedPrincipal1>().ToTable(nameof(UnmatchedPrincipal1));
         modelBuilder.Entity<UnmatchedDependent1>().ToTable(nameof(UnmatchedDependent1));
         modelBuilder.Entity<UnmatchedPrincipal1>().HasMany(p => p.DependentList).WithOptional().HasForeignKey(d => d.PrincipalId);
+        modelBuilder.Entity<ManyToManyParent2>().HasMany(p => p.Children).WithMany(c => c.Parents).Map(m =>
+        {
+            m.ToTable("ManyToManyChild2ManyToManyParent2");
+            m.MapLeftKey("ParentsId");
+            m.MapRightKey("ChildrenId");
+        });
     }
 }
 

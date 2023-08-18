@@ -11,7 +11,7 @@ using Xunit;
 public class ListPropertyMappingTests : TestBase
 {
     [Fact]
-    public void MapListProperties_ToMemory_SameInstance_ShouldThrowException()
+    public void MapListProperties_ToMemory_SameInstance_ShouldSucceed()
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity1, CollectionEntity2>().Build();
@@ -25,7 +25,7 @@ public class ListPropertyMappingTests : TestBase
     }
 
     [Fact]
-    public async Task MapListProperties_ToDatabase_SameInstance_ShouldThrowException()
+    public async Task MapListProperties_ToDatabase_SameInstance_ShouldSucceed()
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity2, CollectionEntity1>().Build();
@@ -45,7 +45,7 @@ public class ListPropertyMappingTests : TestBase
     }
 
     [Fact]
-    public async Task MapListProperties_ToDatabase_WithUpdateConfig_ShouldThrowException()
+    public async Task MapListProperties_ToDatabase_WithUpdateConfig_ShouldSucceed()
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder()
