@@ -122,7 +122,7 @@ public class ListPropertyMappingTests : TestBase
         var sc1_2 = new SubScalarEntity1(2, default, "4", new byte[] { 2, 3, 4 });
         var result = await MapListProperties_ICollection<CollectionEntity3WithWrapper>(
             new List<SubScalarEntity1> { sc1_1, sc1_2 },
-            (builder) => builder.WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper, ScalarEntity2Item>(() => new ScalarEntity2NoDefaultConstructorListWrapper(0)));
+            (builder) => builder.WithFactoryMethod<ScalarEntity2NoDefaultConstructorListWrapper>(() => new ScalarEntity2NoDefaultConstructorListWrapper(0)));
 
         // assert
         Assert.AreEqual(1, result!.IntProp);
@@ -648,9 +648,9 @@ public class ListPropertyMappingTests : TestBase
     public void CustomFactoryMethodForScalarList_ShouldFail()
     {
         // arrange, act and assert
-        Assert.Throws<InvalidEntityListTypeException>(() =>
+        Assert.Throws<InvalidFactoryMethodEntityTypeException>(() =>
         {
-            MakeDefaultMapperBuilder().WithFactoryMethod<StringListNoDefaultConstructor, string>(() => new StringListNoDefaultConstructor(1));
+            MakeDefaultMapperBuilder().WithFactoryMethod(() => new StringListNoDefaultConstructor(1));
         });
     }
 

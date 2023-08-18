@@ -58,16 +58,21 @@ internal sealed class MapperBuilder : IMapperBuilder
         return this;
     }
 
-    IMapperBuilder IMapperBuilder.WithFactoryMethod<TList, TItem>(Func<TList> factoryMethod, bool throwIfRedundant)
-    {
-        _mapperRegistry.WithFactoryMethod(typeof(TList), typeof(TItem), factoryMethod, throwIfRedundant);
-        return this;
-    }
-
     public IMapperBuilder WithFactoryMethod<TEntity>(Func<TEntity> factoryMethod, bool throwIfRedundant = false)
         where TEntity : class
     {
-        _mapperRegistry.WithFactoryMethod(typeof(TEntity), factoryMethod, throwIfRedundant);
+        if (factoryMethod == default)
+        {
+            throw new ArgumentNullException(nameof(factoryMethod));
+        }
+
+        var type = typeof(TEntity);
+        if (type.GetConstructor(Array.Empty<Type>()) != default)
+        {
+            throw new FactoryMethodException(type, false);
+        }
+
+        _mapperRegistry.WithFactoryMethod(type, factoryMethod, throwIfRedundant);
         return this;
     }
 

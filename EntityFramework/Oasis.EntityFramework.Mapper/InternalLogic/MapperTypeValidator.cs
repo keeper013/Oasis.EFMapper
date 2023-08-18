@@ -28,7 +28,7 @@ internal static class MapperTypeValidatorExtensions
 
     public static bool IsEntityType(this Type type)
     {
-        return type.IsClass && !NonEntityClassTypes.Contains(type) && !IsOfGenericTypeDefinition(type, EnumerableType) && !type.GetInterfaces().Any(i => IsOfGenericTypeDefinition(i, EnumerableType));
+        return (type.IsClass || type.IsInterface) && !NonEntityClassTypes.Contains(type) && !IsOfGenericTypeDefinition(type, EnumerableType) && !type.GetInterfaces().Any(i => IsOfGenericTypeDefinition(i, EnumerableType));
     }
 
     public static bool IsListOfEntityType(this Type type)
@@ -39,9 +39,18 @@ internal static class MapperTypeValidatorExtensions
 
     public static Type? GetListType(this Type type)
     {
-        return type.IsArray ? default :
-            IsOfGenericTypeDefinition(type, CollectionType) ?
-                type : type.GetInterfaces().FirstOrDefault(i => IsOfGenericTypeDefinition(i, CollectionType));
+        if (type.IsArray)
+        {
+            return default;
+        }
+
+        if (IsOfGenericTypeDefinition(type, CollectionType))
+        {
+            return type;
+        }
+
+        var types = type.GetInterfaces().Where(i => IsOfGenericTypeDefinition(i, CollectionType)).ToList();
+        return types.Count == 1 ? types[0] : default;
     }
 
     public static bool IsNullablePrimitive(this Type type)

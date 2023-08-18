@@ -95,6 +95,14 @@ public sealed class InvalidEntityTypeException : EfMapperException
     }
 }
 
+public sealed class InvalidFactoryMethodEntityTypeException : EfMapperException
+{
+    public InvalidFactoryMethodEntityTypeException(Type type)
+        : base($"Type {type.Name} is invalid for an entity or entity list type.")
+    {
+    }
+}
+
 public sealed class ScalarTypeMissingException : EfMapperException
 {
     public ScalarTypeMissingException(Type sourceType, Type targetType)

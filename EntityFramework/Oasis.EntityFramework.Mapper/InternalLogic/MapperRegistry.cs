@@ -111,58 +111,39 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
     }
 
-    public void WithFactoryMethod(Type type, Type itemType, Delegate factoryMethod, bool throwIfRedundant = false)
-    {
-        if (factoryMethod == default)
-        {
-            throw new ArgumentNullException(nameof(factoryMethod));
-        }
-
-        if (!_entityMapperTypeValidator.IsValidType(itemType))
-        {
-            throw new InvalidEntityListTypeException(type);
-        }
-
-        if (_entityListFactoryMethods.ContainsKey(type))
-        {
-            if (throwIfRedundant)
-            {
-                throw new FactoryMethodExistsException(type);
-            }
-        }
-        else
-        {
-            _entityListFactoryMethods.Add(type, factoryMethod);
-        }
-    }
-
     public void WithFactoryMethod(Type type, Delegate factoryMethod, bool throwIfRedundant = false)
     {
-        if (factoryMethod == default)
+        if (type.IsListOfEntityType())
         {
-            throw new ArgumentNullException(nameof(factoryMethod));
-        }
-
-        if (type.GetConstructor(Array.Empty<Type>()) != default)
-        {
-            throw new FactoryMethodException(type, false);
-        }
-
-        if (!_entityMapperTypeValidator.IsValidType(type))
-        {
-            throw new InvalidEntityTypeException(type);
-        }
-
-        if (_factoryMethods.ContainsKey(type))
-        {
-            if (throwIfRedundant)
+            if (_entityListFactoryMethods.ContainsKey(type))
             {
-                throw new FactoryMethodExistsException(type);
+                if (throwIfRedundant)
+                {
+                    throw new FactoryMethodExistsException(type);
+                }
+            }
+            else
+            {
+                _entityListFactoryMethods.Add(type, factoryMethod);
+            }
+        }
+        else if (type.IsEntityType())
+        {
+            if (_factoryMethods.ContainsKey(type))
+            {
+                if (throwIfRedundant)
+                {
+                    throw new FactoryMethodExistsException(type);
+                }
+            }
+            else
+            {
+                _factoryMethods.Add(type, factoryMethod!);
             }
         }
         else
         {
-            _factoryMethods.Add(type, factoryMethod!);
+            throw new InvalidFactoryMethodEntityTypeException(type);
         }
     }
 

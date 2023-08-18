@@ -33,10 +33,6 @@ public interface ICustomTypeMapperConfiguration<TSource, TTarget> : IConfigurato
 
 public interface IMapperBuilder
 {
-    IMapperBuilder WithFactoryMethod<TList, TItem>(Func<TList> factoryMethod, bool throwIfRedundant = false)
-        where TList : class, ICollection<TItem>
-        where TItem : class;
-
     IMapperBuilder WithFactoryMethod<TEntity>(Func<TEntity> factoryMethod, bool throwIfRedundant = false)
         where TEntity : class;
 
