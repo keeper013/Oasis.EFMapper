@@ -15,7 +15,7 @@ public class ToDatabaseTests : TestBase
                 .SetMapToDatabaseType(MapToDatabaseType.Update)
                 .Finish()
             .Build();
-        var instance = new ToDatabaseEntity2(null, null, 1);
+        var instance = new ToDatabaseEntity2(null, new byte[] { 1, 2, 3 }, 1);
 
         // assert
         Assert.ThrowsAsync<UpdateToDatabaseWithoutIdException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -34,7 +34,7 @@ public class ToDatabaseTests : TestBase
                 .SetMapToDatabaseType(MapToDatabaseType.Update)
                 .Finish()
             .Build();
-        var instance = new ToDatabaseEntity2(1, 1, 1);
+        var instance = new ToDatabaseEntity2(1, new byte[] { 1, 2, 3 }, 1);
 
         // assert
         Assert.ThrowsAsync<UpdateToDatabaseWithoutRecordException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -50,11 +50,11 @@ public class ToDatabaseTests : TestBase
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder().Register<ToDatabaseEntity2, ToDatabaseEntity1>().Build();
-        var instance = new ToDatabaseEntity2(1, 1, 1);
+        var instance = new ToDatabaseEntity2(1, new byte[] { 1, 2, 3 }, 1);
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            databaseContext.Set<ToDatabaseEntity1>().Add(new ToDatabaseEntity1(1, 2, 1));
+            databaseContext.Set<ToDatabaseEntity1>().Add(new ToDatabaseEntity1(1, new byte[] { 2, 3, 4 }, 1));
             await databaseContext.SaveChangesAsync();
         });
 
@@ -75,11 +75,11 @@ public class ToDatabaseTests : TestBase
                 .SetMapToDatabaseType(MapToDatabaseType.Insert)
                 .Finish()
             .Build();
-        var instance = new ToDatabaseEntity2(1, 1, 1);
+        var instance = new ToDatabaseEntity2(1, new byte[] { 1, 2, 3 }, 1);
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            databaseContext.Set<ToDatabaseEntity1>().Add(new ToDatabaseEntity1(1, null, 1));
+            databaseContext.Set<ToDatabaseEntity1>().Add(new ToDatabaseEntity1(1, new byte[] { 1, 2, 3 }, 1));
             await databaseContext.SaveChangesAsync();
         });
 

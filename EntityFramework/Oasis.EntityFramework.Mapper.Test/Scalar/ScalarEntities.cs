@@ -216,7 +216,7 @@ public sealed class WrappedScalarEntity2
 
     public LongWrapper? WrappedId { get; set; }
 
-    public NullableLongWrapper? WrappedConcurrencyToken { get; set; }
+    public ByteArrayWrapper? WrappedConcurrencyToken { get; set; }
 
     public int IntProp { get; set; }
 
@@ -240,27 +240,6 @@ public sealed class LongWrapper
     {
         var wrapper = obj as LongWrapper;
         return wrapper != default && wrapper.Value == Value;
-    }
-
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-    }
-}
-
-public sealed class NullableLongWrapper
-{
-    public NullableLongWrapper(long? l)
-    {
-        Value = l;
-    }
-
-    public long? Value { get; set; }
-
-    public override bool Equals(object? obj)
-    {
-        var wrapper = obj as NullableLongWrapper;
-        return wrapper != default && wrapper.Value.HasValue && Value.HasValue && wrapper.Value.Value == Value.Value;
     }
 
     public override int GetHashCode()

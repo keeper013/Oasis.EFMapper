@@ -135,6 +135,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
 
         // if it's entity framework 6.0, the value will be 1 instead of mapped 100 here.
         Assert.AreEqual(1, entity!.Id);
+        Assert.NotNull(entity.ConcurrencyToken);
         Assert.AreEqual(2, entity.IntProp);
         Assert.AreEqual(3, entity.LongNullableProp);
         Assert.AreEqual("4", entity.StringProp);
@@ -186,6 +187,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.NotNull(entity);
         Assert.AreEqual(1, count);
         Assert.AreEqual(id, entity!.Id);
+        Assert.NotNull(entity.ConcurrencyToken);
         Assert.AreEqual(2, entity.IntProp);
         Assert.AreEqual(3, entity.LongNullableProp);
         Assert.AreEqual("4", entity.StringProp);
@@ -442,8 +444,6 @@ public sealed class ScalarPropertyMappingTests : TestBase
             .WithScalarConverter<ByteArrayWrapper, byte[]>(wrapper => wrapper!.Bytes!)
             .WithScalarConverter<long, LongWrapper>(l => new LongWrapper(l))
             .WithScalarConverter<LongWrapper, long>(wrapper => wrapper.Value)
-            .WithScalarConverter<long?, NullableLongWrapper>(l => new NullableLongWrapper(l))
-            .WithScalarConverter<NullableLongWrapper, long?>(wrapper => wrapper.Value)
             .Configure<WrappedScalarEntity2>()
                 .SetKeyPropertyNames(nameof(WrappedScalarEntity2.WrappedId), nameof(WrappedScalarEntity2.WrappedConcurrencyToken))
                 .Finish()

@@ -14,12 +14,29 @@ using Oasis.EntityFrameworkCore.Mapper.Test.Scalar;
 using Oasis.EntityFrameworkCore.Mapper.Test.ToDatabase;
 using System;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
 
 internal class DatabaseContext : DbContext
 {
+    private static readonly EntityState[] _states = new[] { EntityState.Added, EntityState.Modified };
+
     public DatabaseContext(DbContextOptions options)
         : base(options)
     {
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        UpdateConcurrencyTokens();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        UpdateConcurrencyTokens();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -84,23 +101,38 @@ internal class DatabaseContext : DbContext
         modelBuilder.Entity<UnmatchedPrincipal1>().HasMany(p => p.DependentList).WithOne().HasForeignKey(d => d.PrincipalId).IsRequired(false);
         modelBuilder.Entity<ManyToManyParent2>().HasMany(p => p.Children).WithMany(c => c.Parents);
 
-        if (Database.IsSqlite())
-        {
-            var concurrencyTokenProperties = modelBuilder.Model
-                .GetEntityTypes()
-                .SelectMany(t => t.GetProperties())
-                .Where(p => p.ClrType == typeof(byte[])
-                    && p.ValueGenerated == ValueGenerated.OnAddOrUpdate
-                    && p.IsConcurrencyToken);
+        // for sqlite
+        var concurrencyTokenProperties = modelBuilder.Model
+            .GetEntityTypes()
+            .SelectMany(t => t.GetProperties())
+            .Where(p => p.ClrType == typeof(byte[])
+                && p.ValueGenerated == ValueGenerated.OnAddOrUpdate
+                && p.IsConcurrencyToken);
 
-            foreach (var property in concurrencyTokenProperties)
+        foreach (var property in concurrencyTokenProperties)
+        {
+            // sqlite doesn't provide IsRowVersion feature, so this is done by overriding SaveChanges and SaveChangesAsync.
+            // ValueGenerated.OnAddOrUpdate will block changes done to this property in the methods listed above
+            property.ValueGenerated = ValueGenerated.Never;
+            property.SetValueConverter(new SqliteConcurrencyTokenConverter());
+            property.SetValueComparer(new ValueComparer<byte[]>(
+                (a1, a2) => (a1 == null || a2 == null) ? false : a1.SequenceEqual(a2),
+                a => a.Aggregate(0, (v, b) => HashCode.Combine(v, b.GetHashCode())),
+                a => a));
+        }
+    }
+
+    // sqlite doesn't support row version feature, have to do this
+    private void UpdateConcurrencyTokens()
+    {
+        var toBeUpdatedEntities = ChangeTracker.Entries().Where(e => _states.Contains(e.State) && e.Metadata.ClrType.GetProperty(nameof(EntityBase.ConcurrencyToken)) != null);
+        if (toBeUpdatedEntities.Any())
+        {
+            var bytes = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            foreach (var entity in toBeUpdatedEntities)
             {
-                property.SetValueConverter(new SqliteConcurrencyTokenConverter());
-                property.SetValueComparer(new ValueComparer<byte[]>(
-                    (a1, a2) => a1 != default && a2 != default && a1.SequenceEqual(a2),
-                    a => a.Aggregate(0, (v, b) => HashCode.Combine(v, b.GetHashCode())),
-                    a => a));
-                property.SetDefaultValueSql("CURRENT_TIMESTAMP");
+                var property = entity.Property(nameof(EntityBase.ConcurrencyToken));
+                property.CurrentValue = Encoding.UTF8.GetBytes(bytes);
             }
         }
     }

@@ -6,7 +6,7 @@ public sealed class ToDatabaseEntity1 : NullableIdEntityBase
     {
     }
 
-    public ToDatabaseEntity1(long? id, long? concurrencyToken, int prop)
+    public ToDatabaseEntity1(long? id, byte[] concurrencyToken, int prop)
     {
         Id = id;
         ConcurrencyToken = concurrencyToken;
@@ -18,7 +18,7 @@ public sealed class ToDatabaseEntity1 : NullableIdEntityBase
 
 public sealed class ToDatabaseEntity2 : NullableIdEntityBase
 {
-    public ToDatabaseEntity2(long? id, long? concurrencyToken, int prop)
+    public ToDatabaseEntity2(long? id, byte[] concurrencyToken, int prop)
     {
         Id = id;
         ConcurrencyToken = concurrencyToken;

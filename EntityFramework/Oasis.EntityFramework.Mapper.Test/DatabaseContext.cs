@@ -8,11 +8,17 @@ using Oasis.EntityFramework.Mapper.Test.OneToMany;
 using Oasis.EntityFramework.Mapper.Test.OneToOne;
 using Oasis.EntityFramework.Mapper.Test.Scalar;
 using Oasis.EntityFramework.Mapper.Test.ToDatabase;
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Core.Common;
+using System.Data.Entity.Infrastructure;
 using System.Data.SQLite;
 using System.Data.SQLite.EF6;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 public class DatabaseContext : DbContext
 {
@@ -78,6 +84,36 @@ public class DatabaseContext : DbContext
             m.MapLeftKey("ParentsId");
             m.MapRightKey("ChildrenId");
         });
+
+        modelBuilder.Properties().Where(p => p.PropertyType == typeof(byte[])).Configure(p => p.IsConcurrencyToken().HasDatabaseGeneratedOption(DatabaseGeneratedOption.None));
+    }
+
+    public override int SaveChanges()
+    {
+        GenerateRowVersion();
+        return base.SaveChanges();
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        GenerateRowVersion();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void GenerateRowVersion()
+    {
+        var objectContext = ((IObjectContextAdapter)this).ObjectContext;
+        foreach (var entry in objectContext.ObjectStateManager.GetObjectStateEntries(EntityState.Added | EntityState.Modified))
+        {
+            if (entry.Entity is IEntityWithConcurrencyToken v1 && v1 != null)
+            {
+                v1.ConcurrencyToken = UTF8Encoding.UTF8.GetBytes(DateTime.UtcNow.ToString());
+            }
+            else if (entry.Entity is ReversedEntityBase v2 && v2 != null)
+            {
+                v2.Id = UTF8Encoding.UTF8.GetBytes(DateTime.UtcNow.ToString());
+            }
+        }
     }
 }
 
