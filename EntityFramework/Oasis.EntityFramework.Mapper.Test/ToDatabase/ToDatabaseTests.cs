@@ -45,7 +45,6 @@ public class ToDatabaseTests : TestBase
     }
 
     [Test]
-    [Ignore("Sqlite doesn't support concurrenty token, ignored here")]
     public async Task UpdateDifferentConcurrencyToken_ShouldFail()
     {
         // arrange
