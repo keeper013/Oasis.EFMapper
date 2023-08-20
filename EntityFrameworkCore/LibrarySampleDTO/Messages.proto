@@ -100,8 +100,8 @@ message UpdateBorrowerDTO {
     bytes ConcurrencyToken = 2;
     string Name = 3;
     UpdateContactDTO Contact = 4;
-    optional CopyDTO Reserved = 5;
-    repeated CopyDTO Borrowed = 6;
+    optional CopyReferenceDTO Reserved = 5;
+    repeated CopyReferenceDTO Borrowed = 6;
 }
 
 message BorrowerDTO {

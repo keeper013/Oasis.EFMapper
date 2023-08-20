@@ -64,22 +64,23 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             "ZmVyZW5jZURUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCSJ/Cg5OZXdCb3Jy",
             "b3dlckRUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCRIMCgROYW1lGAIgASgJ",
             "EkcKB0NvbnRhY3QYAyABKAsyNi5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3Jl",
-            "Lk1hcHBlci5TYW1wbGUuTmV3Q29udGFjdERUTyK5AgoRVXBkYXRlQm9ycm93",
+            "Lk1hcHBlci5TYW1wbGUuTmV3Q29udGFjdERUTyLLAgoRVXBkYXRlQm9ycm93",
             "ZXJEVE8SFgoOSWRlbnRpdHlOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lU",
             "b2tlbhgCIAEoDBIMCgROYW1lGAMgASgJEkoKB0NvbnRhY3QYBCABKAsyOS5P",
             "YXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVXBkYXRl",
-            "Q29udGFjdERUTxJHCghSZXNlcnZlZBgFIAEoCzIwLk9hc2lzLkVudGl0eUZy",
-            "YW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPSACIAQESQgoIQm9y",
-            "cm93ZWQYBiADKAsyMC5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBl",
-            "ci5TYW1wbGUuQ29weURUT0ILCglfUmVzZXJ2ZWQivwIKC0JvcnJvd2VyRFRP",
-            "EhYKDklkZW50aXR5TnVtYmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4Y",
-            "AiABKAwSDAoETmFtZRgDIAEoCRJECgdDb250YWN0GAQgASgLMjMuT2FzaXMu",
-            "RW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvbnRhY3REVE8S",
-            "UAoIUmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3Jl",
-            "Lk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0gAiAEBEksKCEJvcnJv",
-            "d2VkGAYgAygLMjkuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIu",
-            "U2FtcGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJX1Jlc2VydmVkQiqqAidPYXNp",
-            "cy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGViBnByb3RvMw=="));
+            "Q29udGFjdERUTxJQCghSZXNlcnZlZBgFIAEoCzI5Lk9hc2lzLkVudGl0eUZy",
+            "YW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5UmVmZXJlbmNlRFRPSACI",
+            "AQESSwoIQm9ycm93ZWQYBiADKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
+            "b3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0ILCglfUmVzZXJ2",
+            "ZWQivwIKC0JvcnJvd2VyRFRPEhYKDklkZW50aXR5TnVtYmVyGAEgASgJEhgK",
+            "EENvbmN1cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgDIAEoCRJECgdDb250",
+            "YWN0GAQgASgLMjMuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIu",
+            "U2FtcGxlLkNvbnRhY3REVE8SUAoIUmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5F",
+            "bnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5j",
+            "ZURUT0gAiAEBEksKCEJvcnJvd2VkGAYgAygLMjkuT2FzaXMuRW50aXR5RnJh",
+            "bWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJ",
+            "X1Jlc2VydmVkQiqqAidPYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBl",
+            "ci5TYW1wbGViBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.WrappersReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -4164,10 +4165,10 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     /// <summary>Field number for the "Reserved" field.</summary>
     public const int ReservedFieldNumber = 5;
-    private global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO reserved_;
+    private global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO reserved_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO Reserved {
+    public global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO Reserved {
       get { return reserved_; }
       set {
         reserved_ = value;
@@ -4176,12 +4177,12 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
     /// <summary>Field number for the "Borrowed" field.</summary>
     public const int BorrowedFieldNumber = 6;
-    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO> _repeated_borrowed_codec
-        = pb::FieldCodec.ForMessage(50, global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO.Parser);
-    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO> borrowed_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO>();
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO> _repeated_borrowed_codec
+        = pb::FieldCodec.ForMessage(50, global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO> borrowed_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO> Borrowed {
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO> Borrowed {
       get { return borrowed_; }
     }
 
@@ -4344,7 +4345,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
       }
       if (other.reserved_ != null) {
         if (reserved_ == null) {
-          Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO();
+          Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO();
         }
         Reserved.MergeFrom(other.Reserved);
       }
@@ -4385,7 +4386,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
           }
           case 42: {
             if (reserved_ == null) {
-              Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO();
+              Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO();
             }
             input.ReadMessage(Reserved);
             break;
@@ -4430,7 +4431,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
           }
           case 42: {
             if (reserved_ == null) {
-              Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyDTO();
+              Reserved = new global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO();
             }
             input.ReadMessage(Reserved);
             break;

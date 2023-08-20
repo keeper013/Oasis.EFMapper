@@ -1,6 +1,6 @@
 # EF Mapper
 ## Introduction
-**Oasis.EntityFrameworkCore.Mapper/Oasis.EntityFramework.Mapper** (referred to as **the library** in the following content) is a library that helps users to automatically map scalar and navigation properties between entity classes and other helper classes (e.g. DTOs generated with [ProtoBuf](https://developers.google.com/protocol-buffers)). It implements the simple property to property mapping between classes like AutoMapper, and added specifical support for automatically handling tedious database context work when mapping normal classes into entity framework entities.
+**Oasis.EntityFramework.Mapper/Oasis.EntityFramework.Mapper** (referred to as **the library** in the following content) is a library that helps users to automatically map scalar and navigation properties between entity classes and other helper classes (e.g. DTOs generated with [ProtoBuf](https://developers.google.com/protocol-buffers)). It implements the simple property to property mapping between classes like AutoMapper, and added specifical support for automatically handling tedious database context work when mapping normal classes into entity framework entities.
 
 Imagine a work flow with the following steps:
 

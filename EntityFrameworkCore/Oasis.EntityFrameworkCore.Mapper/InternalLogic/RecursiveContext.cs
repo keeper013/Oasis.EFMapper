@@ -31,31 +31,15 @@ internal sealed class RecursiveContextPopper : IDisposable
     }
 }
 
-internal enum RecursivelyRegisterType
-{
-    /// <summary>
-    /// Top level.
-    /// </summary>
-    TopLevel = 0,
-
-    /// <summary>
-    /// Entity property of an entity.
-    /// </summary>
-    EntityProperty = 1,
-
-    /// <summary>
-    /// List of entity property of an entity.
-    /// </summary>
-    ListOfEntityProperty = 2,
-}
-
 internal interface IRecursiveRegister
 {
-    void RecursivelyRegister(Type sourceType, Type targetType, IRecursiveRegisterContext context, RecursivelyRegisterType recursivelyRegisterType);
+    void RecursivelyRegister(Type sourceType, Type targetType, IRecursiveRegisterContext context);
 
     void RegisterEntityListDefaultConstructorMethod(Type type);
 
     void RegisterEntityDefaultConstructorMethod(Type type);
+
+    void RegisterForListItemProperty(Type sourceListItemPropertyType, Type targetListItemPropertyType);
 }
 
 internal interface IRecursiveRegisterContext : IRecursiveContext
@@ -64,7 +48,7 @@ internal interface IRecursiveRegisterContext : IRecursiveContext
 
     void DumpTargetsToBeTracked();
 
-    void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered, RecursivelyRegisterType recursivelyRegisterType);
+    void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered);
 }
 
 internal sealed class RecursiveRegisterContext : RecursiveContext, IRecursiveRegisterContext
@@ -101,18 +85,23 @@ internal sealed class RecursiveRegisterContext : RecursiveContext, IRecursiveReg
         }
     }
 
-    public void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered, RecursivelyRegisterType recursivelyRegisterType)
+    public void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered)
     {
         if (hasRegistered)
         {
             if (_loopDependencyMapping.TryGetValue(sourceType, out var set) && set.Contains(targetType))
             {
+                // this is a short cut to identify loop dependency if the mapping to the same source type to target type has been recorded
                 DumpLoopDependency();
             }
         }
+        else if (Contains(sourceType, targetType))
+        {
+            DumpLoopDependency();
+        }
         else
         {
-            recursiveRegister.RecursivelyRegister(sourceType, targetType, this, recursivelyRegisterType);
+            recursiveRegister.RecursivelyRegister(sourceType, targetType, this);
         }
     }
 }

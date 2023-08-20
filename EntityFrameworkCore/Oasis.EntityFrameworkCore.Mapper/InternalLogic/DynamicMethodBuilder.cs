@@ -591,7 +591,7 @@ internal sealed class DynamicMethodBuilder
                 var targetPropertyType = targetProperty.PropertyType;
 
                 // cascading mapper creation: if entity mapper doesn't exist, create it
-                context.RegisterIf(recursiveRegister, sourcePropertyType, targetPropertyType, _entityMapperTypeValidator.CanConvert(sourcePropertyType, targetPropertyType), RecursivelyRegisterType.EntityProperty);
+                context.RegisterIf(recursiveRegister, sourcePropertyType, targetPropertyType, _entityMapperTypeValidator.CanConvert(sourcePropertyType, targetPropertyType));
                 if (targetProperty.SetMethod != null)
                 {
                     recursiveRegister.RegisterEntityDefaultConstructorMethod(targetPropertyType);
@@ -648,12 +648,16 @@ internal sealed class DynamicMethodBuilder
                 var targetItemType = targetType.GetListItemType()!;
 
                 // cascading mapper creation: if list item mapper doesn't exist, create it
-                context.RegisterIf(recursiveRegister, sourceItemType, targetItemType, _entityListMapperTypeValidator.CanConvert(sourceItemType, targetItemType), RecursivelyRegisterType.ListOfEntityProperty);
+                context.RegisterIf(recursiveRegister, sourceItemType, targetItemType, _entityListMapperTypeValidator.CanConvert(sourceItemType, targetItemType));
+                recursiveRegister.RegisterForListItemProperty(sourceItemType, targetItemType);
+
                 if (targetProperty.SetMethod != null)
                 {
                     // if the target property can't be set, constructing it when mapping doesn't make sense, need to rely on caller to inialized it before mapping
                     recursiveRegister.RegisterEntityListDefaultConstructorMethod(targetType);
                 }
+
+                recursiveRegister.RegisterEntityDefaultConstructorMethod(targetItemType);
 
                 matchedProperties.Add((sourceProperty, sourceItemType, targetProperty, targetItemType));
             }

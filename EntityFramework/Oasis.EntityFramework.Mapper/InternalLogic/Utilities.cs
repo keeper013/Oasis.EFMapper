@@ -159,6 +159,11 @@ internal static class Utilities
             ? item : default;
     }
 
+    internal static bool Contains<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
+    {
+        return dict.TryGetValue(sourceType, out var innerDict) && innerDict.ContainsKey(targetType);
+    }
+
     internal static T? Find<T>(this IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, T>> dict, Type sourceType, Type targetType)
     {
         return dict.TryGetValue(sourceType, out var innerDict) && innerDict.TryGetValue(targetType, out var item)
