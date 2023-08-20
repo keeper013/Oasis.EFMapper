@@ -7,10 +7,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-public sealed class TestCase5_DependentProperty : TestBase
+public sealed class TestCase5_KeepUnmatched : TestBase
 {
     [Fact]
-    public async Task ReplaceDependentProperty_WithoutRegistration_ShouldFail()
+    public async Task ReplaceDependentProperty_ShouldSucceed()
     {
         var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
@@ -57,11 +57,30 @@ public sealed class TestCase5_DependentProperty : TestBase
         });
     }
 
-    [Fact]
-    public async Task RemoveDependentProperty_WithoutRegistration_ShouldFail()
+    [Theory]
+    [InlineData(0, 3)]
+    [InlineData(1, 5)]
+    [InlineData(2, 5)]
+    public async Task RemoveDependentProperty_ShouldSucceed(int keepUnmatchedCase, int number)
     {
         // initialize mapper
-        var mapper = MakeDefaultMapperBuilder()
+        var mapperBuilder = MakeDefaultMapperBuilder();
+        if (keepUnmatchedCase == 1)
+        {
+            mapperBuilder = mapperBuilder
+                .Configure<Book>()
+                .KeepUnmatched(nameof(Book.Copies))
+                .Finish();
+        }
+        else if (keepUnmatchedCase == 2)
+        {
+            mapperBuilder = mapperBuilder
+                .Configure<UpdateBookDTO, Book>()
+                .KeepUnmatched(nameof(Book.Copies))
+                .Finish();
+        }
+
+        var mapper = mapperBuilder
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
             .Configure<NewCopyDTO>()
@@ -101,10 +120,10 @@ public sealed class TestCase5_DependentProperty : TestBase
             _ = mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, b => b.Include(b => b.Copies), databaseContext);
             _ = await databaseContext.SaveChangesAsync();
             var copies = await databaseContext.Set<Copy>().ToListAsync();
-            Assert.Equal(3, copies.Count);
-            for (var i = 1; i <= 3; i++)
+            Assert.Equal(number, copies.Count);
+            for (var i = 1; i <= number; i++)
             {
-                Assert.Single(copies.Where(c => string.Equals(c.Number, $"Copy{i}")));
+                Assert.Single(copies.Where(c => string.Equals(c.Number, $"Copy{i}") && c.BookId == updateBookDto.Id));
             }
         });
     }
