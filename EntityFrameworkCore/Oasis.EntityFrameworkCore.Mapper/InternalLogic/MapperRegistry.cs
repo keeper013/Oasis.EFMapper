@@ -1,7 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using System.Reflection.Emit;
-using System.Security.AccessControl;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
 internal record struct KeyPropertyConfiguration(string identityPropertyName, string? concurrencyTokenPropertyName = default);
