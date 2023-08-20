@@ -47,7 +47,7 @@ internal sealed class ListTypeConstructor : IListTypeConstructor
             return ((Func<TList>)generatedConstructor)();
         }
 
-        throw new InvalidOperationException($"Type {typeof(TList)} doesn't have custom either factory method or a generated construct method.");
+        throw new MissingFactoryMethodException(typeof(TList));
     }
 
     private static TList CreateList<TList, TItem>()

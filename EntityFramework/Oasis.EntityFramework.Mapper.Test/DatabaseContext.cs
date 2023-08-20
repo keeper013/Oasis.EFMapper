@@ -1,6 +1,5 @@
 ﻿namespace Oasis.EntityFramework.Mapper.Test;
 
-using Oasis.EntityFramework.Mapper.Test.DependentProperty;
 using Oasis.EntityFramework.Mapper.Test.KeepUnmatched;
 using Oasis.EntityFramework.Mapper.Test.KeyPropertyType;
 using Oasis.EntityFramework.Mapper.Test.ManyToMany;
@@ -71,10 +70,6 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<ScalarItem1>().HasRequired(s => s.List1).WithMany(l => l!.Items).HasForeignKey(s => s.List1Id).WillCascadeOnDelete(true);
         modelBuilder.Entity<ScalarItem1>().HasRequired(s => s.List2).WithMany(l => l!.Items).HasForeignKey(s => s.List2Id).WillCascadeOnDelete(true);
         modelBuilder.Entity<ToDatabaseEntity1>().ToTable(nameof(ToDatabaseEntity1));
-        modelBuilder.Entity<DependentPropertyPrincipal1>().ToTable(nameof(DependentPropertyPrincipal1));
-        modelBuilder.Entity<DependentPropertyDependent1>().ToTable(nameof(DependentPropertyDependent1));
-        modelBuilder.Entity<DependentPropertyPrincipal1>().HasOptional(p => p.OptionalDependent).WithOptionalPrincipal(d => d!.PrincipalForEntity!);
-        modelBuilder.Entity<DependentPropertyPrincipal1>().HasMany(p => p.DependentList).WithOptional(d => d!.PrincipalForList!).HasForeignKey(d => d.PrincipalIdForList).WillCascadeOnDelete(false);
         modelBuilder.Entity<UnmatchedPrincipal1>().ToTable(nameof(UnmatchedPrincipal1));
         modelBuilder.Entity<UnmatchedDependent1>().ToTable(nameof(UnmatchedDependent1));
         modelBuilder.Entity<UnmatchedPrincipal1>().HasMany(p => p.DependentList).WithOptional().HasForeignKey(d => d.PrincipalId);

@@ -33,8 +33,8 @@ internal sealed class MapperSetLookUp
         _mappers = mapper;
     }
 
-    public MapperSet LookUp(Type sourceType, Type targetType)
+    public MapperSet? LookUp(Type sourceType, Type targetType)
     {
-        return _mappers.Find(sourceType, targetType)!.Value;
+        return _mappers.Find(sourceType, targetType);
     }
 }

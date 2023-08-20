@@ -14,8 +14,6 @@ public interface IEntityConfiguration<TEntity> : IConfigurator<IMapperBuilder>
     IEntityConfiguration<TEntity> ExcludePropertiesByName(params string[] names);
 
     IEntityConfiguration<TEntity> KeepUnmatched(params string[] names);
-
-    IEntityConfiguration<TEntity> SetDependentProperties(params string[] names);
 }
 
 public interface ICustomTypeMapperConfiguration<TSource, TTarget> : IConfigurator<IMapperBuilder>

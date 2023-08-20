@@ -25,14 +25,13 @@ internal sealed class MapperBuilder : IMapperBuilder
         var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
         var entityHandler = _mapperRegistry.MakeEntityHandler(type, scalarTypeConverter);
         var recursiveMappingContextFactory = _mapperRegistry.MakeRecursiveMappingContextFactory(type, entityHandler, scalarTypeConverter);
-        var dependentPropertyManager = _mapperRegistry.MakeDependentPropertyManager();
         var keepUnmatchedManager = _mapperRegistry.KeepUnmatchedManager;
         var mapToDatabaseTypeManager = _mapperRegistry.MakeMapToDatabaseTypeManager();
 
         // release some memory ahead
         _mapperRegistry.Clear();
 
-        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, entityHandler, dependentPropertyManager, keepUnmatchedManager, mapToDatabaseTypeManager, recursiveMappingContextFactory);
+        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, entityHandler, keepUnmatchedManager, mapToDatabaseTypeManager, recursiveMappingContextFactory);
     }
 
     public IMapperBuilder Register<TSource, TTarget>()
@@ -118,7 +117,7 @@ internal sealed class MapperBuilder : IMapperBuilder
     internal void Configure<TEntity>(IEntityConfiguration configuration)
     {
         if (configuration.IdentityPropertyName == null && configuration.ConcurrencyTokenPropertyName == null && configuration.ExcludedProperties == null
-                && configuration.KeepUnmatchedProperties == null && configuration.DependentProperties == null)
+                && configuration.KeepUnmatchedProperties == null)
         {
             throw new EmptyConfigurationException(typeof(IEntityConfiguration));
         }

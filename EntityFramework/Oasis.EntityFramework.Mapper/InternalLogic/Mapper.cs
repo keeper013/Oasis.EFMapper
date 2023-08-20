@@ -28,7 +28,6 @@ internal sealed class Mapper : IMapper
     private readonly IListTypeConstructor _listTypeConstructor;
     private readonly MapperSetLookUp _lookup;
     private readonly EntityHandler _entityHandler;
-    private readonly DependentPropertyManager _dependentPropertyManager;
     private readonly KeepUnmatchedManager _keepUnmatchedManager;
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
     private readonly ToMemoryRecursiveMapper _toMemoryRecursiveMapper;
@@ -39,7 +38,6 @@ internal sealed class Mapper : IMapper
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
         EntityHandler entityHandler,
-        DependentPropertyManager dependentPropertyManager,
         KeepUnmatchedManager keepUnmatchedManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
         RecursiveMappingContextFactory contextFactory)
@@ -48,7 +46,6 @@ internal sealed class Mapper : IMapper
         _listTypeConstructor = listTypeConstructor;
         _lookup = lookup;
         _entityHandler = entityHandler;
-        _dependentPropertyManager = dependentPropertyManager;
         _keepUnmatchedManager = keepUnmatchedManager;
         _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
         _contextFactory = contextFactory;
@@ -62,7 +59,7 @@ internal sealed class Mapper : IMapper
 
     public IMappingToDatabaseSession CreateMappingToDatabaseSession(DbContext databaseContext)
     {
-        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _lookup, _entityHandler, _contextFactory.Make(), _dependentPropertyManager, _keepUnmatchedManager, _mapToDatabaseTypeManager, databaseContext);
+        return new MappingToDatabaseSession(_scalarConverter, _listTypeConstructor, _lookup, _entityHandler, _contextFactory.Make(), _keepUnmatchedManager, _mapToDatabaseTypeManager, databaseContext);
     }
 
     public TTarget Map<TSource, TTarget>(TSource source)
@@ -85,7 +82,7 @@ internal sealed class Mapper : IMapper
         where TSource : class
         where TTarget : class
     {
-        var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityHandler, _dependentPropertyManager, _keepUnmatchedManager, _mapToDatabaseTypeManager, databaseContext);
+        var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityHandler, _keepUnmatchedManager, _mapToDatabaseTypeManager, databaseContext);
         return await toDatabaseRecursiveMapper.MapAsync(source, includer, _contextFactory.Make());
     }
 }
@@ -133,13 +130,12 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         MapperSetLookUp lookup,
         EntityHandler entityHandler,
         IRecursiveMappingContext context,
-        DependentPropertyManager dependentPropertyManager,
         KeepUnmatchedManager keepUnmatchedManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
         DbContext databaseContext)
     {
         _context = context;
-        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityHandler, dependentPropertyManager, keepUnmatchedManager, mapToDatabaseTypeManager, databaseContext);
+        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityHandler, keepUnmatchedManager, mapToDatabaseTypeManager, databaseContext);
     }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)

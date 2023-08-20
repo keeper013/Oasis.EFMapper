@@ -23,7 +23,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
     private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
-    private readonly Dictionary<Type, IReadOnlySet<string>> _dependentPropertiesDictionary = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityDefaultConstructors = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityListDefaultConstructors = new ();
     private readonly HashSet<Type> _targetsToBeTracked = new ();
@@ -93,11 +92,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
         if (!string.IsNullOrEmpty(configuration.IdentityPropertyName))
         {
             _keyPropertyNames.Add(type, new KeyPropertyConfiguration(configuration.IdentityPropertyName, configuration.ConcurrencyTokenPropertyName));
-        }
-
-        if (configuration.DependentProperties != null)
-        {
-            _dependentPropertiesDictionary.Add(type, configuration.DependentProperties);
         }
 
         if (configuration.ExcludedProperties != null && configuration.ExcludedProperties.Any())
@@ -205,11 +199,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new EntityHandler(_typeIdProxies, _typeConcurrencyTokenProxies, _idComparers, _concurrencyTokenComparers, _sourceIdEqualsTargetId, _sourceIdListContainsTargetId, _factoryMethods, _entityDefaultConstructors, type, scalarTypeConverter);
     }
 
-    public DependentPropertyManager MakeDependentPropertyManager()
-    {
-        return new DependentPropertyManager(_dependentPropertiesDictionary);
-    }
-
     public MapToDatabaseTypeManager MakeMapToDatabaseTypeManager()
     {
         return new MapToDatabaseTypeManager(_defaultMapToDatabase, _mapToDatabaseDictionary);
@@ -236,20 +225,39 @@ internal sealed class MapperRegistry : IRecursiveRegister
     {
         if (listType.IsConstructable() && !listType.IsList() && !_entityListDefaultConstructors.ContainsKey(listType) && !_entityListFactoryMethods.ContainsKey(listType))
         {
-            _entityListDefaultConstructors.Add(listType, _dynamicMethodBuilder.BuildUpConstructorMethod(listType));
+            var constructor = _dynamicMethodBuilder.BuildUpConstructorMethod(listType);
+            if (constructor.HasValue)
+            {
+                _entityListDefaultConstructors.Add(listType, constructor.Value);
+            }
+        }
+    }
+
+    public void RegisterEntityDefaultConstructorMethod(Type type)
+    {
+        if (!_entityDefaultConstructors.ContainsKey(type) && !_factoryMethods.ContainsKey(type))
+        {
+            var constructor = _dynamicMethodBuilder.BuildUpConstructorMethod(type);
+            if (constructor.HasValue)
+            {
+                _entityDefaultConstructors.Add(type, constructor.Value);
+            }
         }
     }
 
     public void RecursivelyRegister(Type sourceType, Type targetType, IRecursiveRegisterContext context, RecursivelyRegisterType recursivelyRegisterType)
     {
+        if (recursivelyRegisterType != RecursivelyRegisterType.EntityProperty)
+        {
+            RegisterEntityDefaultConstructorMethod(targetType);
+        }
+
         if (!context.Contains(sourceType, targetType))
         {
             if (!_factoryMethods.ContainsKey(targetType) && targetType.GetConstructor(Utilities.PublicInstance, Array.Empty<Type>()) == default)
             {
                 throw new FactoryMethodException(targetType, true);
             }
-
-            RegisterEntityDefaultConstructorMethod(targetType);
 
             var configuration = _toBeRegistered.Pop(sourceType, targetType);
 
@@ -378,14 +386,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
 
         RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping, _targetsToBeTracked), RecursivelyRegisterType.TopLevel);
-    }
-
-    private void RegisterEntityDefaultConstructorMethod(Type type)
-    {
-        if (!_entityDefaultConstructors.ContainsKey(type) && !_factoryMethods.ContainsKey(type))
-        {
-            _entityDefaultConstructors.Add(type, _dynamicMethodBuilder.BuildUpConstructorMethod(type));
-        }
     }
 
     private (PropertyInfo?, PropertyInfo?) GetIdentityProperties(Type sourceType, Type targetType)

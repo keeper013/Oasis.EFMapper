@@ -54,6 +54,8 @@ internal interface IRecursiveRegister
     void RecursivelyRegister(Type sourceType, Type targetType, IRecursiveRegisterContext context, RecursivelyRegisterType recursivelyRegisterType);
 
     void RegisterEntityListDefaultConstructorMethod(Type type);
+
+    void RegisterEntityDefaultConstructorMethod(Type type);
 }
 
 internal interface IRecursiveRegisterContext : IRecursiveContext

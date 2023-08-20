@@ -164,7 +164,6 @@ public sealed class EntityPropertyMappingTests : TestBase
         // arrange
         var mapper = MakeDefaultMapperBuilder()
             .Configure<PrincipalRequired1>()
-                .SetDependentProperties(nameof(PrincipalRequired1.Inner1), nameof(PrincipalRequired1.Inner2))
                 .Finish()
             .RegisterTwoWay<PrincipalRequired1, PrincipalRequired2>()
             .Build();

@@ -12,12 +12,6 @@ CREATE TABLE "CollectionEntity1" (
 );
 
 
-CREATE TABLE "DependentPropertyPrincipal1" (
-    "Id" INTEGER NOT NULL CONSTRAINT "PK_DependentPropertyPrincipal1" PRIMARY KEY AUTOINCREMENT,
-    "ConcurrencyToken" BLOB NOT NULL
-);
-
-
 CREATE TABLE "DerivedEntity1" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_DerivedEntity1" PRIMARY KEY AUTOINCREMENT,
     "StringProp" TEXT NULL,
@@ -117,6 +111,13 @@ CREATE TABLE "PrincipalOptional1" (
 );
 
 
+CREATE TABLE "PrincipalRequired1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_PrincipalRequired1" PRIMARY KEY AUTOINCREMENT,
+    "IntProp" INTEGER NOT NULL,
+    "ConcurrencyToken" BLOB NOT NULL
+);
+
+
 CREATE TABLE "RecursiveEntity1" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_RecursiveEntity1" PRIMARY KEY AUTOINCREMENT,
     "StringProperty" TEXT NULL,
@@ -165,21 +166,6 @@ CREATE TABLE "ToDatabaseEntity1" (
 CREATE TABLE "UnmatchedPrincipal1" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_UnmatchedPrincipal1" PRIMARY KEY AUTOINCREMENT,
     "ConcurrencyToken" BLOB NOT NULL
-);
-
-
-CREATE TABLE "DependentPropertyDependent1" (
-    "Id" INTEGER NOT NULL CONSTRAINT "PK_DependentPropertyDependent1" PRIMARY KEY AUTOINCREMENT,
-    "PrincipalForEntity_Id" INTEGER NULL,
-    "PrincipalIdForList" INTEGER NULL,
-    "IntProp" INTEGER NOT NULL,
-    "PrincipalForEntityId" INTEGER NULL,
-    "PrincipalForListId" INTEGER NULL,
-    "ConcurrencyToken" BLOB NOT NULL,
-    CONSTRAINT "FK_DependentPropertyDependent1_DependentPropertyPrincipal1_PrincipalForEntity_Id" FOREIGN KEY ("PrincipalForEntity_Id") REFERENCES "DependentPropertyPrincipal1" ("Id") ON DELETE SET NULL,
-    CONSTRAINT "FK_DependentPropertyDependent1_DependentPropertyPrincipal1_PrincipalForEntityId" FOREIGN KEY ("PrincipalForEntityId") REFERENCES "DependentPropertyPrincipal1" ("Id"),
-    CONSTRAINT "FK_DependentPropertyDependent1_DependentPropertyPrincipal1_PrincipalForListId" FOREIGN KEY ("PrincipalForListId") REFERENCES "DependentPropertyPrincipal1" ("Id"),
-    CONSTRAINT "FK_DependentPropertyDependent1_DependentPropertyPrincipal1_PrincipalIdForList" FOREIGN KEY ("PrincipalIdForList") REFERENCES "DependentPropertyPrincipal1" ("Id")
 );
 
 
@@ -249,6 +235,24 @@ CREATE TABLE "DependentOptional1_2" (
 );
 
 
+CREATE TABLE "DependentRequired1_1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_DependentRequired1_1" PRIMARY KEY AUTOINCREMENT,
+    "LongProp" INTEGER NOT NULL,
+    "OuterId" INTEGER NOT NULL,
+    "ConcurrencyToken" BLOB NOT NULL,
+    CONSTRAINT "FK_DependentRequired1_1_PrincipalRequired1_OuterId" FOREIGN KEY ("OuterId") REFERENCES "PrincipalRequired1" ("Id") ON DELETE CASCADE
+);
+
+
+CREATE TABLE "DependentRequired1_2" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_DependentRequired1_2" PRIMARY KEY AUTOINCREMENT,
+    "StringProp" TEXT NULL,
+    "OuterId" INTEGER NOT NULL,
+    "ConcurrencyToken" BLOB NOT NULL,
+    CONSTRAINT "FK_DependentRequired1_2_PrincipalRequired1_OuterId" FOREIGN KEY ("OuterId") REFERENCES "PrincipalRequired1" ("Id") ON DELETE CASCADE
+);
+
+
 CREATE TABLE "ScalarItem1" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_ScalarItem1" PRIMARY KEY AUTOINCREMENT,
     "StringProp" TEXT NULL,
@@ -275,16 +279,10 @@ CREATE UNIQUE INDEX "IX_DependentOptional1_1_Outer_Id" ON "DependentOptional1_1"
 CREATE UNIQUE INDEX "IX_DependentOptional1_2_Outer_Id" ON "DependentOptional1_2" ("Outer_Id");
 
 
-CREATE UNIQUE INDEX "IX_DependentPropertyDependent1_PrincipalForEntity_Id" ON "DependentPropertyDependent1" ("PrincipalForEntity_Id");
+CREATE UNIQUE INDEX "IX_DependentRequired1_1_OuterId" ON "DependentRequired1_1" ("OuterId");
 
 
-CREATE INDEX "IX_DependentPropertyDependent1_PrincipalForEntityId" ON "DependentPropertyDependent1" ("PrincipalForEntityId");
-
-
-CREATE INDEX "IX_DependentPropertyDependent1_PrincipalForListId" ON "DependentPropertyDependent1" ("PrincipalForListId");
-
-
-CREATE INDEX "IX_DependentPropertyDependent1_PrincipalIdForList" ON "DependentPropertyDependent1" ("PrincipalIdForList");
+CREATE UNIQUE INDEX "IX_DependentRequired1_2_OuterId" ON "DependentRequired1_2" ("OuterId");
 
 
 CREATE INDEX "IX_ManyToManyChild2ManyToManyParent2_ParentsId" ON "ManyToManyChild2ManyToManyParent2" ("ParentsId");

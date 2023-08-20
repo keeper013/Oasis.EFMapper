@@ -78,7 +78,7 @@ internal class DatabaseContext : DbContext
             property.ValueGenerated = ValueGenerated.Never;
             property.SetValueConverter(new SqliteConcurrencyTokenConverter());
             property.SetValueComparer(new ValueComparer<byte[]>(
-                (a1, a2) => (a1 == null || a2 == null) ? false : a1.SequenceEqual(a2),
+                (a1, a2) => a1 != null && a2 != null && a1.SequenceEqual(a2),
                 a => a.Aggregate(0, (v, b) => HashCode.Combine(v, b.GetHashCode())),
                 a => a));
         }

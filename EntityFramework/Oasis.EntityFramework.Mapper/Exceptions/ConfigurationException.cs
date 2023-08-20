@@ -71,14 +71,6 @@ public sealed class UselessExcludeException : EfMapperException
     }
 }
 
-public sealed class InvalidDependentException : EfMapperException
-{
-    public InvalidDependentException(Type type, string propertyName)
-        : base($"Type {type.Name} doesn't have a valid property of class type of list of class type named {propertyName} to be a dependent property.")
-    {
-    }
-}
-
 public sealed class InvalidEntityListTypeException : EfMapperException
 {
     public InvalidEntityListTypeException(Type type)
@@ -136,6 +128,22 @@ public sealed class InvaildEntityListPropertyException : EfMapperException
 
     public InvaildEntityListPropertyException(Type type, string propertyName)
         : base($"No valid list of entity property named {propertyName} found from type {type.Name}")
+    {
+    }
+}
+
+public sealed class SameTypeException : EfMapperException
+{
+    public SameTypeException(Type type)
+        : base($"Can't register mapping for type {type.Name} with itself.")
+    {
+    }
+}
+
+public sealed class ScalarConverterMissingException : EfMapperException
+{
+    public ScalarConverterMissingException(Type sourceType, Type targetType)
+        : base($"Scalar converter from {sourceType} to {targetType} doesn't exist.")
     {
     }
 }

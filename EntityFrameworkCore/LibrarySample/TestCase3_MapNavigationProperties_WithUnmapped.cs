@@ -38,7 +38,6 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     [Fact]
     public async Task Test2_AddAndUpateBorrower_WithGlobalUnmappedProperty()
     {
-        // initialize mapper
         var mapper = MakeDefaultMapperBuilder(new string[] { nameof(Contact.Address) })
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())

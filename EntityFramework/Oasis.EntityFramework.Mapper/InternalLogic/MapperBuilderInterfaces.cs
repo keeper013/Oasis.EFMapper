@@ -27,8 +27,6 @@ internal interface IEntityConfiguration
     ISet<string>? ExcludedProperties { get; }
 
     ISet<string>? KeepUnmatchedProperties { get; }
-
-    ISet<string>? DependentProperties { get; }
 }
 
 internal interface IMapperBuilderInternal

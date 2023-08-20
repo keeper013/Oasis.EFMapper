@@ -14,7 +14,6 @@ public sealed class TestCase1_MapNewEntityToDatabase : TestBase
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
             .Register<NewTagDTO, Tag>()
-            .Register<Tag, TagDTO>()
             .Build();
 
         // create new tag
@@ -28,10 +27,5 @@ public sealed class TestCase1_MapNewEntityToDatabase : TestBase
             tag = await databaseContext.Set<Tag>().FirstAsync();
             Assert.Equal(TagName, tag.Name);
         });
-
-        // map from tag to dto
-        var tagDto = mapper.Map<Tag, TagDTO>(tag);
-        Assert.NotEqual(default, tagDto.Id);
-        Assert.Equal(TagName, tagDto.Name);
     }
 }

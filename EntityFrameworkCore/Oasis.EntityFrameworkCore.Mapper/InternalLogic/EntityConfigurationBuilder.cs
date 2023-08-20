@@ -18,8 +18,6 @@ internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration
 
     public IReadOnlySet<string>? KeepUnmatchedProperties { get; private set; }
 
-    public IReadOnlySet<string>? DependentProperties { get; private set; }
-
     public IEntityConfiguration<TEntity> ExcludePropertiesByName(params string[] names)
     {
         if (names != null && names.Any())
@@ -62,33 +60,6 @@ internal sealed class EntityConfigurationBuilder<TEntity> : BuilderConfiguration
     public IEntityConfiguration<TEntity> SetConcurrencyTokenPropertyName(string concurrencyTokenPropertyName)
     {
         ConcurrencyTokenPropertyName = concurrencyTokenPropertyName;
-        return this;
-    }
-
-    public IEntityConfiguration<TEntity> SetDependentProperties(params string[] names)
-    {
-        if (names == null || !names.Any())
-        {
-            throw new ArgumentNullException(nameof(names));
-        }
-
-        var properties = typeof(TEntity).GetProperties(Utilities.PublicInstance);
-        foreach (var propertyName in names)
-        {
-            var property = properties.FirstOrDefault(p => string.Equals(p.Name, propertyName));
-            if (property == null)
-            {
-                throw new InvalidDependentException(typeof(TEntity), propertyName);
-            }
-
-            var propertyType = property.PropertyType;
-            if (!propertyType.IsEntityType() && !propertyType.IsListOfEntityType())
-            {
-                throw new InvalidDependentException(typeof(TEntity), propertyName);
-            }
-        }
-
-        DependentProperties = new HashSet<string>(names);
         return this;
     }
 

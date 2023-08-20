@@ -48,21 +48,24 @@ internal abstract class RecursiveMapper : IRecursiveMapper<int>
         var targetType = typeof(TTarget);
 
         var mapperSet = _lookup.LookUp(sourceType, targetType);
-        using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
-        (mapperSet.customPropertiesMapper as Action<TSource, TTarget>)?.Invoke(source, target);
-
-        if (mapKeyProperties != MapKeyProperties.None)
+        if (mapperSet.HasValue)
         {
-            (mapperSet.keyMapper as Utilities.MapKeyProperties<TSource, TTarget>)?.Invoke(source, target, _scalarConverter, mapKeyProperties == MapKeyProperties.IdOnly);
-        }
+            var mapper = mapperSet.Value;
+            using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
+            (mapper.customPropertiesMapper as Action<TSource, TTarget>)?.Invoke(source, target);
 
-        (mapperSet.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, _scalarConverter, this, context);
+            if (mapKeyProperties != MapKeyProperties.None)
+            {
+                (mapper.keyMapper as Utilities.MapKeyProperties<TSource, TTarget>)?.Invoke(source, target, _scalarConverter, mapKeyProperties == MapKeyProperties.IdOnly);
+            }
+
+            (mapper.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, _scalarConverter, this, context);
+        }
     }
 }
 
 internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
 {
-    private readonly DependentPropertyManager _dependentPropertyManager;
     private readonly KeepUnmatchedManager _keepUnmatchedManager;
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
     private readonly DbContext _databaseContext;
@@ -72,13 +75,11 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
         EntityHandler entityHandler,
-        DependentPropertyManager dependentPropertyManager,
         KeepUnmatchedManager keepUnmatchedManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
         DbContext databaseContext)
         : base(scalarConverter, listTypeConstructor, lookup, entityHandler)
     {
-        _dependentPropertyManager = dependentPropertyManager;
         _keepUnmatchedManager = keepUnmatchedManager;
         _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
         _databaseContext = databaseContext;
@@ -155,11 +156,6 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
     {
         if (source == default)
         {
-            if (target != default && _dependentPropertyManager.IsDependent(context.CurrentTarget, propertyName))
-            {
-                _databaseContext.Set<TTarget>().Remove(target);
-            }
-
             return default;
         }
 
@@ -177,12 +173,6 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                 throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
             }
 
-            if (target != default && EntityHandler.HasId<TTarget>() && !EntityHandler.IdIsEmpty(target)
-                && _dependentPropertyManager.IsDependent(context.CurrentTarget, propertyName))
-            {
-                _databaseContext.Set<TTarget>().Remove(target);
-            }
-
             return MapToNewTarget(source, MapKeyProperties.None, context, tracker!);
         }
 
@@ -194,11 +184,6 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             }
             else
             {
-                if (_dependentPropertyManager.IsDependent(context.CurrentTarget, propertyName))
-                {
-                    _databaseContext.Set<TTarget>().Remove(target);
-                }
-
                 target = MapToExistingOrNewTarget(source, context, tracker!, mapType);
             }
         }
@@ -298,14 +283,9 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         var current = context.Current;
         if (shadowSet.Any() && !_keepUnmatchedManager.KeepUnmatched(current.Item1, current.Item2, propertyName))
         {
-            var toRemoveFromDatabase = _dependentPropertyManager.IsDependent(current.Item2, propertyName);
             foreach (var toBeRemoved in shadowSet)
             {
                 target.Remove(toBeRemoved);
-                if (toRemoveFromDatabase)
-                {
-                    _databaseContext.Set<TTarget>().Remove(toBeRemoved);
-                }
             }
         }
     }
