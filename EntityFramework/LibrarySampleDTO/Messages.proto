@@ -2,28 +2,125 @@
 package Oasis.EntityFramework.Mapper.Sample;
 option csharp_namespace = "Oasis.EntityFramework.Mapper.Sample";
 
-message BorrowerDTO {
-	int32 Id = 1;
-	string Name = 2;
-	repeated BorrowRecordDTO BorrowRecords = 3;
+import "google/protobuf/wrappers.proto";
+
+message IdReferenceDTO {
+    int32 Id = 1;
 }
 
-message BookDTO {
+message NewTagDTO {
+    string Name = 1;
+    repeated IdReferenceDTO Books = 2;
+}
+
+message TagDTO {
 	int32 Id = 1;
 	string Name = 2;
-	optional string CurrentBorrower = 3;
+	repeated BookDTO Books = 3;
 }
 
 message NewBookDTO {
-	string Name = 1;
+    string Name = 1;
+    repeated NewCopyDTO Copies = 2;
+    repeated IdReferenceDTO Tags = 3;
 }
 
-message BorrowRecordDTO {
+message NewBookWithNewTagDTO {
+    string Name = 1;
+    repeated NewCopyDTO Copies = 2;
+    repeated NewTagDTO Tags = 3;
+}
+
+message UpdateBookDTO {
     int32 Id = 1;
-	int32 BorrowerId = 2;
-	BookDTO Book = 3;
+    bytes ConcurrencyToken = 2;
+    string Name = 3;
+    repeated CopyReferenceDTO Copies = 4;
+    repeated IdReferenceDTO Tags = 5;
 }
 
-message AllBooksDTO {
-	repeated BookDTO Books = 1;
+message BookDTO {
+    int32 Id = 1;
+    bytes ConcurrencyToken = 2;
+    string Name = 3;
+    repeated CopyDTO Copies = 4;
+    repeated TagDTO Tags = 5;
+}
+
+message CopyReferenceDTO {
+    string Number = 1;
+}
+
+message NewCopyDTO {
+    string Number = 1;
+    int32 BookId = 2;
+}
+
+message UpdateCopyDTO {
+    string Number = 1;
+    bytes ConcurrencyToken = 2;
+    google.protobuf.StringValue Reserver = 3;
+    google.protobuf.StringValue Borrower = 4;
+}
+
+message CopyDTO {
+    string Number = 1;
+    bytes ConcurrencyToken = 2;
+    google.protobuf.StringValue Reserver = 3;
+    google.protobuf.StringValue Borrower = 4;
+    int32 BookId = 5;
+}
+
+message NewContactDTO {
+    string PhoneNumber = 1;
+    google.protobuf.StringValue Address = 2;
+}
+
+message UpdateContactDTO {
+    int32 Id = 1;
+    bytes ConcurrencyToken = 2;
+    string PhoneNumber = 3;
+    google.protobuf.StringValue Address = 4;
+}
+
+message ContactDTO {
+    int32 Id = 1;
+    bytes ConcurrencyToken = 2;
+    string Borrower = 3;
+    string PhoneNumber = 4;
+    google.protobuf.StringValue Address = 5;
+}
+
+message BorrowerReferenceDTO {
+    string IdentityNumber = 1;
+}
+
+message NewBorrowerDTO {
+    string IdentityNumber = 1;
+    string Name = 2;
+    NewContactDTO Contact = 3;
+}
+
+message UpdateBorrowerDTO {
+    string IdentityNumber = 1;
+    bytes ConcurrencyToken = 2;
+    string Name = 3;
+    UpdateContactDTO Contact = 4;
+    optional CopyReferenceDTO Reserved = 5;
+    repeated CopyReferenceDTO Borrowed = 6;
+}
+
+message BorrowerDTO {
+    string IdentityNumber = 1;
+    bytes ConcurrencyToken = 2;
+    string Name = 3;
+    ContactDTO Contact = 4;
+    optional CopyReferenceDTO Reserved = 5;
+    repeated CopyReferenceDTO Borrowed = 6;
+}
+
+message BorrowerBriefDTO {
+    string Id = 1;
+    string Name = 2;
+    string Phone = 3;
 }

@@ -11,8 +11,6 @@ internal abstract class RecursiveContext
     public void Push(Type sourceType, Type targetType) => Stack.Push((sourceType, targetType));
 
     public void Pop() => Stack.Pop();
-
-    public bool Contains(Type sourceType, Type targetType) => Stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType);
 }
 
 internal sealed class RecursiveContextPopper : IDisposable
@@ -95,7 +93,7 @@ internal sealed class RecursiveRegisterContext : RecursiveContext, IRecursiveReg
                 DumpLoopDependency();
             }
         }
-        else if (Contains(sourceType, targetType))
+        else if (Stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
         {
             DumpLoopDependency();
         }

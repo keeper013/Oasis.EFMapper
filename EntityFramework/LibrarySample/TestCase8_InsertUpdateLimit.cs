@@ -1,16 +1,17 @@
 ﻿namespace LibrarySample;
 
 using Google.Protobuf;
-using Microsoft.EntityFrameworkCore;
-using Oasis.EntityFrameworkCore.Mapper;
-using Oasis.EntityFrameworkCore.Mapper.Exceptions;
-using Oasis.EntityFrameworkCore.Mapper.Sample;
+using Oasis.EntityFramework.Mapper;
+using Oasis.EntityFramework.Mapper.Exceptions;
+using Oasis.EntityFramework.Mapper.Sample;
+using System.Data.Entity;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
+[TestFixture]
 public sealed class TestCase8_InsertUpdateLimit : TestBase
 {
-    [Fact]
+    [Test]
     public async Task Test1_NewEntityInsertedWithEmptyId()
     {
         // initialize mapper
@@ -24,12 +25,12 @@ public sealed class TestCase8_InsertUpdateLimit : TestBase
         {
             _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null, databaseContext);
             _ = await databaseContext.SaveChangesAsync();
-            Assert.Single(await databaseContext.Set<Book>().ToListAsync());
+            Assert.AreEqual(1, await databaseContext.Set<Book>().CountAsync());
         });
     }
 
-    [Fact]
-    public async Task Test2_ExcetionThrownWhenUsageLimited()
+    [Test]
+    public void Test2_ExcetionThrownWhenUsageLimited()
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
@@ -40,7 +41,7 @@ public sealed class TestCase8_InsertUpdateLimit : TestBase
             .Build();
 
         var updateBookDto = new UpdateBookDTO { Name = "Test Book 1" };
-        await Assert.ThrowsAsync<UpdateToDatabaseWithoutIdException>(async () =>
+        Assert.ThrowsAsync<UpdateToDatabaseWithoutIdException>(async () =>
         {
             await ExecuteWithNewDatabaseContext(async databaseContext =>
             {

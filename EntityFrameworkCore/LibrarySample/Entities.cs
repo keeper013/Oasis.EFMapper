@@ -1,4 +1,4 @@
-﻿namespace Oasis.EntityFrameworkCore.Mapper.Sample;
+﻿namespace LibrarySample;
 
 using System.Collections.Generic;
 

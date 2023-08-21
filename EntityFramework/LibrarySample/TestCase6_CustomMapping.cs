@@ -1,14 +1,15 @@
 ﻿namespace LibrarySample;
 
 using Google.Protobuf;
-using Microsoft.EntityFrameworkCore;
-using Oasis.EntityFrameworkCore.Mapper.Sample;
+using System.Data.Entity;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
+using Oasis.EntityFramework.Mapper.Sample;
 
+[TestFixture]
 public sealed class TestCase6_CustomMapping : TestBase
 {
-    [Fact]
+    [Test]
     public async Task Test1_CustomMapping_ShouldSucceed()
     {
         // arrange
@@ -51,8 +52,8 @@ public sealed class TestCase6_CustomMapping : TestBase
         });
 
         var brief = mapper.Map<Borrower, BorrowerBriefDTO>(borrower);
-        Assert.Equal(BorrowerId, brief.Id);
-        Assert.Equal(BorrowerName, brief.Name);
-        Assert.Equal(Phone, brief.Phone);
+        Assert.AreEqual(BorrowerId, brief.Id);
+        Assert.AreEqual(BorrowerName, brief.Name);
+        Assert.AreEqual(Phone, brief.Phone);
     }
 }

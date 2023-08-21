@@ -34,53 +34,58 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             "a0RUTyKmAQoKTmV3Qm9va0RUTxIMCgROYW1lGAEgASgJEkMKBkNvcGllcxgC",
             "IAMoCzIzLk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBs",
             "ZS5OZXdDb3B5RFRPEkUKBFRhZ3MYAyADKAsyNy5PYXNpcy5FbnRpdHlGcmFt",
-            "ZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuSWRSZWZlcmVuY2VEVE8i1QEKDVVw",
-            "ZGF0ZUJvb2tEVE8SCgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgC",
-            "IAEoDBIMCgROYW1lGAMgASgJEkkKBkNvcGllcxgEIAMoCzI5Lk9hc2lzLkVu",
-            "dGl0eUZyYW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5UmVmZXJlbmNl",
-            "RFRPEkUKBFRhZ3MYBSADKAsyNy5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3Jl",
-            "Lk1hcHBlci5TYW1wbGUuSWRSZWZlcmVuY2VEVE8ivgEKB0Jvb2tEVE8SCgoC",
-            "SWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIMCgROYW1lGAMg",
-            "ASgJEkAKBkNvcGllcxgEIAMoCzIwLk9hc2lzLkVudGl0eUZyYW1ld29ya0Nv",
-            "cmUuTWFwcGVyLlNhbXBsZS5Db3B5RFRPEj0KBFRhZ3MYBSADKAsyLy5PYXNp",
-            "cy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVGFnRFRPIiIK",
-            "EENvcHlSZWZlcmVuY2VEVE8SDgoGTnVtYmVyGAEgASgJIiwKCk5ld0NvcHlE",
-            "VE8SDgoGTnVtYmVyGAEgASgJEg4KBkJvb2tJZBgCIAEoBSKZAQoNVXBkYXRl",
-            "Q29weURUTxIOCgZOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tlbhgC",
-            "IAEoDBIuCghSZXNlcnZlchgDIAEoCzIcLmdvb2dsZS5wcm90b2J1Zi5TdHJp",
-            "bmdWYWx1ZRIuCghCb3Jyb3dlchgEIAEoCzIcLmdvb2dsZS5wcm90b2J1Zi5T",
-            "dHJpbmdWYWx1ZSKjAQoHQ29weURUTxIOCgZOdW1iZXIYASABKAkSGAoQQ29u",
-            "Y3VycmVuY3lUb2tlbhgCIAEoDBIuCghSZXNlcnZlchgDIAEoCzIcLmdvb2ds",
-            "ZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZRIuCghCb3Jyb3dlchgEIAEoCzIcLmdv",
-            "b2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZRIOCgZCb29rSWQYBSABKAUiUwoN",
-            "TmV3Q29udGFjdERUTxITCgtQaG9uZU51bWJlchgBIAEoCRItCgdBZGRyZXNz",
-            "GAIgASgLMhwuZ29vZ2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlInwKEFVwZGF0",
-            "ZUNvbnRhY3REVE8SCgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgC",
-            "IAEoDBITCgtQaG9uZU51bWJlchgDIAEoCRItCgdBZGRyZXNzGAQgASgLMhwu",
-            "Z29vZ2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlIogBCgpDb250YWN0RFRPEgoK",
-            "AklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSEAoIQm9ycm93",
-            "ZXIYAyABKAkSEwoLUGhvbmVOdW1iZXIYBCABKAkSLQoHQWRkcmVzcxgFIAEo",
-            "CzIcLmdvb2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZSIuChRCb3Jyb3dlclJl",
-            "ZmVyZW5jZURUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCSJ/Cg5OZXdCb3Jy",
-            "b3dlckRUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCRIMCgROYW1lGAIgASgJ",
-            "EkcKB0NvbnRhY3QYAyABKAsyNi5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3Jl",
-            "Lk1hcHBlci5TYW1wbGUuTmV3Q29udGFjdERUTyLLAgoRVXBkYXRlQm9ycm93",
-            "ZXJEVE8SFgoOSWRlbnRpdHlOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lU",
-            "b2tlbhgCIAEoDBIMCgROYW1lGAMgASgJEkoKB0NvbnRhY3QYBCABKAsyOS5P",
-            "YXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVXBkYXRl",
-            "Q29udGFjdERUTxJQCghSZXNlcnZlZBgFIAEoCzI5Lk9hc2lzLkVudGl0eUZy",
-            "YW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5UmVmZXJlbmNlRFRPSACI",
-            "AQESSwoIQm9ycm93ZWQYBiADKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtD",
-            "b3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0ILCglfUmVzZXJ2",
-            "ZWQivwIKC0JvcnJvd2VyRFRPEhYKDklkZW50aXR5TnVtYmVyGAEgASgJEhgK",
-            "EENvbmN1cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgDIAEoCRJECgdDb250",
-            "YWN0GAQgASgLMjMuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIu",
-            "U2FtcGxlLkNvbnRhY3REVE8SUAoIUmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5F",
-            "bnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5j",
-            "ZURUT0gAiAEBEksKCEJvcnJvd2VkGAYgAygLMjkuT2FzaXMuRW50aXR5RnJh",
-            "bWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJ",
-            "X1Jlc2VydmVkQiqqAidPYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBl",
-            "ci5TYW1wbGViBnByb3RvMw=="));
+            "ZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuSWRSZWZlcmVuY2VEVE8iqwEKFE5l",
+            "d0Jvb2tXaXRoTmV3VGFnRFRPEgwKBE5hbWUYASABKAkSQwoGQ29waWVzGAIg",
+            "AygLMjMuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxl",
+            "Lk5ld0NvcHlEVE8SQAoEVGFncxgDIAMoCzIyLk9hc2lzLkVudGl0eUZyYW1l",
+            "d29ya0NvcmUuTWFwcGVyLlNhbXBsZS5OZXdUYWdEVE8i1QEKDVVwZGF0ZUJv",
+            "b2tEVE8SCgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIM",
+            "CgROYW1lGAMgASgJEkkKBkNvcGllcxgEIAMoCzI5Lk9hc2lzLkVudGl0eUZy",
+            "YW1ld29ya0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5UmVmZXJlbmNlRFRPEkUK",
+            "BFRhZ3MYBSADKAsyNy5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBl",
+            "ci5TYW1wbGUuSWRSZWZlcmVuY2VEVE8ivgEKB0Jvb2tEVE8SCgoCSWQYASAB",
+            "KAUSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIMCgROYW1lGAMgASgJEkAK",
+            "BkNvcGllcxgEIAMoCzIwLk9hc2lzLkVudGl0eUZyYW1ld29ya0NvcmUuTWFw",
+            "cGVyLlNhbXBsZS5Db3B5RFRPEj0KBFRhZ3MYBSADKAsyLy5PYXNpcy5FbnRp",
+            "dHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVGFnRFRPIiIKEENvcHlS",
+            "ZWZlcmVuY2VEVE8SDgoGTnVtYmVyGAEgASgJIiwKCk5ld0NvcHlEVE8SDgoG",
+            "TnVtYmVyGAEgASgJEg4KBkJvb2tJZBgCIAEoBSKZAQoNVXBkYXRlQ29weURU",
+            "TxIOCgZOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIu",
+            "CghSZXNlcnZlchgDIAEoCzIcLmdvb2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1",
+            "ZRIuCghCb3Jyb3dlchgEIAEoCzIcLmdvb2dsZS5wcm90b2J1Zi5TdHJpbmdW",
+            "YWx1ZSKjAQoHQ29weURUTxIOCgZOdW1iZXIYASABKAkSGAoQQ29uY3VycmVu",
+            "Y3lUb2tlbhgCIAEoDBIuCghSZXNlcnZlchgDIAEoCzIcLmdvb2dsZS5wcm90",
+            "b2J1Zi5TdHJpbmdWYWx1ZRIuCghCb3Jyb3dlchgEIAEoCzIcLmdvb2dsZS5w",
+            "cm90b2J1Zi5TdHJpbmdWYWx1ZRIOCgZCb29rSWQYBSABKAUiUwoNTmV3Q29u",
+            "dGFjdERUTxITCgtQaG9uZU51bWJlchgBIAEoCRItCgdBZGRyZXNzGAIgASgL",
+            "MhwuZ29vZ2xlLnByb3RvYnVmLlN0cmluZ1ZhbHVlInwKEFVwZGF0ZUNvbnRh",
+            "Y3REVE8SCgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIT",
+            "CgtQaG9uZU51bWJlchgDIAEoCRItCgdBZGRyZXNzGAQgASgLMhwuZ29vZ2xl",
+            "LnByb3RvYnVmLlN0cmluZ1ZhbHVlIogBCgpDb250YWN0RFRPEgoKAklkGAEg",
+            "ASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwSEAoIQm9ycm93ZXIYAyAB",
+            "KAkSEwoLUGhvbmVOdW1iZXIYBCABKAkSLQoHQWRkcmVzcxgFIAEoCzIcLmdv",
+            "b2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZSIuChRCb3Jyb3dlclJlZmVyZW5j",
+            "ZURUTxIWCg5JZGVudGl0eU51bWJlchgBIAEoCSJ/Cg5OZXdCb3Jyb3dlckRU",
+            "TxIWCg5JZGVudGl0eU51bWJlchgBIAEoCRIMCgROYW1lGAIgASgJEkcKB0Nv",
+            "bnRhY3QYAyABKAsyNi5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBl",
+            "ci5TYW1wbGUuTmV3Q29udGFjdERUTyLLAgoRVXBkYXRlQm9ycm93ZXJEVE8S",
+            "FgoOSWRlbnRpdHlOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tlbhgC",
+            "IAEoDBIMCgROYW1lGAMgASgJEkoKB0NvbnRhY3QYBCABKAsyOS5PYXNpcy5F",
+            "bnRpdHlGcmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuVXBkYXRlQ29udGFj",
+            "dERUTxJQCghSZXNlcnZlZBgFIAEoCzI5Lk9hc2lzLkVudGl0eUZyYW1ld29y",
+            "a0NvcmUuTWFwcGVyLlNhbXBsZS5Db3B5UmVmZXJlbmNlRFRPSACIAQESSwoI",
+            "Qm9ycm93ZWQYBiADKAsyOS5PYXNpcy5FbnRpdHlGcmFtZXdvcmtDb3JlLk1h",
+            "cHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0ILCglfUmVzZXJ2ZWQivwIK",
+            "C0JvcnJvd2VyRFRPEhYKDklkZW50aXR5TnVtYmVyGAEgASgJEhgKEENvbmN1",
+            "cnJlbmN5VG9rZW4YAiABKAwSDAoETmFtZRgDIAEoCRJECgdDb250YWN0GAQg",
+            "ASgLMjMuT2FzaXMuRW50aXR5RnJhbWV3b3JrQ29yZS5NYXBwZXIuU2FtcGxl",
+            "LkNvbnRhY3REVE8SUAoIUmVzZXJ2ZWQYBSABKAsyOS5PYXNpcy5FbnRpdHlG",
+            "cmFtZXdvcmtDb3JlLk1hcHBlci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0gA",
+            "iAEBEksKCEJvcnJvd2VkGAYgAygLMjkuT2FzaXMuRW50aXR5RnJhbWV3b3Jr",
+            "Q29yZS5NYXBwZXIuU2FtcGxlLkNvcHlSZWZlcmVuY2VEVE9CCwoJX1Jlc2Vy",
+            "dmVkIjsKEEJvcnJvd2VyQnJpZWZEVE8SCgoCSWQYASABKAkSDAoETmFtZRgC",
+            "IAEoCRINCgVQaG9uZRgDIAEoCUIqqgInT2FzaXMuRW50aXR5RnJhbWV3b3Jr",
+            "Q29yZS5NYXBwZXIuU2FtcGxlYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.WrappersReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -88,6 +93,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO.Parser, new[]{ "Name", "Books" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.TagDTO.Parser, new[]{ "Id", "Name", "Books" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookDTO.Parser, new[]{ "Name", "Copies", "Tags" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookWithNewTagDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBookWithNewTagDTO.Parser, new[]{ "Name", "Copies", "Tags" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBookDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "Copies", "Tags" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BookDTO.Parser, new[]{ "Id", "ConcurrencyToken", "Name", "Copies", "Tags" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.CopyReferenceDTO.Parser, new[]{ "Number" }, null, null, null, null),
@@ -100,7 +106,8 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerReferenceDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerReferenceDTO.Parser, new[]{ "IdentityNumber" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.NewBorrowerDTO.Parser, new[]{ "IdentityNumber", "Name", "Contact" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.UpdateBorrowerDTO.Parser, new[]{ "IdentityNumber", "ConcurrencyToken", "Name", "Contact", "Reserved", "Borrowed" }, new[]{ "Reserved" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO.Parser, new[]{ "IdentityNumber", "ConcurrencyToken", "Name", "Contact", "Reserved", "Borrowed" }, new[]{ "Reserved" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerDTO.Parser, new[]{ "IdentityNumber", "ConcurrencyToken", "Name", "Contact", "Reserved", "Borrowed" }, new[]{ "Reserved" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerBriefDTO), global::Oasis.EntityFrameworkCore.Mapper.Sample.BorrowerBriefDTO.Parser, new[]{ "Id", "Name", "Phone" }, null, null, null, null)
           }));
     }
     #endregion
@@ -1004,6 +1011,247 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
 
   }
 
+  public sealed partial class NewBookWithNewTagDTO : pb::IMessage<NewBookWithNewTagDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<NewBookWithNewTagDTO> _parser = new pb::MessageParser<NewBookWithNewTagDTO>(() => new NewBookWithNewTagDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<NewBookWithNewTagDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[4]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewBookWithNewTagDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewBookWithNewTagDTO(NewBookWithNewTagDTO other) : this() {
+      name_ = other.name_;
+      copies_ = other.copies_.Clone();
+      tags_ = other.tags_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public NewBookWithNewTagDTO Clone() {
+      return new NewBookWithNewTagDTO(this);
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 1;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Copies" field.</summary>
+    public const int CopiesFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO> _repeated_copies_codec
+        = pb::FieldCodec.ForMessage(18, global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO> copies_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewCopyDTO> Copies {
+      get { return copies_; }
+    }
+
+    /// <summary>Field number for the "Tags" field.</summary>
+    public const int TagsFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO> _repeated_tags_codec
+        = pb::FieldCodec.ForMessage(26, global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO.Parser);
+    private readonly pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO> tags_ = new pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Oasis.EntityFrameworkCore.Mapper.Sample.NewTagDTO> Tags {
+      get { return tags_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as NewBookWithNewTagDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(NewBookWithNewTagDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Name != other.Name) return false;
+      if(!copies_.Equals(other.copies_)) return false;
+      if(!tags_.Equals(other.tags_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      hash ^= copies_.GetHashCode();
+      hash ^= tags_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      copies_.WriteTo(output, _repeated_copies_codec);
+      tags_.WriteTo(output, _repeated_tags_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      copies_.WriteTo(ref output, _repeated_copies_codec);
+      tags_.WriteTo(ref output, _repeated_tags_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      size += copies_.CalculateSize(_repeated_copies_codec);
+      size += tags_.CalculateSize(_repeated_tags_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(NewBookWithNewTagDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      copies_.Add(other.copies_);
+      tags_.Add(other.tags_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            copies_.AddEntriesFrom(input, _repeated_copies_codec);
+            break;
+          }
+          case 26: {
+            tags_.AddEntriesFrom(input, _repeated_tags_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            copies_.AddEntriesFrom(ref input, _repeated_copies_codec);
+            break;
+          }
+          case 26: {
+            tags_.AddEntriesFrom(ref input, _repeated_tags_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
   public sealed partial class UpdateBookDTO : pb::IMessage<UpdateBookDTO>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -1018,7 +1266,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[4]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1333,7 +1581,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[5]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1648,7 +1896,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[6]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1837,7 +2085,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[7]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2063,7 +2311,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[8]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2379,7 +2627,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[9]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2732,7 +2980,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[10]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2966,7 +3214,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[11]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3274,7 +3522,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[12]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3619,7 +3867,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[13]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3808,7 +4056,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[14]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4080,7 +4328,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[15]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4461,7 +4709,7 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[16]; }
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4819,6 +5067,269 @@ namespace Oasis.EntityFrameworkCore.Mapper.Sample {
           }
           case 50: {
             borrowed_.AddEntriesFrom(ref input, _repeated_borrowed_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class BorrowerBriefDTO : pb::IMessage<BorrowerBriefDTO>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<BorrowerBriefDTO> _parser = new pb::MessageParser<BorrowerBriefDTO>(() => new BorrowerBriefDTO());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<BorrowerBriefDTO> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Oasis.EntityFrameworkCore.Mapper.Sample.MessagesReflection.Descriptor.MessageTypes[18]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public BorrowerBriefDTO() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public BorrowerBriefDTO(BorrowerBriefDTO other) : this() {
+      id_ = other.id_;
+      name_ = other.name_;
+      phone_ = other.phone_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public BorrowerBriefDTO Clone() {
+      return new BorrowerBriefDTO(this);
+    }
+
+    /// <summary>Field number for the "Id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private string id_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Id {
+      get { return id_; }
+      set {
+        id_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 2;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Phone" field.</summary>
+    public const int PhoneFieldNumber = 3;
+    private string phone_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Phone {
+      get { return phone_; }
+      set {
+        phone_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as BorrowerBriefDTO);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(BorrowerBriefDTO other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Id != other.Id) return false;
+      if (Name != other.Name) return false;
+      if (Phone != other.Phone) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Id.Length != 0) hash ^= Id.GetHashCode();
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (Phone.Length != 0) hash ^= Phone.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Name);
+      }
+      if (Phone.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Phone);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Id.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Id);
+      }
+      if (Name.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Name);
+      }
+      if (Phone.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Phone);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Id.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Id);
+      }
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (Phone.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Phone);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(BorrowerBriefDTO other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Id.Length != 0) {
+        Id = other.Id;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.Phone.Length != 0) {
+        Phone = other.Phone;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Name = input.ReadString();
+            break;
+          }
+          case 26: {
+            Phone = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Id = input.ReadString();
+            break;
+          }
+          case 18: {
+            Name = input.ReadString();
+            break;
+          }
+          case 26: {
+            Phone = input.ReadString();
             break;
           }
         }

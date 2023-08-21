@@ -10,8 +10,6 @@ public interface IRecursiveContext
     void Push(Type sourceType, Type targetType);
 
     void Pop();
-
-    bool Contains(Type sourceType, Type targetType);
 }
 
 public interface IEntityTracker<TTarget>

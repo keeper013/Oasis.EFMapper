@@ -1,21 +1,23 @@
 ﻿namespace LibrarySample;
 
-using Microsoft.EntityFrameworkCore;
-using Oasis.EntityFrameworkCore.Mapper.Sample;
+using Oasis.EntityFramework.Mapper.Sample;
+using System.Data.Entity;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
+using System.Data.Entity.Infrastructure;
 
+[TestFixture]
 public sealed class TestCase7_Session : TestBase
 {
-    [Fact]
-    public async Task Test1_MapWithoutSession_EntityDuplicated()
+    [Test]
+    public void Test1_MapWithoutSession_EntityDuplicated()
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
             .Register<NewBookWithNewTagDTO, Book>()
             .Build();
 
-        await Assert.ThrowsAsync<DbUpdateException>(async () =>
+        Assert.ThrowsAsync<DbUpdateException>(async () =>
         {
             await ExecuteWithNewDatabaseContext(async databaseContext =>
             {
@@ -31,7 +33,7 @@ public sealed class TestCase7_Session : TestBase
         });
     }
 
-    [Fact]
+    [Test]
     public async Task Test2_MapWithSession_EntityNotDuplicated()
     {
         // initialize mapper
@@ -50,7 +52,7 @@ public sealed class TestCase7_Session : TestBase
             _ = await session.MapAsync<NewBookWithNewTagDTO, Book>(book1, null);
             _ = await session.MapAsync<NewBookWithNewTagDTO, Book>(book2, null);
             _ = await databaseContext.SaveChangesAsync();
-            Assert.Equal(1, await databaseContext.Set<Tag>().CountAsync());
+            Assert.AreEqual(1, await databaseContext.Set<Tag>().CountAsync());
         });
     }
 }

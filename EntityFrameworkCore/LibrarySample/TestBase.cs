@@ -1,11 +1,11 @@
-﻿using Microsoft.Data.Sqlite;
+﻿namespace LibrarySample;
+
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Sample;
 using System.Threading.Tasks;
 using System;
 using Oasis.EntityFrameworkCore.Mapper;
-
-namespace LibrarySample;
 
 public abstract class TestBase
 {

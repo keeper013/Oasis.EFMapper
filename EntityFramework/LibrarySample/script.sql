@@ -1,27 +1,69 @@
 ﻿CREATE TABLE "Book" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_Book" PRIMARY KEY AUTOINCREMENT,
-    "Name" TEXT NULL
+    "ConcurrencyToken" TEXT NOT NULL,
+    "Name" TEXT NOT NULL
 );
 
 
 CREATE TABLE "Borrower" (
-    "Id" INTEGER NOT NULL CONSTRAINT "PK_Borrower" PRIMARY KEY AUTOINCREMENT,
-    "Name" TEXT NULL
+    "IdentityNumber" TEXT NOT NULL CONSTRAINT "PK_Borrower" PRIMARY KEY,
+    "ConcurrencyToken" TEXT NOT NULL,
+    "Name" TEXT NOT NULL
 );
 
 
-CREATE TABLE "BorrowRecord" (
-    "Id" INTEGER NOT NULL CONSTRAINT "PK_BorrowRecord" PRIMARY KEY AUTOINCREMENT,
-    "BorrowerId" INTEGER NOT NULL,
-    "Book_Id" INTEGER NOT NULL,
-    CONSTRAINT "FK_BorrowRecord_Book_Book_Id" FOREIGN KEY ("Book_Id") REFERENCES "Book" ("Id") ON DELETE CASCADE,
-    CONSTRAINT "FK_BorrowRecord_Borrower_BorrowerId" FOREIGN KEY ("BorrowerId") REFERENCES "Borrower" ("Id") ON DELETE RESTRICT
+CREATE TABLE "Tag" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Tag" PRIMARY KEY AUTOINCREMENT,
+    "Name" TEXT NOT NULL
 );
 
 
-CREATE UNIQUE INDEX "IX_BorrowRecord_Book_Id" ON "BorrowRecord" ("Book_Id");
+CREATE TABLE "Contact" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Contact" PRIMARY KEY AUTOINCREMENT,
+    "ConcurrencyToken" TEXT NOT NULL,
+    "Borrower_IdentityNumber" TEXT NOT NULL,
+    "PhoneNumber" TEXT NOT NULL,
+    "Address" TEXT NULL,
+    CONSTRAINT "FK_Contact_Borrower_Borrower_IdentityNumber" FOREIGN KEY ("Borrower_IdentityNumber") REFERENCES "Borrower" ("IdentityNumber") ON DELETE CASCADE
+);
 
 
-CREATE INDEX "IX_BorrowRecord_BorrowerId" ON "BorrowRecord" ("BorrowerId");
+CREATE TABLE "Copy" (
+    "Number" TEXT NOT NULL CONSTRAINT "PK_Copy" PRIMARY KEY,
+    "ConcurrencyToken" TEXT NOT NULL,
+    "Reserver" TEXT NULL,
+    "Borrower" TEXT NULL,
+    "BookId" INTEGER NOT NULL,
+    CONSTRAINT "FK_Copy_Book_BookId" FOREIGN KEY ("BookId") REFERENCES "Book" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_Copy_Borrower_Borrower" FOREIGN KEY ("Borrower") REFERENCES "Borrower" ("IdentityNumber") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Copy_Borrower_Reserver" FOREIGN KEY ("Reserver") REFERENCES "Borrower" ("IdentityNumber") ON DELETE SET NULL
+);
+
+
+CREATE TABLE "BookTag" (
+    "BooksId" INTEGER NOT NULL,
+    "TagsId" INTEGER NOT NULL,
+    CONSTRAINT "PK_BookTag" PRIMARY KEY ("BooksId", "TagsId"),
+    CONSTRAINT "FK_BookTag_Book_BooksId" FOREIGN KEY ("BooksId") REFERENCES "Book" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_BookTag_Tag_TagsId" FOREIGN KEY ("TagsId") REFERENCES "Tag" ("Id") ON DELETE CASCADE
+);
+
+
+CREATE INDEX "IX_BookTag_TagsId" ON "BookTag" ("TagsId");
+
+
+CREATE UNIQUE INDEX "IX_Contact_Borrower_IdentityNumber" ON "Contact" ("Borrower_IdentityNumber");
+
+
+CREATE INDEX "IX_Copy_BookId" ON "Copy" ("BookId");
+
+
+CREATE INDEX "IX_Copy_Borrower" ON "Copy" ("Borrower");
+
+
+CREATE UNIQUE INDEX "IX_Copy_Reserver" ON "Copy" ("Reserver");
+
+
+CREATE UNIQUE INDEX "IX_Tag_Name" ON "Tag" ("Name");
 
 

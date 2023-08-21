@@ -25,6 +25,12 @@ message NewBookDTO {
     repeated IdReferenceDTO Tags = 3;
 }
 
+message NewBookWithNewTagDTO {
+    string Name = 1;
+    repeated NewCopyDTO Copies = 2;
+    repeated NewTagDTO Tags = 3;
+}
+
 message UpdateBookDTO {
     int32 Id = 1;
     bytes ConcurrencyToken = 2;
@@ -111,4 +117,10 @@ message BorrowerDTO {
     ContactDTO Contact = 4;
     optional CopyReferenceDTO Reserved = 5;
     repeated CopyReferenceDTO Borrowed = 6;
+}
+
+message BorrowerBriefDTO {
+    string Id = 1;
+    string Name = 2;
+    string Phone = 3;
 }

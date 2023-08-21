@@ -1,13 +1,14 @@
 ﻿namespace LibrarySample;
 
-using Microsoft.EntityFrameworkCore;
-using Oasis.EntityFrameworkCore.Mapper.Sample;
+using Oasis.EntityFramework.Mapper.Sample;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
+using System.Data.Entity;
 
+[TestFixture]
 public sealed class TestCase1_MapNewEntityToDatabase : TestBase
 {
-    [Fact]
+    [Test]
     public async Task Test1_MapNewTagToDatabase()
     {
         // initialize mapper
@@ -24,7 +25,7 @@ public sealed class TestCase1_MapNewEntityToDatabase : TestBase
             _ = await mapper.MapAsync<NewTagDTO, Tag>(tagDto, null, databaseContext);
             _ = await databaseContext.SaveChangesAsync();
             tag = await databaseContext.Set<Tag>().FirstAsync();
-            Assert.Equal(TagName, tag.Name);
+            Assert.AreEqual(TagName, tag.Name);
         });
     }
 }

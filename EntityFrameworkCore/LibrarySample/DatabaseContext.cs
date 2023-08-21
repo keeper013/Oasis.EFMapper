@@ -1,4 +1,4 @@
-﻿namespace Oasis.EntityFrameworkCore.Mapper.Sample;
+﻿namespace LibrarySample;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -54,7 +54,7 @@ internal class DatabaseContext : DbContext
 
         modelBuilder.Entity<Copy>().ToTable(nameof(Copy));
         modelBuilder.Entity<Copy>().HasKey(c => c.Number);
-        modelBuilder.Entity<Copy>().Property(c => c.Number).ValueGeneratedOnAdd();
+        modelBuilder.Entity<Copy>().Property(c => c.Number);
         modelBuilder.Entity<Copy>().Property(c => c.ConcurrencyToken).IsRequired().IsRowVersion();
 
         modelBuilder.Entity<Tag>().HasMany(t => t.Books).WithMany(b => b.Tags);
