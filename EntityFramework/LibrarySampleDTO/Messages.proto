@@ -33,7 +33,7 @@ message NewBookWithNewTagDTO {
 
 message UpdateBookDTO {
     int32 Id = 1;
-    bytes ConcurrencyToken = 2;
+    int64 ConcurrencyToken = 2;
     string Name = 3;
     repeated CopyReferenceDTO Copies = 4;
     repeated IdReferenceDTO Tags = 5;
@@ -41,7 +41,7 @@ message UpdateBookDTO {
 
 message BookDTO {
     int32 Id = 1;
-    bytes ConcurrencyToken = 2;
+    int64 ConcurrencyToken = 2;
     string Name = 3;
     repeated CopyDTO Copies = 4;
     repeated TagDTO Tags = 5;
@@ -58,14 +58,14 @@ message NewCopyDTO {
 
 message UpdateCopyDTO {
     string Number = 1;
-    bytes ConcurrencyToken = 2;
+    int64 ConcurrencyToken = 2;
     google.protobuf.StringValue Reserver = 3;
     google.protobuf.StringValue Borrower = 4;
 }
 
 message CopyDTO {
     string Number = 1;
-    bytes ConcurrencyToken = 2;
+    int64 ConcurrencyToken = 2;
     google.protobuf.StringValue Reserver = 3;
     google.protobuf.StringValue Borrower = 4;
     int32 BookId = 5;
@@ -78,14 +78,14 @@ message NewContactDTO {
 
 message UpdateContactDTO {
     int32 Id = 1;
-    bytes ConcurrencyToken = 2;
+    int64 ConcurrencyToken = 2;
     string PhoneNumber = 3;
     google.protobuf.StringValue Address = 4;
 }
 
 message ContactDTO {
     int32 Id = 1;
-    bytes ConcurrencyToken = 2;
+    int64 ConcurrencyToken = 2;
     string Borrower = 3;
     string PhoneNumber = 4;
     google.protobuf.StringValue Address = 5;
@@ -103,7 +103,7 @@ message NewBorrowerDTO {
 
 message UpdateBorrowerDTO {
     string IdentityNumber = 1;
-    bytes ConcurrencyToken = 2;
+    int64 ConcurrencyToken = 2;
     string Name = 3;
     UpdateContactDTO Contact = 4;
     optional CopyReferenceDTO Reserved = 5;
@@ -112,7 +112,7 @@ message UpdateBorrowerDTO {
 
 message BorrowerDTO {
     string IdentityNumber = 1;
-    bytes ConcurrencyToken = 2;
+    int64 ConcurrencyToken = 2;
     string Name = 3;
     ContactDTO Contact = 4;
     optional CopyReferenceDTO Reserved = 5;

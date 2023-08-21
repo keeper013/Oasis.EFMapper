@@ -39,6 +39,7 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<Copy>().HasKey(c => c.Number);
         modelBuilder.Entity<Copy>().Property(c => c.Number);
         modelBuilder.Entity<Copy>().Property(c => c.ConcurrencyToken).IsRequired().IsRowVersion();
+        modelBuilder.Entity<Copy>().Property(c => c.Reserver).HasColumnName("Reserver_IdentityNumber");
 
         modelBuilder.Entity<Tag>().HasMany(t => t.Books).WithMany(b => b.Tags);
         modelBuilder.Entity<Book>().HasMany(b => b.Copies).WithOne().HasForeignKey(c => c.BookId).OnDelete(DeleteBehavior.Cascade);

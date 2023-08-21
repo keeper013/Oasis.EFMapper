@@ -109,7 +109,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             if (includer != default)
             {
                 var includerString = includer.ToString();
-                if (includerString.Contains(AsNoTrackingMethodCall))
+                if (includerString!.Contains(AsNoTrackingMethodCall))
                 {
                     throw new AsNoTrackingNotAllowedException(includerString);
                 }

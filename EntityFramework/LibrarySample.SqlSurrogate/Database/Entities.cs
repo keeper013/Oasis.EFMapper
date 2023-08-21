@@ -4,18 +4,18 @@ using System.Collections.Generic;
 
 public interface IEntityBaseWithId
 {
-    public int Id { get; set; }
+    int Id { get; set; }
 }
 
 public interface IEntityBaseWithConcurrencyToken
 {
-    public byte[]? ConcurrencyToken { get; set; }
+    long ConcurrencyToken { get; set; }
 }
 
 public sealed class Borrower : IEntityBaseWithConcurrencyToken
 {
     public string IdentityNumber { get; set; } = null!;
-    public byte[]? ConcurrencyToken { get; set; }
+    public long ConcurrencyToken { get; set; }
     public string Name { get; set; } = null!;
     public Contact Contact { get; set; } = null!;
     public Copy? Reserved { get; set; }
@@ -25,7 +25,7 @@ public sealed class Borrower : IEntityBaseWithConcurrencyToken
 public sealed class Contact : IEntityBaseWithId, IEntityBaseWithConcurrencyToken
 {
     public int Id { get; set; }
-    public byte[]? ConcurrencyToken { get; set; }
+    public long ConcurrencyToken { get; set; }
     public string Borrower { get; set; } = null!;
     public string PhoneNumber { get; set; } = null!;
     public string? Address { get; set; } = null!;
@@ -34,7 +34,7 @@ public sealed class Contact : IEntityBaseWithId, IEntityBaseWithConcurrencyToken
 public sealed class Book : IEntityBaseWithId, IEntityBaseWithConcurrencyToken
 {
     public int Id { get; set; }
-    public byte[]? ConcurrencyToken { get; set; }
+    public long ConcurrencyToken { get; set; }
     public string Name { get; set; } = null!;
     public List<Copy> Copies { get; set; } = new List<Copy>();
     public List<Tag> Tags { get; set; } = new List<Tag>();
@@ -43,7 +43,7 @@ public sealed class Book : IEntityBaseWithId, IEntityBaseWithConcurrencyToken
 public sealed class Copy : IEntityBaseWithConcurrencyToken
 {
     public string Number { get; set; } = null!;
-    public byte[]? ConcurrencyToken { get; set; }
+    public long ConcurrencyToken { get; set; }
     public string? Reserver { get; set; }
     public string? Borrower { get; set; }
     public int BookId { get; set; }

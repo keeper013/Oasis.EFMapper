@@ -19,7 +19,7 @@ internal sealed class BookCopyList : List<Copy>, IBookCopyList
 public interface IBook
 {
     int Id { get; set; }
-    byte[]? ConcurrencyToken { get; set; }
+    long ConcurrencyToken { get; set; }
     string Name { get; set; }
     IBookCopyList Copies { get; set; }
 }
@@ -27,7 +27,7 @@ public interface IBook
 internal sealed class BookImplementation : IBook
 {
     public int Id { get; set; }
-    public byte[]? ConcurrencyToken { get; set; }
+    public long ConcurrencyToken { get; set; }
     public string Name { get; set; } = null!;
     public IBookCopyList Copies { get; set; } = null!;
 }
@@ -40,7 +40,7 @@ public sealed class TestCase4_CustomFactoryMethod : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
+            .WithScalarConverter<long, string>(l => l.ToString())
             .WithFactoryMethod<IBookCopyList>(() => new BookCopyList())
             .WithFactoryMethod<IBook>(() => new BookImplementation())
             .Register<NewBookDTO, Book>()

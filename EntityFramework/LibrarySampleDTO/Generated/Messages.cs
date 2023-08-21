@@ -39,29 +39,29 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             "YW1ld29yay5NYXBwZXIuU2FtcGxlLk5ld0NvcHlEVE8SPAoEVGFncxgDIAMo",
             "CzIuLk9hc2lzLkVudGl0eUZyYW1ld29yay5NYXBwZXIuU2FtcGxlLk5ld1Rh",
             "Z0RUTyLNAQoNVXBkYXRlQm9va0RUTxIKCgJJZBgBIAEoBRIYChBDb25jdXJy",
-            "ZW5jeVRva2VuGAIgASgMEgwKBE5hbWUYAyABKAkSRQoGQ29waWVzGAQgAygL",
+            "ZW5jeVRva2VuGAIgASgDEgwKBE5hbWUYAyABKAkSRQoGQ29waWVzGAQgAygL",
             "MjUuT2FzaXMuRW50aXR5RnJhbWV3b3JrLk1hcHBlci5TYW1wbGUuQ29weVJl",
             "ZmVyZW5jZURUTxJBCgRUYWdzGAUgAygLMjMuT2FzaXMuRW50aXR5RnJhbWV3",
             "b3JrLk1hcHBlci5TYW1wbGUuSWRSZWZlcmVuY2VEVE8itgEKB0Jvb2tEVE8S",
-            "CgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoDBIMCgROYW1l",
+            "CgoCSWQYASABKAUSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEoAxIMCgROYW1l",
             "GAMgASgJEjwKBkNvcGllcxgEIAMoCzIsLk9hc2lzLkVudGl0eUZyYW1ld29y",
             "ay5NYXBwZXIuU2FtcGxlLkNvcHlEVE8SOQoEVGFncxgFIAMoCzIrLk9hc2lz",
             "LkVudGl0eUZyYW1ld29yay5NYXBwZXIuU2FtcGxlLlRhZ0RUTyIiChBDb3B5",
             "UmVmZXJlbmNlRFRPEg4KBk51bWJlchgBIAEoCSIsCgpOZXdDb3B5RFRPEg4K",
             "Bk51bWJlchgBIAEoCRIOCgZCb29rSWQYAiABKAUimQEKDVVwZGF0ZUNvcHlE",
-            "VE8SDgoGTnVtYmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwS",
+            "VE8SDgoGTnVtYmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAMS",
             "LgoIUmVzZXJ2ZXIYAyABKAsyHC5nb29nbGUucHJvdG9idWYuU3RyaW5nVmFs",
             "dWUSLgoIQm9ycm93ZXIYBCABKAsyHC5nb29nbGUucHJvdG9idWYuU3RyaW5n",
             "VmFsdWUiowEKB0NvcHlEVE8SDgoGTnVtYmVyGAEgASgJEhgKEENvbmN1cnJl",
-            "bmN5VG9rZW4YAiABKAwSLgoIUmVzZXJ2ZXIYAyABKAsyHC5nb29nbGUucHJv",
+            "bmN5VG9rZW4YAiABKAMSLgoIUmVzZXJ2ZXIYAyABKAsyHC5nb29nbGUucHJv",
             "dG9idWYuU3RyaW5nVmFsdWUSLgoIQm9ycm93ZXIYBCABKAsyHC5nb29nbGUu",
             "cHJvdG9idWYuU3RyaW5nVmFsdWUSDgoGQm9va0lkGAUgASgFIlMKDU5ld0Nv",
             "bnRhY3REVE8SEwoLUGhvbmVOdW1iZXIYASABKAkSLQoHQWRkcmVzcxgCIAEo",
             "CzIcLmdvb2dsZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZSJ8ChBVcGRhdGVDb250",
-            "YWN0RFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAwS",
+            "YWN0RFRPEgoKAklkGAEgASgFEhgKEENvbmN1cnJlbmN5VG9rZW4YAiABKAMS",
             "EwoLUGhvbmVOdW1iZXIYAyABKAkSLQoHQWRkcmVzcxgEIAEoCzIcLmdvb2ds",
             "ZS5wcm90b2J1Zi5TdHJpbmdWYWx1ZSKIAQoKQ29udGFjdERUTxIKCgJJZBgB",
-            "IAEoBRIYChBDb25jdXJyZW5jeVRva2VuGAIgASgMEhAKCEJvcnJvd2VyGAMg",
+            "IAEoBRIYChBDb25jdXJyZW5jeVRva2VuGAIgASgDEhAKCEJvcnJvd2VyGAMg",
             "ASgJEhMKC1Bob25lTnVtYmVyGAQgASgJEi0KB0FkZHJlc3MYBSABKAsyHC5n",
             "b29nbGUucHJvdG9idWYuU3RyaW5nVmFsdWUiLgoUQm9ycm93ZXJSZWZlcmVu",
             "Y2VEVE8SFgoOSWRlbnRpdHlOdW1iZXIYASABKAkiewoOTmV3Qm9ycm93ZXJE",
@@ -69,14 +69,14 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             "b250YWN0GAMgASgLMjIuT2FzaXMuRW50aXR5RnJhbWV3b3JrLk1hcHBlci5T",
             "YW1wbGUuTmV3Q29udGFjdERUTyK/AgoRVXBkYXRlQm9ycm93ZXJEVE8SFgoO",
             "SWRlbnRpdHlOdW1iZXIYASABKAkSGAoQQ29uY3VycmVuY3lUb2tlbhgCIAEo",
-            "DBIMCgROYW1lGAMgASgJEkYKB0NvbnRhY3QYBCABKAsyNS5PYXNpcy5FbnRp",
+            "AxIMCgROYW1lGAMgASgJEkYKB0NvbnRhY3QYBCABKAsyNS5PYXNpcy5FbnRp",
             "dHlGcmFtZXdvcmsuTWFwcGVyLlNhbXBsZS5VcGRhdGVDb250YWN0RFRPEkwK",
             "CFJlc2VydmVkGAUgASgLMjUuT2FzaXMuRW50aXR5RnJhbWV3b3JrLk1hcHBl",
             "ci5TYW1wbGUuQ29weVJlZmVyZW5jZURUT0gAiAEBEkcKCEJvcnJvd2VkGAYg",
             "AygLMjUuT2FzaXMuRW50aXR5RnJhbWV3b3JrLk1hcHBlci5TYW1wbGUuQ29w",
             "eVJlZmVyZW5jZURUT0ILCglfUmVzZXJ2ZWQiswIKC0JvcnJvd2VyRFRPEhYK",
             "DklkZW50aXR5TnVtYmVyGAEgASgJEhgKEENvbmN1cnJlbmN5VG9rZW4YAiAB",
-            "KAwSDAoETmFtZRgDIAEoCRJACgdDb250YWN0GAQgASgLMi8uT2FzaXMuRW50",
+            "KAMSDAoETmFtZRgDIAEoCRJACgdDb250YWN0GAQgASgLMi8uT2FzaXMuRW50",
             "aXR5RnJhbWV3b3JrLk1hcHBlci5TYW1wbGUuQ29udGFjdERUTxJMCghSZXNl",
             "cnZlZBgFIAEoCzI1Lk9hc2lzLkVudGl0eUZyYW1ld29yay5NYXBwZXIuU2Ft",
             "cGxlLkNvcHlSZWZlcmVuY2VEVE9IAIgBARJHCghCb3Jyb3dlZBgGIAMoCzI1",
@@ -1312,13 +1312,13 @@ namespace Oasis.EntityFramework.Mapper.Sample {
 
     /// <summary>Field number for the "ConcurrencyToken" field.</summary>
     public const int ConcurrencyTokenFieldNumber = 2;
-    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    private long concurrencyToken_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString ConcurrencyToken {
+    public long ConcurrencyToken {
       get { return concurrencyToken_; }
       set {
-        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = value;
       }
     }
 
@@ -1384,7 +1384,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (Id != 0) hash ^= Id.GetHashCode();
-      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (ConcurrencyToken != 0L) hash ^= ConcurrencyToken.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
       hash ^= copies_.GetHashCode();
       hash ^= tags_.GetHashCode();
@@ -1410,9 +1410,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -1434,9 +1434,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -1457,8 +1457,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (Id != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
@@ -1480,7 +1480,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (other.Id != 0) {
         Id = other.Id;
       }
-      if (other.ConcurrencyToken.Length != 0) {
+      if (other.ConcurrencyToken != 0L) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.Name.Length != 0) {
@@ -1507,8 +1507,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Id = input.ReadInt32();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -1542,8 +1542,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Id = input.ReadInt32();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -1627,13 +1627,13 @@ namespace Oasis.EntityFramework.Mapper.Sample {
 
     /// <summary>Field number for the "ConcurrencyToken" field.</summary>
     public const int ConcurrencyTokenFieldNumber = 2;
-    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    private long concurrencyToken_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString ConcurrencyToken {
+    public long ConcurrencyToken {
       get { return concurrencyToken_; }
       set {
-        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = value;
       }
     }
 
@@ -1699,7 +1699,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (Id != 0) hash ^= Id.GetHashCode();
-      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (ConcurrencyToken != 0L) hash ^= ConcurrencyToken.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
       hash ^= copies_.GetHashCode();
       hash ^= tags_.GetHashCode();
@@ -1725,9 +1725,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -1749,9 +1749,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -1772,8 +1772,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (Id != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
@@ -1795,7 +1795,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (other.Id != 0) {
         Id = other.Id;
       }
-      if (other.ConcurrencyToken.Length != 0) {
+      if (other.ConcurrencyToken != 0L) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.Name.Length != 0) {
@@ -1822,8 +1822,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Id = input.ReadInt32();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -1857,8 +1857,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Id = input.ReadInt32();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -2356,13 +2356,13 @@ namespace Oasis.EntityFramework.Mapper.Sample {
 
     /// <summary>Field number for the "ConcurrencyToken" field.</summary>
     public const int ConcurrencyTokenFieldNumber = 2;
-    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    private long concurrencyToken_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString ConcurrencyToken {
+    public long ConcurrencyToken {
       get { return concurrencyToken_; }
       set {
-        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = value;
       }
     }
 
@@ -2421,7 +2421,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (Number.Length != 0) hash ^= Number.GetHashCode();
-      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (ConcurrencyToken != 0L) hash ^= ConcurrencyToken.GetHashCode();
       if (reserver_ != null) hash ^= Reserver.GetHashCode();
       if (borrower_ != null) hash ^= Borrower.GetHashCode();
       if (_unknownFields != null) {
@@ -2446,9 +2446,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(10);
         output.WriteString(Number);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (reserver_ != null) {
         _single_reserver_codec.WriteTagAndValue(output, Reserver);
@@ -2470,9 +2470,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(10);
         output.WriteString(Number);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (reserver_ != null) {
         _single_reserver_codec.WriteTagAndValue(ref output, Reserver);
@@ -2493,8 +2493,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (Number.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Number);
       }
-      if (ConcurrencyToken.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ConcurrencyToken);
       }
       if (reserver_ != null) {
         size += _single_reserver_codec.CalculateSizeWithTag(Reserver);
@@ -2517,7 +2517,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (other.Number.Length != 0) {
         Number = other.Number;
       }
-      if (other.ConcurrencyToken.Length != 0) {
+      if (other.ConcurrencyToken != 0L) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.reserver_ != null) {
@@ -2549,8 +2549,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Number = input.ReadString();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -2586,8 +2586,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Number = input.ReadString();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -2673,13 +2673,13 @@ namespace Oasis.EntityFramework.Mapper.Sample {
 
     /// <summary>Field number for the "ConcurrencyToken" field.</summary>
     public const int ConcurrencyTokenFieldNumber = 2;
-    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    private long concurrencyToken_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString ConcurrencyToken {
+    public long ConcurrencyToken {
       get { return concurrencyToken_; }
       set {
-        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = value;
       }
     }
 
@@ -2751,7 +2751,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (Number.Length != 0) hash ^= Number.GetHashCode();
-      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (ConcurrencyToken != 0L) hash ^= ConcurrencyToken.GetHashCode();
       if (reserver_ != null) hash ^= Reserver.GetHashCode();
       if (borrower_ != null) hash ^= Borrower.GetHashCode();
       if (BookId != 0) hash ^= BookId.GetHashCode();
@@ -2777,9 +2777,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(10);
         output.WriteString(Number);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (reserver_ != null) {
         _single_reserver_codec.WriteTagAndValue(output, Reserver);
@@ -2805,9 +2805,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(10);
         output.WriteString(Number);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (reserver_ != null) {
         _single_reserver_codec.WriteTagAndValue(ref output, Reserver);
@@ -2832,8 +2832,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (Number.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Number);
       }
-      if (ConcurrencyToken.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ConcurrencyToken);
       }
       if (reserver_ != null) {
         size += _single_reserver_codec.CalculateSizeWithTag(Reserver);
@@ -2859,7 +2859,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (other.Number.Length != 0) {
         Number = other.Number;
       }
-      if (other.ConcurrencyToken.Length != 0) {
+      if (other.ConcurrencyToken != 0L) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.reserver_ != null) {
@@ -2894,8 +2894,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Number = input.ReadString();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -2935,8 +2935,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Number = input.ReadString();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -3259,13 +3259,13 @@ namespace Oasis.EntityFramework.Mapper.Sample {
 
     /// <summary>Field number for the "ConcurrencyToken" field.</summary>
     public const int ConcurrencyTokenFieldNumber = 2;
-    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    private long concurrencyToken_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString ConcurrencyToken {
+    public long ConcurrencyToken {
       get { return concurrencyToken_; }
       set {
-        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = value;
       }
     }
 
@@ -3322,7 +3322,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (Id != 0) hash ^= Id.GetHashCode();
-      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (ConcurrencyToken != 0L) hash ^= ConcurrencyToken.GetHashCode();
       if (PhoneNumber.Length != 0) hash ^= PhoneNumber.GetHashCode();
       if (address_ != null) hash ^= Address.GetHashCode();
       if (_unknownFields != null) {
@@ -3347,9 +3347,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (PhoneNumber.Length != 0) {
         output.WriteRawTag(26);
@@ -3372,9 +3372,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (PhoneNumber.Length != 0) {
         output.WriteRawTag(26);
@@ -3396,8 +3396,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (Id != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ConcurrencyToken);
       }
       if (PhoneNumber.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(PhoneNumber);
@@ -3420,7 +3420,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (other.Id != 0) {
         Id = other.Id;
       }
-      if (other.ConcurrencyToken.Length != 0) {
+      if (other.ConcurrencyToken != 0L) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.PhoneNumber.Length != 0) {
@@ -3450,8 +3450,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Id = input.ReadInt32();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -3484,8 +3484,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Id = input.ReadInt32();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -3568,13 +3568,13 @@ namespace Oasis.EntityFramework.Mapper.Sample {
 
     /// <summary>Field number for the "ConcurrencyToken" field.</summary>
     public const int ConcurrencyTokenFieldNumber = 2;
-    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    private long concurrencyToken_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString ConcurrencyToken {
+    public long ConcurrencyToken {
       get { return concurrencyToken_; }
       set {
-        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = value;
       }
     }
 
@@ -3644,7 +3644,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (Id != 0) hash ^= Id.GetHashCode();
-      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (ConcurrencyToken != 0L) hash ^= ConcurrencyToken.GetHashCode();
       if (Borrower.Length != 0) hash ^= Borrower.GetHashCode();
       if (PhoneNumber.Length != 0) hash ^= PhoneNumber.GetHashCode();
       if (address_ != null) hash ^= Address.GetHashCode();
@@ -3670,9 +3670,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (Borrower.Length != 0) {
         output.WriteRawTag(26);
@@ -3699,9 +3699,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(8);
         output.WriteInt32(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (Borrower.Length != 0) {
         output.WriteRawTag(26);
@@ -3727,8 +3727,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (Id != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
       }
-      if (ConcurrencyToken.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ConcurrencyToken);
       }
       if (Borrower.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Borrower);
@@ -3754,7 +3754,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (other.Id != 0) {
         Id = other.Id;
       }
-      if (other.ConcurrencyToken.Length != 0) {
+      if (other.ConcurrencyToken != 0L) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.Borrower.Length != 0) {
@@ -3787,8 +3787,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Id = input.ReadInt32();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -3825,8 +3825,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             Id = input.ReadInt32();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -4375,13 +4375,13 @@ namespace Oasis.EntityFramework.Mapper.Sample {
 
     /// <summary>Field number for the "ConcurrencyToken" field.</summary>
     public const int ConcurrencyTokenFieldNumber = 2;
-    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    private long concurrencyToken_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString ConcurrencyToken {
+    public long ConcurrencyToken {
       get { return concurrencyToken_; }
       set {
-        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = value;
       }
     }
 
@@ -4461,7 +4461,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (IdentityNumber.Length != 0) hash ^= IdentityNumber.GetHashCode();
-      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (ConcurrencyToken != 0L) hash ^= ConcurrencyToken.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
       if (contact_ != null) hash ^= Contact.GetHashCode();
       if (reserved_ != null) hash ^= Reserved.GetHashCode();
@@ -4488,9 +4488,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(10);
         output.WriteString(IdentityNumber);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -4519,9 +4519,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(10);
         output.WriteString(IdentityNumber);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -4549,8 +4549,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (IdentityNumber.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(IdentityNumber);
       }
-      if (ConcurrencyToken.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
@@ -4577,7 +4577,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (other.IdentityNumber.Length != 0) {
         IdentityNumber = other.IdentityNumber;
       }
-      if (other.ConcurrencyToken.Length != 0) {
+      if (other.ConcurrencyToken != 0L) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.Name.Length != 0) {
@@ -4615,8 +4615,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             IdentityNumber = input.ReadString();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -4660,8 +4660,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             IdentityNumber = input.ReadString();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -4756,13 +4756,13 @@ namespace Oasis.EntityFramework.Mapper.Sample {
 
     /// <summary>Field number for the "ConcurrencyToken" field.</summary>
     public const int ConcurrencyTokenFieldNumber = 2;
-    private pb::ByteString concurrencyToken_ = pb::ByteString.Empty;
+    private long concurrencyToken_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pb::ByteString ConcurrencyToken {
+    public long ConcurrencyToken {
       get { return concurrencyToken_; }
       set {
-        concurrencyToken_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        concurrencyToken_ = value;
       }
     }
 
@@ -4842,7 +4842,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
     public override int GetHashCode() {
       int hash = 1;
       if (IdentityNumber.Length != 0) hash ^= IdentityNumber.GetHashCode();
-      if (ConcurrencyToken.Length != 0) hash ^= ConcurrencyToken.GetHashCode();
+      if (ConcurrencyToken != 0L) hash ^= ConcurrencyToken.GetHashCode();
       if (Name.Length != 0) hash ^= Name.GetHashCode();
       if (contact_ != null) hash ^= Contact.GetHashCode();
       if (reserved_ != null) hash ^= Reserved.GetHashCode();
@@ -4869,9 +4869,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(10);
         output.WriteString(IdentityNumber);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -4900,9 +4900,9 @@ namespace Oasis.EntityFramework.Mapper.Sample {
         output.WriteRawTag(10);
         output.WriteString(IdentityNumber);
       }
-      if (ConcurrencyToken.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteBytes(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         output.WriteRawTag(26);
@@ -4930,8 +4930,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (IdentityNumber.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(IdentityNumber);
       }
-      if (ConcurrencyToken.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConcurrencyToken);
+      if (ConcurrencyToken != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(ConcurrencyToken);
       }
       if (Name.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
@@ -4958,7 +4958,7 @@ namespace Oasis.EntityFramework.Mapper.Sample {
       if (other.IdentityNumber.Length != 0) {
         IdentityNumber = other.IdentityNumber;
       }
-      if (other.ConcurrencyToken.Length != 0) {
+      if (other.ConcurrencyToken != 0L) {
         ConcurrencyToken = other.ConcurrencyToken;
       }
       if (other.Name.Length != 0) {
@@ -4996,8 +4996,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             IdentityNumber = input.ReadString();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {
@@ -5041,8 +5041,8 @@ namespace Oasis.EntityFramework.Mapper.Sample {
             IdentityNumber = input.ReadString();
             break;
           }
-          case 18: {
-            ConcurrencyToken = input.ReadBytes();
+          case 16: {
+            ConcurrencyToken = input.ReadInt64();
             break;
           }
           case 26: {

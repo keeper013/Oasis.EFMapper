@@ -14,8 +14,8 @@ public sealed class TestCase6_CustomMapping : TestBase
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .WithScalarConverter<long, string>(l => l.ToString())
+            .WithScalarConverter<string, long>(s => long.Parse(s))
             .Configure<Borrower>()
                 .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
                 .Finish()

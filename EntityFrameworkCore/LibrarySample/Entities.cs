@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 public interface IEntityBaseWithId
 {
-    public int Id { get; set; }
+    int Id { get; set; }
 }
 
 public interface IEntityBaseWithConcurrencyToken
 {
-    public byte[]? ConcurrencyToken { get; set; }
+    byte[]? ConcurrencyToken { get; set; }
 }
 
 public sealed class Borrower : IEntityBaseWithConcurrencyToken

@@ -8,7 +8,6 @@ using System.Data.Entity.Core.Common;
 using System.Data.Entity.Infrastructure;
 using System.Data.SQLite;
 using System.Data.SQLite.EF6;
-using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -53,11 +52,11 @@ internal class DatabaseContext : DbContext
             m.MapRightKey("TagsId");
         }); ;
         modelBuilder.Entity<Book>().HasMany(b => b.Copies).WithRequired().HasForeignKey(c => c.BookId).WillCascadeOnDelete(true);
-        modelBuilder.Entity<Borrower>().HasRequired(b => b.Contact).WithRequiredPrincipal().WillCascadeOnDelete(true);
-        modelBuilder.Entity<Borrower>().HasOptional(b => b.Reserved).WithOptionalPrincipal().WillCascadeOnDelete(false);
+        modelBuilder.Entity<Borrower>().HasRequired(b => b.Contact).WithRequiredPrincipal(c => c.Borrower).WillCascadeOnDelete(true);
+        modelBuilder.Entity<Borrower>().HasOptional(b => b.Reserved).WithOptionalPrincipal(r => r.Reserver!).WillCascadeOnDelete(false);
         modelBuilder.Entity<Borrower>().HasMany(b => b.Borrowed).WithOptional().HasForeignKey(c => c.Borrower).WillCascadeOnDelete(false);
 
-        modelBuilder.Properties().Where(p => p.PropertyType == typeof(byte[])).Configure(p => p.IsConcurrencyToken().HasDatabaseGeneratedOption(DatabaseGeneratedOption.None));
+        modelBuilder.Properties().Where(p => string.Equals(p.Name, nameof(IEntityBaseWithConcurrencyToken.ConcurrencyToken))).Configure(p => p.IsConcurrencyToken().HasDatabaseGeneratedOption(DatabaseGeneratedOption.None));
     }
 
     public override int SaveChanges()
@@ -79,7 +78,7 @@ internal class DatabaseContext : DbContext
         {
             if (entry.Entity is IEntityBaseWithConcurrencyToken v1 && v1 != null)
             {
-                v1.ConcurrencyToken = UTF8Encoding.UTF8.GetBytes(DateTime.UtcNow.ToString());
+                v1.ConcurrencyToken = v1.ConcurrencyToken + 1;
             }
         }
     }

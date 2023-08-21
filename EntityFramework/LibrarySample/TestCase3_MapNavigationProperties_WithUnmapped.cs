@@ -17,8 +17,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .WithScalarConverter<long, string>(l => l.ToString())
+            .WithScalarConverter<string, long>(s => long.Parse(s))
             .Configure<Borrower>()
                 .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
                 .Finish()
@@ -41,8 +41,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     public async Task Test2_AddAndUpateBorrower_WithGlobalUnmappedProperty()
     {
         var mapper = MakeDefaultMapperBuilder(new string[] { nameof(Contact.Address) })
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .WithScalarConverter<long, string>(l => l.ToString())
+            .WithScalarConverter<string, long>(s => long.Parse(s))
             .Configure<Borrower>()
                 .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
                 .Finish()
@@ -66,8 +66,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .WithScalarConverter<long, string>(l => l.ToString())
+            .WithScalarConverter<string, long>(s => long.Parse(s))
             .Configure<Borrower>()
                 .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
                 .Finish()
@@ -94,8 +94,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .WithScalarConverter<long, string>(l => l.ToString())
+            .WithScalarConverter<string, long>(s => long.Parse(s))
             .Configure<Borrower>()
                 .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
                 .Finish()
@@ -122,8 +122,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .WithScalarConverter<long, string>(l => l.ToString())
+            .WithScalarConverter<string, long>(s => long.Parse(s))
             .Configure<Borrower>()
                 .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
                 .Finish()
@@ -150,8 +150,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .WithScalarConverter<long, string>(l => l.ToString())
+            .WithScalarConverter<string, long>(s => long.Parse(s))
             .Configure<Borrower>()
                 .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
                 .Finish()
@@ -178,8 +178,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .WithScalarConverter<long, string>(l => l.ToString())
+            .WithScalarConverter<string, long>(s => long.Parse(s))
             .Configure<Borrower>()
                 .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
                 .Finish()
@@ -207,8 +207,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .WithScalarConverter<long, string>(l => l.ToString())
+            .WithScalarConverter<string, long>(s => long.Parse(s))
             .Configure<Borrower>()
                 .SetKeyPropertyNames(nameof(Borrower.IdentityNumber), nameof(Borrower.ConcurrencyToken))
                 .Finish()
@@ -236,7 +236,7 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
+            .WithScalarConverter<long, string>(l => l.ToString())
             .Configure<NewCopyDTO>()
                 .SetIdentityPropertyName(nameof(NewCopyDTO.Number))
                 .Finish()
@@ -284,8 +284,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
         var mapper = MakeDefaultMapperBuilder()
             .Register<NewTagDTO, Tag>()
             .Register<Tag, IdReferenceDTO>()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+            .WithScalarConverter<long, string>(l => l.ToString())
+            .WithScalarConverter<string, long>(s => long.Parse(s))
             .Register<NewBookDTO, Book>()
             .Register<Book, BookDTO>()
             .Build();
