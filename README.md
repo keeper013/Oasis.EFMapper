@@ -1,6 +1,23 @@
 # EF Mapper
 ## Introduction
-**Oasis.EntityFramework.Mapper/Oasis.EntityFramework.Mapper** (referred to as **the library** in the following content) is a library that helps users to automatically map scalar and navigation properties between entity classes and other helper classes (e.g. DTOs generated with [ProtoBuf](https://developers.google.com/protocol-buffers)). It implements the simple property to property mapping between classes like AutoMapper, and added specifical support for automatically handling tedious database context work when mapping normal classes into entity framework entities.
+**Oasis.EntityFramework.Mapper/Oasis.EntityFramework.Mapper** (referred to as **the library** in the following content) is a library that helps users to automatically map properties between different classes. Unlike AutoMapper which serves general mapping purposes, the library focus on mapping entities of EntityFramework/EntityFrameworkCore.
+
+Entities of EntityFramework/EntityFrameworkCore can be considered different from general classes in following ways:
+1. An entity is considered the object side of an [Object-relation mapping](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping).
+2. An entity usually has a key property, which is mapped to the primary key column of relational database table.
+3. An entity has 3 kinds of properties, scalar property that represents some value of the entity, and [navigation property](https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/navigation-property) which linkes to another entity that is somehow connected to it (via a foreign key or a transparent entity in a [skip navigation](https://learn.microsoft.com/en-us/ef/core/modeling/relationships/many-to-many)).
+The library focuses on use cases of mapping from/to such classes, and is integrated with EntityFramework/EntityFrameworkCore [DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext?view=efcore-7.0) for further convenience.
+## Features
+## Examples
+### Inserting to Database via DbContext (Basic)
+### Update Existing Database Records via DbContext (Basic)
+### Mavigaton Property Mapping
+### Support for Non-Constructable-by-Default Entities
+### Further Navigation Property Manipulation
+### Custom Property Mapping Support
+### Redudency Detection and Session
+### Insert/Update Usage Restriction
+## Code Structure
 
 Imagine a work flow with the following steps:
 
