@@ -2,7 +2,7 @@
 ## Introduction
 **Oasis.EntityFramework.Mapper/Oasis.EntityFramework.Mapper** (referred to as **the library** in the following content) is a library that helps users to automatically map properties between different classes. Unlike AutoMapper which serves general mapping purposes, the library focus on mapping entities of EntityFramework/EntityFrameworkCore.
 
-During implementation of a web application that relies on databases, it is inevitable for developers to deal with data objects extracted from database and data transfer objects that are supposed to be serialized and sent to the other side of the web. These 2 kinds of objects are usually not defined to be the same classes. For example, Entity Framework uses [POCO](https://en.wikipedia.org/wiki/Plain_old_CLR_object)s for entities, while [Google ProtoBuf](https://protobuf.dev/) generates it's own class definitions for run-time efficiency during serialization and transmission advantages. Even without [Google ProtoBuf](https://protobuf.dev/), developers may define different classes from entities for DTOs to ignore some useless fields and do certain conversion before transmitting data extracted from database. **The library** is implementated for developers to handle this scenario with less coding and more accuracy.
+During implementation of a web application that relies on databases, it is inevitable for developers to deal with data objects extracted from database and [DTO](https://en.wikipedia.org/wiki/Data_transfer_object)s that are supposed to be serialized and sent to the other side of the web. These 2 kinds of objects are usually not defined to be the same classes. For example, Entity Framework uses [POCO](https://en.wikipedia.org/wiki/Plain_old_CLR_object)s for entities, while [Google ProtoBuf](https://protobuf.dev/) generates it's own class definitions for run-time efficiency during serialization and transmission advantages. Even without [Google ProtoBuf](https://protobuf.dev/), developers may define different classes from entities for DTOs to ignore some useless fields and do certain conversion before transmitting data extracted from database. **The library** is implementated for developers to handle this scenario with less coding and more accuracy.
 
 Entities of EntityFramework/EntityFrameworkCore can be considered different from general classes in following ways:
 1. An entity is considered the object side of an [Object-relation mapping](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping).
@@ -22,14 +22,41 @@ A simple book-borrowing system is made up, and use case examples are developed b
 ![Book-Borrowing System Entity Graph](https://github.com/keeper013/Oasis.EFMapper/blob/main/Document/Demonstration.png)
 
 For the 5 entities in the system:
-- Book represents information of books, like a book can have a name, and some authors (This property is ignored to simply the example).
-- Tag is used to categorize books, like a book can be a science fiction novel, or a dictionary; Or it may be written in English or French, and so on. A book can have many tags, and a tag may be assigned to many different books.
-- Copy is the physical copy of a book. So there might be multiple copies of a book for different borrowers to borrow.
-- Borrower is the person who may borrow books. One borrower can borrow multiple copies at the same time (not really demonstrated in this example), and only reserve 1 book to be borrowed.
-- Contact is the borrower's contact information, it contains phone number and residential address in the example. This entity is used for demonstration of [one-to-one](https://learn.microsoft.com/en-us/ef/core/modeling/relationships/one-to-one) navigation manipulation by **the library**. Value of the properties are not really important.
+- *Book* represents information of books, like a book can have a name, and some authors (This property is ignored to simply the example).
+- *Tag* is used to categorize books, like a book can be a science fiction novel, or a dictionary; Or it may be written in English or French, and so on. A book can have many tags, and a tag may be assigned to many different books.
+- *Copy* is the physical copy of a book. So there might be multiple copies of a book for different borrowers to borrow.
+- *Borrower* is the person who may borrow books. One borrower can borrow multiple copies at the same time (not really demonstrated in this example), and only reserve 1 book to be borrowed.
+- *Contact* is the borrower's contact information, it contains phone number and residential address in the example. This entity is used for demonstration of [one-to-one](https://learn.microsoft.com/en-us/ef/core/modeling/relationships/one-to-one) navigation manipulation by **the library**. Value of the properties are not really important.
 
-Sections below demonstrates usages of **the library**.
+Sections below demonstrates usages of **the library**, all relevant code can be found in the *LibrarySample* project.
 ### Inserting to Database via DbContext (Basic)
+```C#
+// initialize mapper
+var mapper = MakeDefaultMapperBuilder()
+    .Register<NewTagDTO, Tag>()
+    .Build();
+
+// create new tag
+await ExecuteWithNewDatabaseContext(async databaseContext =>
+{
+    const string TagName = "English";
+    var tagDto = new NewTagDTO { Name = TagName };
+    _ = await mapper.MapAsync<NewTagDTO, Tag>(tagDto, null, databaseContext);
+    _ = await databaseContext.SaveChangesAsync();
+    var tag = await databaseContext.Set<Tag>().FirstAsync();
+    Assert.Equal(TagName, tag.Name);
+});
+```
+This is a minimal example demonstrates basic usage of **the library**, the use case is adding a new *Tag* into the system.
+- A mapper need to be defined before usage, that's what the *initialize mapper* part does.
+- *MakeDefaultMapperBuilder* is a shared method defined in the test base class, it returns an instance of *IMapperBuilder* for further configuration.
+- *Register<NewTagDTO, Tag>()* method configures the instance of *IMapperBuilder*, telling it to register a mapping from class *NewTagDTO* to class *Tag*.
+- *Build* method builds the instance *IMapperBuilder* into an instance of *IMapper*. After this method is called, developers can use the *IMapper* instance to map entities.
+- *mapper.MapAsync<NewTagDTO, Tag>* demonstrates how the **the library** maps a [DTO](https://en.wikipedia.org/wiki/Data_transfer_object) class to database entities. First of all, to map to databases, the method must be asynchonized. Then, generic parameters must be provided to specify the from and to classes that the mapping should happen between, in this case it's from *NewTagDTO* to *Tag*. Among the 3 input parameters, first one is the instance of the from entity; second parameter is the [Include](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.entityframeworkqueryableextensions.include?view=efcore-7.0) clause of EntityFramework, which will be explain in details in use cases below when it's value is not null; third parameter is the instance of [DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext?view=efcore-7.0). The method returns the entity that is mapped to, in this use case return value of the method is ignored because it's not used. If necessary the mapped entity can be captured by a variable for further usages.
+- *Assert.Equal* verifies if the new tag has been created in the database. After method *mapper.MapAsync<NewTagDTO, Tag>* is called, the entity is added to the database context, directly call DbContext.SaveChanges or DbContext.SaveChangesAsync after that will insert it into the database.
+
+As for why the use case is inserting a new data record into the database instead of updating an existing one, the answer is that **the library** always try to match existing data records using the input data's identity property. If the input instance has an identity property and the identity property has a valid value, **the library** will try to find the matching data record in the database according to the identity property value. If found, then the existing data record will be updated according to the input instance; if not, then it's treated as an insertion use case. In this case the input class *NewTagDTO* doesn't even have an identity property, so it's treated as an insertion.
+
 ### Update Existing Database Records via DbContext (Basic)
 ### Mavigaton Property Mapping
 ### Support for Non-Constructable-by-Default Entities
