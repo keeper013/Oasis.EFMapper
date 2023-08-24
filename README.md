@@ -58,7 +58,24 @@ This is a minimal example demonstrates basic usage of **the library**, the use c
 
 As for why the use case is inserting a new data record into the database instead of updating an existing one, the answer is that **the library** always try to match existing data records using the input data's identity property. If the input instance has an identity property and the identity property has a valid value, **the library** will try to find the matching data record in the database according to the identity property value. If found, then the existing data record will be updated according to the input instance; if not, then it's treated as an insertion use case. In this case the input class *NewTagDTO* doesn't even have an identity property, so it's treated as an insertion.
 
+Check *TestCase1_MapNewEntityToDatabase.cs* for relevant examples.
+
 ### Update Existing Database Records via DbContext (Basic)
+This test case demonstrates the usage of scalar converters that are used to convert one scalar type to another when mapping.
+
+When mapping from one class to another, **the library** by default map public instance scalar properties in the 2 classes with exactly the same names and same types. Property name matching is case sensitive. If developers want to support mapping between property of different scalar types (e.g. from properties of type int? to properties of int, or from properties of type int to properties of long by default), a scalar converter must be defined while configuring te mapper like the examples below:
+```C#
+var mapper = MakeDefaultMapperBuilder()
+    .WithScalarConverter<int?, int>(i => i.HasValue ? i.Value : 0)
+    .WithScalarConverter<int, long>(i => i); // to configure/register more, continue with the fluent interface.
+```
+Scalar converters can be used to define mapping from a value type to a class type as well, or from a class type to a value type, but can't be used to define mapping from one class type to another class type. One example can be found in the below example.
+```C#
+var mapper = MakeDefaultMapperBuilder()
+    .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
+    .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray()); // to configure/register more, continue with the fluent interface.
+```
+ByteArray class is the [Google ProtoBuf](https://protobuf.dev/) implementation for byte array, which is usually used as concurrency token type by Entity
 ### Mavigaton Property Mapping
 ### Support for Non-Constructable-by-Default Entities
 ### Further Navigation Property Manipulation
