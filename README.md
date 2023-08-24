@@ -19,7 +19,8 @@ Main features provided by **the library** includes:
 5. Some special assisting features are also provided to handle delicate use cases.
 ## Examples
 A simple book-borrowing system is made up, and use case examples are developed based on the book-borrowing system to demonstrate how **the library** helps to save coding efforts. The following picture demonstrates the entities in the book-borrowing system.
-![Book-Borrowing System Entity Graph]([https://assets.digitalocean.com/articles/alligator/boo.svg](https://github.com/keeper013/Oasis.EFMapper/blob/main/Document/Demonstration.png) "Book-Borrowing System Entity Graph")
+![Book-Borrowing System Entity Graph](https://github.com/keeper013/Oasis.EFMapper/blob/main/Document/Demonstration.png)
+
 For the 5 entities in the system:
 - Book represents information of books, like a book can have a name, and some authors (This property is ignored to simply the example).
 - Tag is used to categorize books, like a book can be a science fiction novel, or a dictionary; Or it may be written in English or French, and so on. A book can have many tags, and a tag may be assigned to many different books.
