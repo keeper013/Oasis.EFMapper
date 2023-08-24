@@ -69,14 +69,16 @@ When mapping from one class to another, **the library** by default map public in
 ```C#
 var mapper = MakeDefaultMapperBuilder()
     .WithScalarConverter<int?, int>(i => i.HasValue ? i.Value : 0)
-    .WithScalarConverter<int, long>(i => i); // to configure/register more, continue with the fluent interface.
+    .WithScalarConverter<int, long>(i => i);
+    // to configure/register more, continue with the fluent interface before calling Build() method.
     .Build();
 ```
 Scalar converters can be used to define mapping from a value type to a class type as well, or from a class type to a value type, but can't be used to define mapping from one class type to another class type. One example can be found in the below example.
 ```C#
 var mapper = MakeDefaultMapperBuilder()
     .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-    .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray()); // to configure/register more, continue with the fluent interface.
+    .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray());
+    // to configure/register more, continue with the fluent interface before calling Build() method.
     .Build();
 ```
 ByteArray class is the [Google ProtoBuf](https://protobuf.dev/) implementation for byte array, which is usually used as concurrency token type by EntityFramework/EntityFrameworkCore. The requirement to support converting entities to [Google ProtoBuf](https://protobuf.dev/) is the original and most important reason for **the library** to support scalar converters.
