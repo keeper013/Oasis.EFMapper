@@ -16,14 +16,13 @@ public sealed class TestCase1_MapNewEntityToDatabase : TestBase
             .Build();
 
         // create new tag
-        const string TagName = "English";
-        Tag tag = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            const string TagName = "English";
             var tagDto = new NewTagDTO { Name = TagName };
             _ = await mapper.MapAsync<NewTagDTO, Tag>(tagDto, null, databaseContext);
             _ = await databaseContext.SaveChangesAsync();
-            tag = await databaseContext.Set<Tag>().FirstAsync();
+            var tag = await databaseContext.Set<Tag>().FirstAsync();
             Assert.Equal(TagName, tag.Name);
         });
     }
