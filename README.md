@@ -70,12 +70,14 @@ When mapping from one class to another, **the library** by default map public in
 var mapper = MakeDefaultMapperBuilder()
     .WithScalarConverter<int?, int>(i => i.HasValue ? i.Value : 0)
     .WithScalarConverter<int, long>(i => i); // to configure/register more, continue with the fluent interface.
+    .Build();
 ```
 Scalar converters can be used to define mapping from a value type to a class type as well, or from a class type to a value type, but can't be used to define mapping from one class type to another class type. One example can be found in the below example.
 ```C#
 var mapper = MakeDefaultMapperBuilder()
     .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
     .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray()); // to configure/register more, continue with the fluent interface.
+    .Build();
 ```
 ByteArray class is the [Google ProtoBuf](https://protobuf.dev/) implementation for byte array, which is usually used as concurrency token type by EntityFramework/EntityFrameworkCore. The requirement to support converting entities to [Google ProtoBuf](https://protobuf.dev/) is the original and most important reason for **the library** to support scalar converters.
 To make use of concurrency tokens, when mapping from an entity class instance to a [DTO](https://en.wikipedia.org/wiki/Data_transfer_object) class instance, concurrency token property should be included along with identity property. Then when mapping back to database with the DTO class instance to update the data record with the same identity value, concurrency token of it will be used to compare against the record stored in database, and an exception will be thrown from *MapAsync<,>* method if they don't match.
