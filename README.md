@@ -82,7 +82,7 @@ var mapper = MakeDefaultMapperBuilder()
     .Build();
 ```
 ByteArray class is the [Google ProtoBuf](https://protobuf.dev/) implementation for byte array, which is usually used as concurrency token type by EntityFramework/EntityFrameworkCore. The requirement to support converting entities to [Google ProtoBuf](https://protobuf.dev/) is the original and most important reason for **the library** to support scalar converters.
-To make use of concurrency tokens, when mapping from an entity class instance to a [DTO](https://en.wikipedia.org/wiki/Data_transfer_object) class instance, concurrency token property should be included along with identity property. Then when mapping back to database with the DTO class instance to update the data record with the same identity value, concurrency token of it will be used to compare against the record stored in database, and an exception will be thrown from *MapAsync<,>* method if they don't match.
+To make use of concurrency tokens, when mapping from an entity class instance to a [DTO](https://en.wikipedia.org/wiki/Data_transfer_object) class instance, concurrency token property should be included along with identity property. Then when mapping back to database with the DTO class instance to update the data record with the same identity value, concurrency token of it will be used to compare against the record stored in database. As the way optimistic locking and concurrency token should work, an exception will be thrown from *MapAsync<,>* method if the concurrency tokens don't match.
 
 Check *TestCase2_MapEntityToDatabase_WithConcurrencyToken.cs* for relevant examples.
 ### Mavigaton Property Mapping
