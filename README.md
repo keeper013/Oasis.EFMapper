@@ -2,13 +2,33 @@
 ## Introduction
 **Oasis.EntityFramework.Mapper/Oasis.EntityFramework.Mapper** (referred to as **the library** in the following content) is a library that helps users to automatically map properties between different classes. Unlike AutoMapper which serves general mapping purposes, the library focus on mapping entities of EntityFramework/EntityFrameworkCore.
 
+During implementation of a web application that relies on databases, it is inevitable for developers to deal with data objects extracted from database and data transfer objects that are supposed to be serialized and sent to the other side of the web. These 2 kinds of objects are usually not defined to be the same classes. For example, Entity Framework uses [POCO](https://en.wikipedia.org/wiki/Plain_old_CLR_object)s for entities, while [Google ProtoBuf](https://protobuf.dev/) generates it's own class definitions for run-time efficiency during serialization and transmission advantages. Even without [Google ProtoBuf](https://protobuf.dev/), developers may define different classes from entities for DTOs to ignore some useless fields and do certain conversion before transmitting data extracted from database. **The library** is implementated for developers to handle this scenario with less coding and more accuracy.
+
 Entities of EntityFramework/EntityFrameworkCore can be considered different from general classes in following ways:
 1. An entity is considered the object side of an [Object-relation mapping](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping).
 2. An entity usually has a key property, which is mapped to the primary key column of relational database table.
 3. An entity has 3 kinds of properties, scalar property that represents some value of the entity, and [navigation property](https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/navigation-property) which linkes to another entity that is somehow connected to it (via a foreign key or a transparent entity in a [skip navigation](https://learn.microsoft.com/en-us/ef/core/modeling/relationships/many-to-many)).
+
 The library focuses on use cases of mapping from/to such classes, and is integrated with EntityFramework/EntityFrameworkCore [DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext?view=efcore-7.0) for further convenience.
 ## Features
+Main features provided by **the library** includes:
+1. Basic scalar properties mapping between classes, as a trivial feature that should be provided by mappers.
+2. Recursively register mapping between classes. When user registers mapping between 2 classes, navigation properties of the same property name will be automatically registered for mapping. This saves uses some coding efforts in defining class-to-class mappings.
+3. Automatically search for and remove entities when mapping to entities via [DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext?view=efcore-7.0). This saves users efforts from writing tedious database operation code.
+4. Identify entities by identities to guarantee uniqueness of each entity during mapping, this guarantees correctness of mapping results.
+5. Some special assisting features are also provided to handle delicate use cases.
 ## Examples
+A simple book-borrowing system is made up, and use case examples are developed based on the book-borrowing system to demonstrate how **the library** helps to save coding efforts. The following picture demonstrates the entities in the book-borrowing system.
+![Book-Borrowing System Entity Graph](https://github.com/keeper013/Oasis.EFMapper/blob/main/Document/Demonstration.png)
+
+For the 5 entities in the system:
+- Book represents information of books, like a book can have a name, and some authors (This property is ignored to simply the example).
+- Tag is used to categorize books, like a book can be a science fiction novel, or a dictionary; Or it may be written in English or French, and so on. A book can have many tags, and a tag may be assigned to many different books.
+- Copy is the physical copy of a book. So there might be multiple copies of a book for different borrowers to borrow.
+- Borrower is the person who may borrow books. One borrower can borrow multiple copies at the same time (not really demonstrated in this example), and only reserve 1 book to be borrowed.
+- Contact is the borrower's contact information, it contains phone number and residential address in the example. This entity is used for demonstration of [one-to-one](https://learn.microsoft.com/en-us/ef/core/modeling/relationships/one-to-one) navigation manipulation by **the library**. Value of the properties are not really important.
+
+Sections below demonstrates usages of **the library**.
 ### Inserting to Database via DbContext (Basic)
 ### Update Existing Database Records via DbContext (Basic)
 ### Mavigaton Property Mapping
@@ -18,6 +38,7 @@ The library focuses on use cases of mapping from/to such classes, and is integra
 ### Redudency Detection and Session
 ### Insert/Update Usage Restriction
 ## Code Structure
+## Possible Improvements
 
 Imagine a work flow with the following steps:
 
