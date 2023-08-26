@@ -109,8 +109,6 @@ await ExecuteWithNewDatabaseContext(async databaseContext =>
     book = await databaseContext.Set<Book>().FirstAsync();
     Assert.Equal(UpdatedBookName, book.Name);
 });
-
-return (mapper, updateBookDto);
 ```
 *ByteString* class is the Google ProtoBuf implementation for byte array, which is usually used as concurrency token type by EntityFramework/EntityFrameworkCore. The requirement to support converting entities to Google ProtoBuf is the original and most important reason for **the library** to support scalar converters.
 In the sample code above:
