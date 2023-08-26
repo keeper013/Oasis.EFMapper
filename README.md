@@ -76,41 +76,41 @@ var mapper = MakeDefaultMapperBuilder()
 Scalar converters can be used to define mapping from a value type to a class type as well, or from a class type to a value type, but can't be used to define mapping from one class type to another class type. One example can be found below.
 ```C#
 // initialize mapper
-        var mapper = MakeDefaultMapperBuilder()
-            .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
-            .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-            .Register<NewBookDTO, Book>()
-            .RegisterTwoWay<Book, UpdateBookDTO>()
-            .Build();
+var mapper = MakeDefaultMapperBuilder()
+    .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
+    .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+    .Register<NewBookDTO, Book>()
+    .RegisterTwoWay<Book, UpdateBookDTO>()
+    .Build();
 
-        // create new book
-        const string BookName = "Book 1";
-        Book book = null!;
-        await ExecuteWithNewDatabaseContext(async databaseContext =>
-        {
-            var bookDto = new NewBookDTO { Name = BookName };
-            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
-            _ = await databaseContext.SaveChangesAsync();
-            book = await databaseContext.Set<Book>().FirstAsync();
-            Assert.Equal(BookName, book.Name);
-        });
+// create new book
+const string BookName = "Book 1";
+Book book = null!;
+await ExecuteWithNewDatabaseContext(async databaseContext =>
+{
+    var bookDto = new NewBookDTO { Name = BookName };
+    _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
+    _ = await databaseContext.SaveChangesAsync();
+    book = await databaseContext.Set<Book>().FirstAsync();
+    Assert.Equal(BookName, book.Name);
+});
 
-        // update existint book dto
-        const string UpdatedBookName = "Updated Book 1";
-        var updateBookDto = mapper.Map<Book, UpdateBookDTO>(book);
-        Assert.NotNull(updateBookDto.ConcurrencyToken);
-        Assert.NotEmpty(updateBookDto.ConcurrencyToken);
-        updateBookDto.Name = UpdatedBookName;
+// update existint book dto
+const string UpdatedBookName = "Updated Book 1";
+var updateBookDto = mapper.Map<Book, UpdateBookDTO>(book);
+Assert.NotNull(updateBookDto.ConcurrencyToken);
+Assert.NotEmpty(updateBookDto.ConcurrencyToken);
+updateBookDto.Name = UpdatedBookName;
 
-        await ExecuteWithNewDatabaseContext(async databaseContext =>
-        {
-            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null, databaseContext);
-            _ = await databaseContext.SaveChangesAsync();
-            book = await databaseContext.Set<Book>().FirstAsync();
-            Assert.Equal(UpdatedBookName, book.Name);
-        });
+await ExecuteWithNewDatabaseContext(async databaseContext =>
+{
+    _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null, databaseContext);
+    _ = await databaseContext.SaveChangesAsync();
+    book = await databaseContext.Set<Book>().FirstAsync();
+    Assert.Equal(UpdatedBookName, book.Name);
+});
 
-        return (mapper, updateBookDto);
+return (mapper, updateBookDto);
 ```
 *ByteString* class is the Google ProtoBuf implementation for byte array, which is usually used as concurrency token type by EntityFramework/EntityFrameworkCore. The requirement to support converting entities to Google ProtoBuf is the original and most important reason for **the library** to support scalar converters.
 In the sample code above:
