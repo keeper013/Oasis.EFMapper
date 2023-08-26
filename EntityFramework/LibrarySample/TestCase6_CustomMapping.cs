@@ -1,6 +1,5 @@
 ﻿namespace LibrarySample;
 
-using Google.Protobuf;
 using System.Data.Entity;
 using System.Threading.Tasks;
 using NUnit.Framework;

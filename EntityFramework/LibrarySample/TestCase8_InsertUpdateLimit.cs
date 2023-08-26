@@ -1,6 +1,5 @@
 ﻿namespace LibrarySample;
 
-using Google.Protobuf;
 using Oasis.EntityFramework.Mapper;
 using Oasis.EntityFramework.Mapper.Exceptions;
 using Oasis.EntityFramework.Mapper.Sample;

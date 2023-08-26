@@ -1,6 +1,5 @@
 ﻿namespace LibrarySample;
 
-using Google.Protobuf;
 using Oasis.EntityFramework.Mapper.Sample;
 using Oasis.EntityFramework.Mapper;
 using NUnit.Framework;
