@@ -268,11 +268,35 @@ var mapper = MakeDefaultMapperBuilder()
         .Finish()
 ```
 Note that if *Configure<A, B>()* is called, **the library** will register mapping from class *A* to class *B*, so developers won't need to specify *Register<A, B>* in later configuration. Of course, if they do specify it, it will be simply ignored as redudant registration, no exceptions will be thrown.
-### Support for Non-Constructable-by-Default Entities
-### Further Navigation Property Manipulation
-### Custom Property Mapping Support
-### Redudency Detection and Session
-### Insert/Update Usage Restriction
+### TestCase4_CustomFactoryMethod
+**The library** need to create new instances of target entities or collection of target entities during mapping from time to time, and by default, it tries to find the default parameterless constructor of class of the target entity. Considering most entity class should have a such constructor, the approach should work. But what if the target entity doesn't have a default parameterless constructor?
+For this case, developers must name a factory method for such target entities, **the library** will use the factory method for the class if any defined is registered. The example is as below:
+```C#
+var mapper = MakeDefaultMapperBuilder()
+    .WithScalarConverter<long, string>(l => l.ToString())
+    .WithFactoryMethod<IBookCopyList>(() => new BookCopyList())
+    .WithFactoryMethod<IBook>(() => new BookImplementation())
+    .Register<NewBookDTO, Book>()
+    .Register<Book, IBook>()
+    .Build();
+```
+In this case the target entities are interfaces (*IBooks* and *IBookCopyList*), which don't have constructors at all. It's apparent that the introduction of *WithFactoryMethod* extends supported data scope of **the library** from normal classes with default parameterless constructors to abstract classes and interfaces.
+### TestCase5_NavigationPropertyOperation_KeepUnmatched
+### TestCase6_CustomMapping
+By default, **the library** supports:
+- mapping between scalar properties with the same name and of the same type (or of the types can be converted by scalar converters).
+- mapping between navigation properties with the same name of valid types.
+
+It's possible that more flexible mapping is required, as mapping a property of one name to another of a different name, hence *MapProperty* method is introduced:
+```C#
+var mapper = MakeDefaultMapperBuilder()
+    .Configure<Borrower, BorrowerBriefDTO>()
+        .MapProperty(brief => brief.Phone, borrower => borrower.Contact.PhoneNumber)
+        .Finish()
+```
+This configuration specifies that when mapping an instance of *Borrower* to an instance of *BorrowerBriefDTO*, "Phone" property of *BorrowerBriefDTO* should be mapped as configured by the inline method *borrower => borrower.Contact.PhoneNumber*.
+### TestCase7_Session
+### TestCase8_InsertUpdateLimit
 ## Code Structure
 ## Possible Improvements/Further Ideas
 - So far **the library** doesn't support mapping to structures (it's neither designed nor defended against), it may be considered if reasonable requirements comes, at least some defensive code can be added if it's not supposed to be supported.
