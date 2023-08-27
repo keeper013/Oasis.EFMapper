@@ -28,8 +28,9 @@ For the 5 entities in the system:
 - *Borrower* is the person who may borrow books. One borrower can borrow multiple copies at the same time (not really demonstrated in this example), and only reserve 1 book to be borrowed.
 - *Contact* is the borrower's contact information, it contains phone number and residential address in the example. This entity is used for demonstration of [one-to-one](https://learn.microsoft.com/en-us/ef/core/modeling/relationships/one-to-one) navigation manipulation by **the library**. Value of the properties are not really important.
 
-Sections below demonstrates usages of **the library**, all relevant code can be found in the *LibrarySample* project.
-### Inserting to Database via DbContext (Basic)
+Sections below demonstrates usages of **the library**, all relevant code can be found in the *LibrarySample* project. Considering length of the descriptions, it is recommended to directly read the test code first, and come back to the descriptions below whenever the code itself isn't descriptive enough.
+### TestCase1_MapNewEntityToDatabase.cs
+This test case demonstrates the basic usage of **the library** on how to insert data into database with it.
 ```C#
 // initialize mapper
 var mapper = MakeDefaultMapperBuilder()
@@ -60,10 +61,8 @@ As for why the use case is inserting a new data record into the database instead
 
 Note that **the library** is expecting every entity to have an identity property, which represents the primary key column of the corresponding data table in the database. Without this identity property the entity can't be updated by APIs of the **the library**. So far **the library** only supports a single scalar property as identity property, combined properties or class type identity property is not supported.
 
-Check *TestCase1_MapNewEntityToDatabase.cs* for relevant examples.
-
-### Scalar Converter and Concurrency Token
-This test case demonstrates the usage of scalar converters that are used to convert one scalar type to another when mapping.
+### TestCase2_MapEntityToDatabase_WithConcurrencyToken.cs
+This test case shows usage of scalar converters, concurrency token and the way to update scalar properties using **the library**.
 
 When mapping from one class to another, **the library** by default map public instance scalar properties in the 2 classes with exactly the same names and same types (Not to mention the properties must have a public getter/setter). Property name matching is case sensitive. If developers want to support mapping between property of different scalar types (e.g. from properties of type int? to properties of int, or from properties of type int to properties of long by default), a scalar converter must be defined while configuring te mapper like the examples below:
 ```C#
@@ -119,9 +118,8 @@ In the sample code above:
 - *mapper.Map* method is an example of mapping database entity instances to DTO instances, its synchronize, and doesn't need include and DbContext input parameters. This method can serve as trival mapping from one class to another use cases, and will be use a lot in the following test codes.
 - For DTO classes, identity and concurrency token properties are only required if it is supposed to be used to update existing data in the database. When updating existing data records in database with the DTO class instances, concurrency token of it will be used to compare against the record stored in database. As the way optimistic locking and concurrency token should work, an exception will be thrown from *MapAsync<,>* method if the concurrency tokens don't match.
 - I haven't found a way for EF6 to work very well with SQLite having concurrency token of type *byte[]*, so we use type *long* instead.
-
-Check *TestCase2_MapEntityToDatabase_WithConcurrencyToken.cs* for relevant examples.
-### Mapping Navigation Properties
+### TestCase3_MapNavigationProperties_WithUnmapped
+This test case demonstrates basics for updating navigation properties using the library.
 #### Identity and Concurrency Token Properties configuration
 In this section, the example code will do mapping for *Borrower* entity. Definition of this entity is different than those for *Tag* and *Book*. Below are the definitions of the 3 entities:
 ```C#
@@ -197,11 +195,79 @@ To continue the points for configuration of identity and concurrency token prope
 It's clear from definition of the 3 classes that they have navigation properties. Take *Borrower* for example, it has a "Contact" property of type *Contact*, a "Reserved" property of type *Copy*, and a "Borrowed" property of type *List<Copy>*; while *UpdateBorrowerDTO* class has a "Contact" property of type *UpdateContactDTO*, a "Reserved" property of type *CopyReferenceDTO*, and a "Borrowed" property of type *pbc::RepeatedField<CopyReferenceDTO>*. When registering the mapping from *Borrower* to *UpdateBorrowerDTO*, the following things will happen.
 - **The library** will find out that both classes have properties named "Contact", "Reserved" and "Borrowed", and find out that these are not scalar properties. Then it will automatically try to register mapping between types of such entities so mapping for such navigation properties will automatically happen when the root classes are being mapped. The registration is recursive, which is designed for convenience of developers that they don't really need to manually register all the navigation properties of each entities, as long as the names match and types are valid, **the library** will do this automatically.
 - There will be no need to worry about the recursive registration becomes an infinite loop caused by loop dependency formed by entities, a mechanism exists to detect such loop dependencies and break out from it once detected.
-- As registration process, mapping process will be recursive, too. Similarly a mechanism to prevent infinite loop is implemented.
 - For one-to-one relationships, like "Contact" property when mapping from *Borrower* to *UpdateBorrowerDTO*, **the library** will find out that property type of it for *Borrower* is *Contact*, and that of *UpdateBorrowerDTO* is *UpdateContactDTO*. Both types are classes, so it will go on to register the mapping from *Contact* to *UpdateContactDTO*.
 - For one-to-many or many-to-many relationships, like "Borrowed" property when mapping from *Borrower* to *UpdateBorrowerDTO*, **the library** will find out that property type of it for *Borrower* is *List<Copy>*, and that of *UpdateBorrowerDTO* is *pbc::RepeatedField<CopyReferenceDTO>*. Both types are class collection types, so it will go on to register the mapping from *Copy* to *CopyReferenceDTO*.
 - Definition of "class collection type" includes: ICollection<T> where T : class, IList<T> where T : class, List<T> where T : class, or a type that inherit from/implements any of the 3 (which fits type pbc::RepeatedField<CopyReferenceDTO>).
 - *CopyReferenceDTO* is designed to have an identity property only for a purpose, which will be mentioned in later sections.
+#### Recursive Mapping
+As registration process, mapping process will be recursive, too. Similarly a mechanism to prevent infinite loop is implemented.
+```C#
+private async Task AddAndUpateBorrower(IMapper mapper, string address1, string? assertAddress1, string? assertAddress2, string address3, string? assertAddress3)
+{
+    // create new book
+    const string BorrowerName = "Borrower 1";
+    
+    Borrower borrower = null!;
+    await ExecuteWithNewDatabaseContext(async databaseContext =>
+    {
+        var borrowerDto = new NewBorrowerDTO { IdentityNumber = "Identity1", Name = BorrowerName, Contact = new NewContactDTO { PhoneNumber = "12345678", Address = address1 } };
+        _ = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null, databaseContext);
+        _ = await databaseContext.SaveChangesAsync();
+        borrower = await databaseContext.Set<Borrower>().Include(b => b.Contact).FirstAsync();
+        Assert.Equal(BorrowerName, borrower.Name);
+        Assert.Equal(assertAddress1, borrower.Contact.Address);
+    });
+
+    // update existing book dto
+    const string UpdatedBorrowerName = "Updated Borrower 1";
+    var updateBorrowerDto = mapper.Map<Borrower, UpdateBorrowerDTO>(borrower);
+    updateBorrowerDto.Name = UpdatedBorrowerName;
+    Assert.Equal(assertAddress2, updateBorrowerDto.Contact.Address);
+    updateBorrowerDto.Contact.Address = address3;
+
+    await ExecuteWithNewDatabaseContext(async databaseContext =>
+    {
+        _ = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(updateBorrowerDto, b => b.Include(b => b.Contact), databaseContext);
+        _ = await databaseContext.SaveChangesAsync();
+        borrower = await databaseContext.Set<Borrower>().Include(b => b.Contact).FirstAsync();
+        Assert.Equal(UpdatedBorrowerName, borrower.Name);
+        Assert.Equal(assertAddress3, borrower.Contact.Address);
+    });
+}
+```
+In the above sample code:
+- NewBorrowerDTO contains a navigation property "Contract" of type *NewContactDTO*, which will be automatically mapped to a new instance of *Contact* as navigation property of the newly mapped *Borrower* entity.
+- Updated properties of "Contact" property of UpdateBorrowerDTO will be reflected in the "Contact" navigation property of mapped *Borrower* entity.
+- In this code example usage of "includer" pamametr of *MapAsync* method is demonstrated, it takes an expression which can be compiled into a function that allows developers to specify the navigation properties to be included by EntityFramework/EntityFrameworkCore when loading the entity. In this example "Contact" navigation property is to be updated, so it should be specified in the "includer" parameter, so DbContact loads this navigation property together with *Borrower* entity in the same database access that later **the library** can directly map "Contact" property of *UpdateBorrowerDTO* to it.
+- In the original design, the "includer" parameter is the last parameter of method *MapAsync* with a default value of null, but later during test case write up, it was found that if implemented this way, developers may forget to pass value to this parameter when they should. Hence the parameter is promoted to be the second parameter without a default value, to remind developers to specify navigation properties to include if applicable.
+- An interesting question arises here: what if developers still forget to specify "includer" parameter or insist on not assigning value to it when it is actually needed? The answer is: **the library** will try to load the navigation property of entity from database according to identity property of the navigation property during mapping process, if source navigation property is valid but target navigation property is null. If the target navigation property is found in the database, it will be updated; or else mapping of the navigation property will be treated as inserting a new data record of it. This implementation guarantees that mapping process can still go through correctly, if developers don't specify correct value of "includer" parameter when they should.
+- The case that navigation property being null for collection type navigation properties is similar, **the library** will try to look into the database for all items in the list which are somehow not included by the includer parameter, then update existing, insert non-existing.
+- Note that for every target navigation property being null or has missing items (for collection types), it will cost an extra database access, which affects performance of the program. So the suggestion is not to pass correct value to "includer" paramter, and not to rely on this automatic-database-lookup feature.
+#### Excluding Properties for Mapping
+If necessary, developers can configure **the library** not to map properties of certain names during mapping. This can be configured at 3 levels
+- by default: during mapping, any property has the specific name won't be mapped.
+- per class: for specific class, the property with the specific name won't be mapped.
+- per mapping: when mapping from one specific class to another, the peroperty with the specific name won't be mapped.
+Below are the examples for configuring the 3 cases:
+```C#
+// by default, which was skipped in the description of MakeDefaultMapperBuilder method
+new MapperBuilderFactory()
+    .Configure()
+        .ExcludedPropertiesByName(excludedProperties)
+        .Finish()
+    .MakeMapperBuilder();
+// per class, for NewContactDTO in this case
+MakeDefaultMapperBuilder()
+    .Configure<NewContactDTO>()
+        .ExcludePropertiesByName(nameof(UpdateContactDTO.Address))
+        .Finish()
+// per mapping, for mapping from NewContactDTO to Contact in this case
+var mapper = MakeDefaultMapperBuilder()
+    .Configure<NewContactDTO, Contact>()
+        .ExcludePropertiesByName(nameof(Contact.Address))
+        .Finish()
+```
+Note that if *Configure<A, B>()* is called, **the library** will register mapping from class *A* to class *B*, so developers won't need to specify *Register<A, B>* in later configuration. Of course, if they do specify it, it will be simply ignored as redudant registration, no exceptions will be thrown.
 ### Support for Non-Constructable-by-Default Entities
 ### Further Navigation Property Manipulation
 ### Custom Property Mapping Support
@@ -210,7 +276,8 @@ It's clear from definition of the 3 classes that they have navigation properties
 ## Code Structure
 ## Possible Improvements/Further Ideas
 - So far **the library** doesn't support mapping to structures (it's neither designed nor defended against), it may be considered if reasonable requirements comes, at least some defensive code can be added if it's not supposed to be supported.
-- ** The library** doesn't by default support mapping of collection of scalar types, like **List<int>**, **ICollection<double>**, most likely it will remain like this, because such types are not valid for entities what **the library** focuses on.
+- **The library** doesn't by default support mapping of collection of scalar types, like **List<int>**, **ICollection<double>**, most likely it will remain like this, because such types are not valid for entities what **the library** focuses on.
+- Regarding the "includer" parameter of method *MapAsync*, if developers forget to pass in the value when they should, **the library** will find target navigation properties to be null when they try to do the mapping. Without looking into the database to verify whether data record with the given identity exists, the only thing it can do is trying to insert a new data record into the database according to source navigation properties, which will trigger an database exception if data records with the same identity already exists. Mapping will fail, but data in database remains to be correct. Hence the exception could serve as a reminder to developers to pass in correct value for "includer" parameter of *MapAsync* method. This could be an alternative way of implementation from having **the library** automatically look into the database for missing target navigation properties. Maybe both behaviors can be implented with a switch to decide which is turned on.
 ## Feedback
 There there be any questions or suggestions regarding the library, please send an email to keeper013@gmail.com for inquiry.
 When submitting bugs, it's preferred to submit a C# code file with a unit test to easily reproduce the bug.
