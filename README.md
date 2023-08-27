@@ -282,6 +282,27 @@ var mapper = MakeDefaultMapperBuilder()
 ```
 In this case the target entities are interfaces (*IBooks* and *IBookCopyList*), which don't have constructors at all. It's apparent that the introduction of *WithFactoryMethod* extends supported data scope of **the library** from normal classes with default parameterless constructors to abstract classes and interfaces.
 ### TestCase5_NavigationPropertyOperation_KeepUnmatched
+Recursive mapping section describes the way to update a navigation property from its root entity, what it doesn't describe is what happens if developers replace the nevigation propety value with a totally new one. The answer is: **the library** will replace the old navigation property value with the newly assigned one to behave as expected. As for what happens to the replaced entity, whether it stays in the database or get removed from database, it's out of **the library**'s scope, but up to the database settings. If the nevigation property is set to be cascade on delete, then it will be removed from database upon being replaced, or else it stays in database.
+For collection type navigation properties, things are a bit complicated. See the graph below:
+![Mapping to Collection Navigation Property Graph](https://github.com/keeper013/Oasis.EFMapper/blob/main/Document/ListNavigationPropertyMapping.png)
+
+The graph shows, when loading value for the collection type navigation property, 4 items are loaded: ABCD; but user inputs CDEF for content of the collection type navigation property. It's easy to understand that during mapping of this property, **the library** would update C and D, insert E and F. The action to take to items A and B hasn't been specified yet.
+By default, **the library** assumes that developers originally loaded ABCD from the database, knowlingly removed A and B from the collection, updated C and D, then added E and F. So the correct behavior for this understanding is to remove A and B from the collection. This is a feature to allow developers removing entities with mapping, which could save developers quite some coding effort handling the find and remove logic if without **the library**.
+**The library** allows developers to override this feature to keep the loaded but unmatched entities instead by configuration.
+It can be configured to an entity, that when mapping to specific collection type navigation properties of this entity, unmatched items will be kept in the collection instead of removed.
+```C#
+mapperBuilder = mapperBuilder
+    .Configure<Book>()
+        .KeepUnmatched(nameof(Book.Copies))
+        .Finish();
+```
+Or configured to a mapping scenario when mapping from one specific class to another
+```C#
+mapperBuilder = mapperBuilder
+    .Configure<UpdateBookDTO, Book>()
+        .KeepUnmatched(nameof(Book.Copies))
+        .Finish();
+```
 ### TestCase6_CustomMapping
 By default, **the library** supports:
 - mapping between scalar properties with the same name and of the same type (or of the types can be converted by scalar converters).
