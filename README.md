@@ -28,8 +28,8 @@ For the 5 entities in the system:
 - *Borrower* is the person who may borrow books. One borrower can borrow multiple copies at the same time (not really demonstrated in this example), and only reserve 1 book to be borrowed.
 - *Contact* is the borrower's contact information, it contains phone number and residential address in the example. This entity is used for demonstration of [one-to-one](https://learn.microsoft.com/en-us/ef/core/modeling/relationships/one-to-one) navigation manipulation by **the library**. Value of the properties are not really important.
 
-Sections below demonstrates usages of **the library**, all relevant code can be found in the *LibrarySample* project. Considering length of the descriptions, it is recommended to directly read the test code first, and come back to the descriptions below whenever the code itself isn't descriptive enough.
-### TestCase1_MapNewEntityToDatabase.cs
+Sections below demonstrates usages of **the library**, all relevant code can be found in the *LibrarySample* project. Considering length of the descriptions, it is recommended to download the whole project and directly read the test code in LibrarySample folder first, and come back to the descriptions below whenever the code itself isn't descriptive enough.
+### TestCase1_MapNewEntityToDatabase
 This test case demonstrates the basic usage of **the library** on how to insert data into database with it.
 ```C#
 // initialize mapper
@@ -61,7 +61,7 @@ As for why the use case is inserting a new data record into the database instead
 
 Note that **the library** is expecting every entity to have an identity property, which represents the primary key column of the corresponding data table in the database. Without this identity property the entity can't be updated by APIs of the **the library**. So far **the library** only supports a single scalar property as identity property, combined properties or class type identity property is not supported.
 
-### TestCase2_MapEntityToDatabase_WithConcurrencyToken.cs
+### TestCase2_MapEntityToDatabase_WithConcurrencyToken
 This test case shows usage of scalar converters, concurrency token and the way to update scalar properties using **the library**.
 
 When mapping from one class to another, **the library** by default map public instance scalar properties in the 2 classes with exactly the same names and same types (Not to mention the properties must have a public getter/setter). Property name matching is case sensitive. If developers want to support mapping between property of different scalar types (e.g. from properties of type int? to properties of int, or from properties of type int to properties of long by default), a scalar converter must be defined while configuring te mapper like the examples below:
@@ -198,7 +198,7 @@ It's clear from definition of the 3 classes that they have navigation properties
 - For one-to-one relationships, like "Contact" property when mapping from *Borrower* to *UpdateBorrowerDTO*, **the library** will find out that property type of it for *Borrower* is *Contact*, and that of *UpdateBorrowerDTO* is *UpdateContactDTO*. Both types are classes, so it will go on to register the mapping from *Contact* to *UpdateContactDTO*.
 - For one-to-many or many-to-many relationships, like "Borrowed" property when mapping from *Borrower* to *UpdateBorrowerDTO*, **the library** will find out that property type of it for *Borrower* is *List<Copy>*, and that of *UpdateBorrowerDTO* is *pbc::RepeatedField<CopyReferenceDTO>*. Both types are class collection types, so it will go on to register the mapping from *Copy* to *CopyReferenceDTO*.
 - Definition of "class collection type" includes: ICollection<T> where T : class, IList<T> where T : class, List<T> where T : class, or a type that inherit from/implements any of the 3 (which fits type pbc::RepeatedField<CopyReferenceDTO>).
-- *CopyReferenceDTO* is designed to have an identity property only for a purpose, which will be mentioned in later sections.
+- *CopyReferenceDTO* is designed to have an identity property only for a purpose to avoid updating *Copy* instances from borrowers, because detailed information of borrowers and copies are not business-wise relevant and should be managed separately. If developers replace *CopyReferenceDTO* with *UpdateCopyDTO* in UpdateBorrowerDTO*, they totally can load a borrower with borrowed books, map it to an *UpdateBorrowerDTO*, update the borrower's address and number of a copy, then map it back to the database, **the library** will really update the borrower and the copy as the DTOs are updated. But technical possibility doesn't necessarily make sense in business, hence the trick in designing entity DTOs with only an identity property is adopted to aviod unintended data modifications.
 #### Recursive Mapping
 As registration process, mapping process will be recursive, too. Similarly a mechanism to prevent infinite loop is implemented.
 ```C#
@@ -296,7 +296,38 @@ var mapper = MakeDefaultMapperBuilder()
 ```
 This configuration specifies that when mapping an instance of *Borrower* to an instance of *BorrowerBriefDTO*, "Phone" property of *BorrowerBriefDTO* should be mapped as configured by the inline method *borrower => borrower.Contact.PhoneNumber*.
 ### TestCase7_Session
+During mapping, there could be cases where multiple entities share some same instances for nevigation entities. Like in this example, many books may share the same tag. During a call of *IMapper.Map* or *IMapper.MapAsync*, **the library** makes sure that each entity is only mapped once, which avoids redundant mapping, and guarantees mapping result is correct.
+Examples in this test case uses a *NewBookWithNewTagDTO*, which adds new books together with new tags. Business wise this may not make sense, considering books and tags are not-so-connected entities that are supposed to be managed separately, here we ignore this, and just use it to demonstrate this feature of **the library**.
+```C#
+var tag = new NewTagDTO { Name = "Tag1" };
+var book1 = new NewBookWithNewTagDTO { Name = "Book1" };
+book1.Tags.Add(tag);
+var book2 = new NewBookWithNewTagDTO { Name = "Book2" };
+book2.Tags.Add(tag);
+_ = await mapper.MapAsync<NewBookWithNewTagDTO, Book>(book1, null, databaseContext);
+_ = await mapper.MapAsync<NewBookWithNewTagDTO, Book>(book2, null, databaseContext);
+_ = await databaseContext.SaveChangesAsync();
+```
+In the sample code above we mean to add 2 new books with the same new tag, mapper.MapAsync is called twice. For the first time, **the library** inserts "Book1" and "Tag1" into the database; for the second time, **the library** tries to insert "Books2" and "Tag1", which triggers a database exception because name of tag is supposed to be unique in the database. The point is, inserting "Tag1" twice isn't the purpose, but since the same instance appears in 2 different calls to *MapAsync*, **the library** doesn't know for the second call, the data presented by the NewTagDTO has been mapped in previous processes that it's not supposed to be inserted again. **The library** only guarantees to map the same instance once per mapping, with *IMapper.Map* or *IMapper.MapAsync* there no way to trace mapped entities between such calls.
+To overcome this problem, **the library** provides a session concept to extend the scope of mapping-only-once scenario. *IMapper.CreateMappingSession* creates a map to memory session which can track mapped from entities among as many calls as possible; *IMapper.CreateMappingToDatabaseSession* creates a similar map to database session. I doubt if this use case is needed a lot, but in case it is, the mechanism is provided.
+**The library** trackes both hash code of an entity or identity property value of it (for entity to be updated) to judge if an entity has been mapped from.
 ### TestCase8_InsertUpdateLimit
+**The library** provides a safety check mechanism to guarantee correct usage of mappings, which limits insertion/updation when mapping from a DTO class to a database entity class. Like for UpdateBookDTO, if it's only supposed to be used to update an existing book into database, never inserting a new book into database, this can be guaranteed with a configuration.
+```C#
+var mapper = MakeDefaultMapperBuilder()
+    .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+    .Configure<UpdateBookDTO, Book>()
+        .SetMapToDatabaseType(MapToDatabaseType.Update)
+        .Finish()
+    .Build();
+```
+The focus in the code is *SetMapToDatabaseType* method. If not configured, the default value for all mapping is Upsert, which allows updation and insertion. We can also specify we only want to insert new books with NewBookDTO with the following statement
+```C#
+.Configure<NewBookDTO, Book>()
+    .SetMapToDatabaseType(MapToDatabaseType.Insert)
+    .Finish()
+```
+The thing is NewBookDTO doesn't really have an identity property, so it can't be used to update entities in database anyway, so this configuration may be considered useless.
 ## Code Structure
 ## Possible Improvements/Further Ideas
 - So far **the library** doesn't support mapping to structures (it's neither designed nor defended against), it may be considered if reasonable requirements comes, at least some defensive code can be added if it's not supposed to be supported.
