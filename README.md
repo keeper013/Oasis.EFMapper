@@ -284,6 +284,7 @@ In this case the target entities are interfaces (*IBooks* and *IBookCopyList*), 
 ### TestCase5_NavigationPropertyOperation_KeepUnmatched
 Recursive mapping section describes the way to update a navigation property from its root entity, what it doesn't describe is what happens if developers replace the nevigation propety value with a totally new one. The answer is: **the library** will replace the old navigation property value with the newly assigned one to behave as expected. As for what happens to the replaced entity, whether it stays in the database or get removed from database, it's out of **the library**'s scope, but up to the database settings. If the nevigation property is set to be cascade on delete, then it will be removed from database upon being replaced, or else it stays in database.
 For collection type navigation properties, things are a bit complicated. See the graph below:
+
 ![Mapping to Collection Navigation Property Graph](https://github.com/keeper013/Oasis.EFMapper/blob/main/Document/ListNavigationPropertyMapping.png)
 
 The graph shows, when loading value for the collection type navigation property, 4 items are loaded: ABCD; but user inputs CDEF for content of the collection type navigation property. It's easy to understand that during mapping of this property, **the library** would update C and D, insert E and F. The action to take to items A and B hasn't been specified yet.
