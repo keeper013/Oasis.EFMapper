@@ -345,7 +345,7 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             Assert.AreEqual(assertAddress1, borrower.Contact.Address);
         });
 
-        // update existint book dto
+        // update existing book dto
         const string UpdatedBorrowerName = "Updated Borrower 1";
         var updateBorrowerDto = mapper.Map<Borrower, UpdateBorrowerDTO>(borrower);
         updateBorrowerDto.Name = UpdatedBorrowerName;
