@@ -146,7 +146,7 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
         });
     }
 
-    [Ignore("EF6 doesn't seems to handle replacing one to one relation entity very well, it updates first, and cause a unique constraint problem, deleting should come first.")]
+    [Ignore("EF6 doesn't seems to handle replacing one to many relation entity very well, doesn't automatically remove the replaced entity.")]
     [TestCase(0, 3)]
     [TestCase(1, 5)]
     [TestCase(2, 5)]
