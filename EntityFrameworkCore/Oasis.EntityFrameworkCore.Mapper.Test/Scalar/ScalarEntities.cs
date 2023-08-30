@@ -290,3 +290,41 @@ public sealed class EntityWithoutDefaultConstructor : EntityBase
 
     public int IntProp { get; set; }
 }
+
+public enum TestEnum
+{
+    /// <summary>
+    /// Test value 1
+    /// </summary>
+    Value1,
+
+    /// <summary>
+    /// Test value 2
+    /// </summary>
+    Value2,
+
+    /// <summary>
+    /// Test value 3
+    /// </summary>
+    Value3,
+}
+
+public sealed class EnumEntity1 : EntityBase
+{
+    public TestEnum EnumProperty { get; set; }
+}
+
+public sealed class EnumEntity2 : EntityBase
+{
+    public TestEnum EnumProperty { get; set; }
+}
+
+public sealed class NullableEnumEntity1 : EntityBase
+{
+    public TestEnum? EnumProperty { get; set; }
+}
+
+public sealed class NullableEnumEntity2 : EntityBase
+{
+    public TestEnum? EnumProperty { get; set; }
+}

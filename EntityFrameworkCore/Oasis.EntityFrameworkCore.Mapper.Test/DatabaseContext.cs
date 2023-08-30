@@ -41,6 +41,8 @@ internal class DatabaseContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ScalarEntity1>().ToTable(nameof(ScalarEntity1));
+        modelBuilder.Entity<EnumEntity1>().ToTable(nameof(EnumEntity1));
+        modelBuilder.Entity<NullableEnumEntity1>().ToTable(nameof(NullableEnumEntity1));
         modelBuilder.Entity<CollectionEntity1>().ToTable(nameof(CollectionEntity1));
         modelBuilder.Entity<DerivedEntity1>().ToTable(nameof(DerivedEntity1));
         modelBuilder.Entity<ScalarEntity1Item>().ToTable(nameof(ScalarEntity1Item));

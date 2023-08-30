@@ -27,6 +27,13 @@ CREATE TABLE "DerivedEntity1_1" (
 );
 
 
+CREATE TABLE "EnumEntity1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_EnumEntity1" PRIMARY KEY AUTOINCREMENT,
+    "EnumProperty" INTEGER NOT NULL,
+    "ConcurrencyToken" BLOB NOT NULL
+);
+
+
 CREATE TABLE "IntSourceEntity" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_IntSourceEntity" PRIMARY KEY AUTOINCREMENT,
     "ConcurrencyToken" BLOB NOT NULL,
@@ -101,6 +108,13 @@ CREATE TABLE "NShortSourceEntity" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_NShortSourceEntity" PRIMARY KEY AUTOINCREMENT,
     "ConcurrencyToken" BLOB NOT NULL,
     "SomeProperty" INTEGER NOT NULL
+);
+
+
+CREATE TABLE "NullableEnumEntity1" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_NullableEnumEntity1" PRIMARY KEY AUTOINCREMENT,
+    "EnumProperty" INTEGER NULL,
+    "ConcurrencyToken" BLOB NOT NULL
 );
 
 

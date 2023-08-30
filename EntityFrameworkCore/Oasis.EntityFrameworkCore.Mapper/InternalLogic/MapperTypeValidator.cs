@@ -23,7 +23,7 @@ internal static class MapperTypeValidatorExtensions
 
     public static bool IsScalarType(this Type type)
     {
-        return (type.IsValueType && (type.IsPrimitive || type.IsNullablePrimitive())) || NonPrimitiveScalarTypes.Contains(type);
+        return (type.IsValueType && (type.IsPrimitive || type.IsEnum || type.IsNullablePrimitiveOrEnum())) || NonPrimitiveScalarTypes.Contains(type);
     }
 
     public static bool IsEntityType(this Type type)
@@ -53,10 +53,10 @@ internal static class MapperTypeValidatorExtensions
         return types.Count == 1 ? types[0] : default;
     }
 
-    public static bool IsNullablePrimitive(this Type type)
+    public static bool IsNullablePrimitiveOrEnum(this Type type)
     {
         const string NullableTypeName = "System.Nullable`1[[";
-        return type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1 && type.GenericTypeArguments[0].IsPrimitive;
+        return type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1 && (type.GenericTypeArguments[0].IsPrimitive || type.GenericTypeArguments[0].IsEnum);
     }
 
     private static bool IsOfGenericTypeDefinition(Type source, Type target)

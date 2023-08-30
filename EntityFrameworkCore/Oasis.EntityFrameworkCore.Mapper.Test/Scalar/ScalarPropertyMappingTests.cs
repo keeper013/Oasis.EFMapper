@@ -2,6 +2,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -597,5 +598,48 @@ public sealed class ScalarPropertyMappingTests : TestBase
                 .SetKeyPropertyNames(nameof(EntityBase.Id), nameof(EntityBase.ConcurrencyToken))
                 .Finish()
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
+    }
+
+    [Theory]
+    [InlineData(TestEnum.Value1)]
+    [InlineData(TestEnum.Value2)]
+    [InlineData(TestEnum.Value3)]
+    public async Task MapEnum_ShouldSucceed(TestEnum input)
+    {
+        var mapper = MakeDefaultMapperBuilder()
+            .Register<EnumEntity2, EnumEntity1>()
+            .Build();
+
+        var enumEntity = new EnumEntity2 { EnumProperty = input };
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            _ = await mapper.MapAsync<EnumEntity2, EnumEntity1>(enumEntity, null, databaseContext);
+            await databaseContext.SaveChangesAsync();
+            var entity = await databaseContext.Set<EnumEntity1>().FirstOrDefaultAsync();
+            Assert.NotNull(entity);
+            Assert.Equal(input, entity!.EnumProperty);
+        });
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(TestEnum.Value1)]
+    [InlineData(TestEnum.Value2)]
+    [InlineData(TestEnum.Value3)]
+    public async Task MapNullableEnum_ShouldSucceed(TestEnum? input)
+    {
+        var mapper = MakeDefaultMapperBuilder()
+            .Register<NullableEnumEntity2, NullableEnumEntity1>()
+            .Build();
+
+        var enumEntity = new NullableEnumEntity2 { EnumProperty = input };
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            _ = await mapper.MapAsync<NullableEnumEntity2, NullableEnumEntity1>(enumEntity, null, databaseContext);
+            await databaseContext.SaveChangesAsync();
+            var entity = await databaseContext.Set<NullableEnumEntity1>().FirstOrDefaultAsync();
+            Assert.NotNull(entity);
+            Assert.Equal(input, entity!.EnumProperty);
+        });
     }
 }

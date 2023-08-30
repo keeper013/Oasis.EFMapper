@@ -597,4 +597,47 @@ public sealed class ScalarPropertyMappingTests : TestBase
                 .Finish()
             .Register<ScalarEntity1, EntityWithoutDefaultConstructor>());
     }
+
+    [Test]
+    [TestCase(TestEnum.Value1)]
+    [TestCase(TestEnum.Value2)]
+    [TestCase(TestEnum.Value3)]
+    public async Task MapEnum_ShouldSucceed(TestEnum input)
+    {
+        var mapper = MakeDefaultMapperBuilder()
+            .Register<EnumEntity2, EnumEntity1>()
+            .Build();
+
+        var enumEntity = new EnumEntity2 { EnumProperty = input };
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            _ = await mapper.MapAsync<EnumEntity2, EnumEntity1>(enumEntity, null, databaseContext);
+            await databaseContext.SaveChangesAsync();
+            var entity = await databaseContext.Set<EnumEntity1>().FirstOrDefaultAsync();
+            Assert.NotNull(entity);
+            Assert.AreEqual(input, entity!.EnumProperty);
+        });
+    }
+
+    [Theory]
+    [TestCase(null)]
+    [TestCase(TestEnum.Value1)]
+    [TestCase(TestEnum.Value2)]
+    [TestCase(TestEnum.Value3)]
+    public async Task MapNullableEnum_ShouldSucceed(TestEnum? input)
+    {
+        var mapper = MakeDefaultMapperBuilder()
+            .Register<NullableEnumEntity2, NullableEnumEntity1>()
+            .Build();
+
+        var enumEntity = new NullableEnumEntity2 { EnumProperty = input };
+        await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            _ = await mapper.MapAsync<NullableEnumEntity2, NullableEnumEntity1>(enumEntity, null, databaseContext);
+            await databaseContext.SaveChangesAsync();
+            var entity = await databaseContext.Set<NullableEnumEntity1>().FirstOrDefaultAsync();
+            Assert.NotNull(entity);
+            Assert.AreEqual(input, entity!.EnumProperty);
+        });
+    }
 }
