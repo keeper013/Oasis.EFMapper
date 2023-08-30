@@ -226,7 +226,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                             throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
                         }
 
-                        target.Add(MapToNewTarget<TSource, TTarget>(s, MapKeyProperties.None, context, tracker!));
+                        target.Add(MapToNewTarget(s, MapKeyProperties.None, context, tracker!));
                     }
                     else
                     {
