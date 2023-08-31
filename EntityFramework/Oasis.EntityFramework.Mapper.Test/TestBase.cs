@@ -40,18 +40,9 @@ public abstract class TestBase
             .MakeMapperBuilder();
     }
 
-    protected DbContext CreateDatabaseContext()
-    {
-        var databaseContext = new DatabaseContext(_connection!);
-
-        return databaseContext;
-    }
-
     protected async Task ExecuteWithNewDatabaseContext(Func<DbContext, Task> action)
     {
-        using (var databaseContext = CreateDatabaseContext())
-        {
-            await action(databaseContext);
-        }
+        using var databaseContext = new DatabaseContext(_connection!);
+        await action(databaseContext);
     }
 }

@@ -111,4 +111,3 @@ internal class DatabaseContext : DbContext
         private static string ToDb(byte[] v) => new (v.Select(b => (char)b).ToArray());
     }
 }
-

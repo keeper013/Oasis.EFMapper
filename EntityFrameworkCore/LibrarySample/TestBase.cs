@@ -2,38 +2,31 @@
 
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Oasis.EntityFrameworkCore.Mapper.Sample;
 using System.Threading.Tasks;
 using System;
 using Oasis.EntityFrameworkCore.Mapper;
 
-public abstract class TestBase
+public abstract class TestBase : IDisposable
 {
     protected readonly DbContextOptions _options;
+    protected readonly SqliteConnection _connection;
 
     protected TestBase()
     {
-        var connection = new SqliteConnection("Filename=:memory:");
-        connection.Open();
+        _connection = new SqliteConnection("Filename=:memory:");
+        _connection.Open();
         _options = new DbContextOptionsBuilder<DatabaseContext>()
-            .UseSqlite(connection)
+            .UseSqlite(_connection)
             .Options;
     }
 
-    protected DbContext CreateDatabaseContext()
-    {
-        var databaseContext = new DatabaseContext(_options);
-        databaseContext.Database.EnsureCreated();
-
-        return databaseContext;
-    }
+    public void Dispose() => _connection.Close();
 
     protected async Task ExecuteWithNewDatabaseContext(Func<DbContext, Task> action)
     {
-        using (var databaseContext = CreateDatabaseContext())
-        {
-            await action(databaseContext);
-        }
+        using var databaseContext = new DatabaseContext(_options);
+        databaseContext.Database.EnsureCreated();
+        await action(databaseContext);
     }
 
     protected static IMapperBuilder MakeDefaultMapperBuilder(string[]? excludedProperties = null)
