@@ -8,9 +8,6 @@
     <Exec Command="ProtoBuf\bin\protoc -I=. --csharp_out=.\Generated Messages.proto" />
   </Target>
   <ItemGroup>
-    <Folder Include="Generated\" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.24.2" />
   </ItemGroup>
 
