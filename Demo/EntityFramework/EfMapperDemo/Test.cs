@@ -1,28 +1,21 @@
-namespace EfMapperDemo;
+﻿namespace EfMapperDemo;
 
 using Google.Protobuf;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Oasis.EntityFrameworkCore.Mapper;
-using System;
+using NUnit.Framework;
+using Oasis.EntityFramework.Mapper;
 using System.Data.Common;
-using Xunit;
+using System.Data.Entity;
+using System.Data.SQLite;
+using System.Threading.Tasks;
+using System;
+using System.IO;
+using System.Linq;
 
-public sealed class Test : IDisposable
+public sealed class Test
 {
-    private readonly DbContextOptions _options;
-    private readonly DbConnection _connection;
+    private DbConnection? _connection;
 
-    public Test()
-    {
-        _connection = new SqliteConnection("Filename=:memory:");
-        _connection.Open();
-        _options = new DbContextOptionsBuilder<DatabaseContext>()
-            .UseSqlite(_connection)
-            .Options;
-    }
-
-    [Fact]
+    [Test]
     public async Task DemoTest()
     {
         await InitializeData();
@@ -60,20 +53,20 @@ public sealed class Test : IDisposable
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
             var projects = await databaseContext.Set<Project>().Include(p => p.Employees).ToListAsync();
-            Assert.Equal(2, projects.Count);
+            Assert.AreEqual(2, projects.Count);
             var p1 = projects.FirstOrDefault(p => string.Equals("Project 1", p.Name));
             Assert.NotNull(p1);
-            Assert.Equal("Project 1 description.", p1.Description);
-            Assert.Equal(2, p1.Employees.Count);
-            Assert.Single(p1.Employees.Where(e => string.Equals("Employee 1", e.Name) && string.Equals("Employee 1 description.", e.Description)));
-            Assert.Single(p1.Employees.Where(e => string.Equals("Employee 2", e.Name) && string.Equals("Employee 2 description.", e.Description)));
-            
+            Assert.AreEqual("Project 1 description.", p1.Description);
+            Assert.AreEqual(2, p1.Employees.Count);
+            Assert.AreEqual(1, p1.Employees.Where(e => string.Equals("Employee 1", e.Name) && string.Equals("Employee 1 description.", e.Description)).Count());
+            Assert.AreEqual(1, p1.Employees.Where(e => string.Equals("Employee 2", e.Name) && string.Equals("Employee 2 description.", e.Description)).Count());
+
             var p2 = projects.FirstOrDefault(p => string.Equals("Project 2", p.Name));
             Assert.NotNull(p2);
-            Assert.Equal("Project 2 description.", p2.Description);
-            Assert.Equal(2, p2.Employees.Count);
-            Assert.Single(p2.Employees.Where(e => string.Equals("Employee 3", e.Name) && string.Equals("Employee 3 description.", e.Description)));
-            Assert.Single(p2.Employees.Where(e => string.Equals("Employee 4", e.Name) && string.Equals("Employee 4 description.", e.Description)));
+            Assert.AreEqual("Project 2 description.", p2.Description);
+            Assert.AreEqual(2, p2.Employees.Count);
+            Assert.AreEqual(1, p2.Employees.Where(e => string.Equals("Employee 3", e.Name) && string.Equals("Employee 3 description.", e.Description)).Count());
+            Assert.AreEqual(1, p2.Employees.Where(e => string.Equals("Employee 4", e.Name) && string.Equals("Employee 4 description.", e.Description)).Count());
         });
     }
 
@@ -101,16 +94,16 @@ public sealed class Test : IDisposable
             }
         });
 
-        Assert.Equal(2, allData.Projects.Count);
-        Assert.Single(allData.Projects.Where(p => string.Equals("Project 1", p.Name) && string.Equals("Project 1 description.", p.Description)));
-        Assert.Single(allData.Projects.Where(p => string.Equals("Project 2", p.Name) && string.Equals("Project 2 description.", p.Description)));
-        
-        Assert.Equal(5, allData.Employees.Count);
-        Assert.Single(allData.Employees.Where(e => string.Equals("Employee 1", e.Name) && string.Equals("Employee 1 description.", e.Description)));
-        Assert.Single(allData.Employees.Where(e => string.Equals("Employee 2", e.Name) && string.Equals("Employee 2 description.", e.Description)));
-        Assert.Single(allData.Employees.Where(e => string.Equals("Employee 3", e.Name) && string.Equals("Employee 3 description.", e.Description)));
-        Assert.Single(allData.Employees.Where(e => string.Equals("Employee 4", e.Name) && string.Equals("Employee 4 description.", e.Description)));
-        Assert.Single(allData.Employees.Where(e => string.Equals("Employee 5", e.Name) && string.Equals("Employee 5 description.", e.Description)));
+        Assert.AreEqual(2, allData.Projects.Count);
+        Assert.AreEqual(1, allData.Projects.Where(p => string.Equals("Project 1", p.Name) && string.Equals("Project 1 description.", p.Description)).Count());
+        Assert.AreEqual(1, allData.Projects.Where(p => string.Equals("Project 2", p.Name) && string.Equals("Project 2 description.", p.Description)).Count());
+
+        Assert.AreEqual(5, allData.Employees.Count);
+        Assert.AreEqual(1, allData.Employees.Where(e => string.Equals("Employee 1", e.Name) && string.Equals("Employee 1 description.", e.Description)).Count());
+        Assert.AreEqual(1, allData.Employees.Where(e => string.Equals("Employee 2", e.Name) && string.Equals("Employee 2 description.", e.Description)).Count());
+        Assert.AreEqual(1, allData.Employees.Where(e => string.Equals("Employee 3", e.Name) && string.Equals("Employee 3 description.", e.Description)).Count());
+        Assert.AreEqual(1, allData.Employees.Where(e => string.Equals("Employee 4", e.Name) && string.Equals("Employee 4 description.", e.Description)).Count());
+        Assert.AreEqual(1, allData.Employees.Where(e => string.Equals("Employee 5", e.Name) && string.Equals("Employee 5 description.", e.Description)).Count());
 
         return allData.ToByteArray();
     }
@@ -163,39 +156,54 @@ public sealed class Test : IDisposable
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
             var projects = await databaseContext.Set<Project>().Include(p => p.Employees).ToListAsync();
-            Assert.Equal(3, projects.Count);
+            Assert.AreEqual(3, projects.Count);
             var p1 = projects.FirstOrDefault(p => string.Equals("Project 1", p.Name));
             Assert.NotNull(p1);
-            Assert.Equal("Almost done", p1.Description);
-            Assert.Equal(1, p1.Employees.Count);
-            Assert.Single(p1.Employees.Where(e => string.Equals("Employee 1", e.Name) && string.Equals("Employee 1 description.", e.Description)));
-            
+            Assert.AreEqual("Almost done", p1.Description);
+            Assert.AreEqual(1, p1.Employees.Count);
+            Assert.AreEqual(1, p1.Employees.Where(e => string.Equals("Employee 1", e.Name) && string.Equals("Employee 1 description.", e.Description)).Count());
+
             var p2 = projects.FirstOrDefault(p => string.Equals("Project 2", p.Name));
             Assert.NotNull(p2);
-            Assert.Equal("Project 2 description.", p2.Description);
-            Assert.Equal(1, p2.Employees.Count);
-            Assert.Single(p2.Employees.Where(e => string.Equals("Employee 3", e.Name) && string.Equals("Employee 3 description.", e.Description)));
-            
+            Assert.AreEqual("Project 2 description.", p2.Description);
+            Assert.AreEqual(1, p2.Employees.Count);
+            Assert.AreEqual(1, p2.Employees.Where(e => string.Equals("Employee 3", e.Name) && string.Equals("Employee 3 description.", e.Description)).Count());
+
             var p3 = projects.FirstOrDefault(p => string.Equals("New Project", p.Name));
             Assert.NotNull(p3);
-            Assert.Equal("Project number 3", p3.Description);
-            Assert.Equal(3, p3.Employees.Count);
-            Assert.Single(p3.Employees.Where(e => string.Equals("Employee 2", e.Name) && string.Equals("Second Employee", e.Description)));
-            Assert.Single(p3.Employees.Where(e => string.Equals("Employee 5", e.Name) && string.Equals("Employee 5 description.", e.Description)));
-            Assert.Single(p3.Employees.Where(e => string.Equals("New Employee", e.Name) && string.Equals("Employee Number 6", e.Description)));
+            Assert.AreEqual("Project number 3", p3.Description);
+            Assert.AreEqual(3, p3.Employees.Count);
+            Assert.AreEqual(1, p3.Employees.Where(e => string.Equals("Employee 2", e.Name) && string.Equals("Second Employee", e.Description)).Count());
+            Assert.AreEqual(1, p3.Employees.Where(e => string.Equals("Employee 5", e.Name) && string.Equals("Employee 5 description.", e.Description)).Count());
+            Assert.AreEqual(1, p3.Employees.Where(e => string.Equals("New Employee", e.Name) && string.Equals("Employee Number 6", e.Description)).Count());
 
             var e4 = await databaseContext.Set<Employee>().Where(e => string.Equals("Employee 4", e.Name)).FirstAsync();
-            Assert.Equal("Employee 4 description.", e4.Description);
+            Assert.AreEqual("Employee 4 description.", e4.Description);
             Assert.True(string.IsNullOrEmpty(e4.ProjectName));
         });
     }
 
-    public void Dispose() => _connection.Dispose();
+    [SetUp]
+    public void Setup()
+    {
+        _connection = new SQLiteConnection("Data Source=:memory:");
+        _connection.Open();
+        var sql = File.ReadAllText($"{AppDomain.CurrentDomain.BaseDirectory}/script.sql");
+        var command = _connection.CreateCommand();
+        command.CommandText = sql;
+        command.ExecuteNonQuery();
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _connection?.Close();
+        _connection?.Dispose();
+    }
 
     private async Task ExecuteWithNewDatabaseContext(Func<DbContext, Task> action)
     {
-        using var databaseContext = new DatabaseContext(_options);
-        databaseContext.Database.EnsureCreated();
+        using var databaseContext = new DatabaseContext(_connection!);
         await action(databaseContext);
     }
 }

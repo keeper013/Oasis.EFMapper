@@ -1,6 +1,5 @@
 ﻿namespace LibrarySample;
 
-using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
 using System.Data.Entity;

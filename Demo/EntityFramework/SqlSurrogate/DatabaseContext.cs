@@ -1,9 +1,12 @@
-﻿namespace EfMapperDemo;
+﻿namespace SqlSurrogate;
 
 using Microsoft.EntityFrameworkCore;
+using EfMapperDemo;
 
 internal class DatabaseContext : DbContext
 {
+    private static readonly EntityState[] _states = new[] { EntityState.Added, EntityState.Modified };
+
     public DatabaseContext(DbContextOptions options)
         : base(options)
     {

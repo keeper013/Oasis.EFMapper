@@ -1,0 +1,1 @@
+﻿dotnet ef dbcontext script --output "..\EfMapperDemo\script.sql" --context SqlSurrogate.DatabaseContext
