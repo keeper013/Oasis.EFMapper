@@ -113,6 +113,8 @@ internal interface ITargetByIdTracker
     void Track<TSource, TTarget>(TSource source, TTarget target)
         where TSource : class
         where TTarget : class;
+
+    void Clear();
 }
 
 internal interface ITargetByIdTrackerFactory
@@ -183,6 +185,14 @@ internal sealed class TargetByIdTrackerFactory<TKeyType> : ITargetByIdTrackerFac
             }
 
             ((Utilities.EntityTrackerTrackById<TSource, TTarget, TKeyType>)_factory._index.Find(typeof(TSource), targetType)!.track)(dict, source, target, _factory._scalarTypeConverter);
+        }
+
+        public void Clear()
+        {
+            foreach (var dict in _objects.Values)
+            {
+                dict.Clear();
+            }
         }
     }
 }
@@ -266,6 +276,19 @@ internal sealed class RecursiveMappingContextFactory
 
                 tracker = new EntityTracker<TSource, TTarget>(source, this, sourceHashCode, targetType, targetIsIdentifyableById, targetByIdTracker);
                 return null;
+            }
+        }
+
+        public void Clear()
+        {
+            foreach (var targetByIdTracker in _targetByIdTrackers.Values)
+            {
+                targetByIdTracker.Clear();
+            }
+
+            foreach (var dict in _targetByHashCode.Values)
+            {
+                dict.Clear();
             }
         }
 

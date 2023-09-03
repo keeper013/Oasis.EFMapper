@@ -35,6 +35,8 @@ public interface IRecursiveMappingContext : IRecursiveContext
     TTarget? GetTracked<TSource, TTarget>(TSource source, out IEntityTracker<TTarget>? tracker)
         where TSource : class
         where TTarget : class;
+
+    void Clear();
 }
 
 /// <summary>

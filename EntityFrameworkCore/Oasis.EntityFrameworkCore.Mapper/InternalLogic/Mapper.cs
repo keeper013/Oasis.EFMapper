@@ -32,6 +32,7 @@ internal sealed class Mapper : IMapper
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
     private readonly ToMemoryRecursiveMapper _toMemoryRecursiveMapper;
     private readonly RecursiveMappingContextFactory _contextFactory;
+    private readonly IRecursiveMappingContext _context;
 
     public Mapper(
         IScalarTypeConverter scalarConverter,
@@ -50,6 +51,7 @@ internal sealed class Mapper : IMapper
         _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
         _contextFactory = contextFactory;
         _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityHandler);
+        _context = _contextFactory.Make();
     }
 
     public IMappingSession CreateMappingSession()
@@ -66,15 +68,15 @@ internal sealed class Mapper : IMapper
         where TSource : class
         where TTarget : class
     {
-        var context = _contextFactory.Make();
-        var target = context.GetTracked<TSource, TTarget>(source, out var tracker);
+        var target = _context.GetTracked<TSource, TTarget>(source, out var tracker);
         if (target == null)
         {
             target = _entityHandler.Make<TTarget>();
             tracker!.Track(target);
-            _toMemoryRecursiveMapper.Map(source, target, MapKeyProperties.IdAndConcurrencyToken, context);
+            _toMemoryRecursiveMapper.Map(source, target, MapKeyProperties.IdAndConcurrencyToken, _context);
         }
 
+        _context.Clear();
         return target;
     }
 
@@ -83,7 +85,9 @@ internal sealed class Mapper : IMapper
         where TTarget : class
     {
         var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityHandler, _keepUnmatchedManager, _mapToDatabaseTypeManager, databaseContext);
-        return await toDatabaseRecursiveMapper.MapAsync(source, includer, _contextFactory.Make());
+        var target = await toDatabaseRecursiveMapper.MapAsync(source, includer, _context);
+        _context.Clear();
+        return target;
     }
 }
 
