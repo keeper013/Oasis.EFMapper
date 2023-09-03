@@ -252,7 +252,7 @@ internal sealed class RecursiveMappingContextFactory
             else
             {
                 var targetIsIdentifyableById = _factory._entityHandler.HasId<TSource>() && _factory._entityHandler.HasId<TTarget>() && !_factory._entityHandler.IdIsEmpty(source);
-                ITargetByIdTracker targetByIdTracker = null!;
+                ITargetByIdTracker? targetByIdTracker = null;
                 if (targetIsIdentifyableById)
                 {
                     targetByIdTracker = _targetByIdTrackers[_factory._targetIdentityTypeMapping[targetType]];
@@ -274,9 +274,24 @@ internal sealed class RecursiveMappingContextFactory
                     }
                 }
 
-                tracker = new EntityTracker<TSource, TTarget>(source, this, sourceHashCode, targetType, targetIsIdentifyableById, targetByIdTracker);
+                tracker = new EntityTracker<TSource, TTarget>(source, this, sourceHashCode, targetType, targetByIdTracker);
                 return null;
             }
+        }
+
+        public IEntityTracker<TTarget> GetTracker<TSource, TTarget>(TSource source)
+            where TSource : class
+            where TTarget : class
+        {
+            var sourceHashCode = source.GetHashCode();
+            var targetType = typeof(TTarget);
+            ITargetByIdTracker? targetByIdTracker = null;
+            if (_factory._entityHandler.HasId<TSource>() && _factory._entityHandler.HasId<TTarget>() && !_factory._entityHandler.IdIsEmpty(source))
+            {
+                targetByIdTracker = _targetByIdTrackers[_factory._targetIdentityTypeMapping[targetType]];
+            }
+
+            return new EntityTracker<TSource, TTarget>(source, this, sourceHashCode, targetType, targetByIdTracker);
         }
 
         public void Clear()
@@ -292,25 +307,22 @@ internal sealed class RecursiveMappingContextFactory
             }
         }
 
-        private struct EntityTracker<TSource, TTarget> : IEntityTracker<TTarget>
+        private readonly struct EntityTracker<TSource, TTarget> : IEntityTracker<TTarget>
             where TSource : class
             where TTarget : class
         {
             private readonly TSource _source;
             private readonly RecursiveMappingContext _context;
+            private readonly int _sourceHashCode;
+            private readonly Type _targetType;
+            private readonly ITargetByIdTracker? _targetByIdTracker;
 
-            private int _sourceHashCode;
-            private Type _targetType;
-            private bool _targetIsIdentifyableById;
-            private ITargetByIdTracker _targetByIdTracker;
-
-            public EntityTracker(TSource source, RecursiveMappingContext context, int sourceHashCode, Type targetType, bool targetIsIdentifyableById, ITargetByIdTracker targetByIdTracker)
+            public EntityTracker(TSource source, RecursiveMappingContext context, int sourceHashCode, Type targetType, ITargetByIdTracker? targetByIdTracker)
             {
                 _source = source;
                 _context = context;
                 _sourceHashCode = sourceHashCode;
                 _targetType = targetType;
-                _targetIsIdentifyableById = targetIsIdentifyableById;
                 _targetByIdTracker = targetByIdTracker;
             }
 
@@ -326,10 +338,7 @@ internal sealed class RecursiveMappingContextFactory
                 _context._hashCodeDictionary.Add(_sourceHashCode, target);
 
                 // add to identity dictionary
-                if (_targetIsIdentifyableById)
-                {
-                    _targetByIdTracker.Track(_source, target);
-                }
+                _targetByIdTracker?.Track(_source, target);
             }
         }
     }

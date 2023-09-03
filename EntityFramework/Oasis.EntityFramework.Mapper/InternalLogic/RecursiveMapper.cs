@@ -68,7 +68,6 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
 {
     private readonly KeepUnmatchedManager _keepUnmatchedManager;
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
-    private readonly DbContext _databaseContext;
 
     public ToDatabaseRecursiveMapper(
         IScalarTypeConverter scalarConverter,
@@ -76,18 +75,20 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         MapperSetLookUp lookup,
         EntityHandler entityHandler,
         KeepUnmatchedManager keepUnmatchedManager,
-        MapToDatabaseTypeManager mapToDatabaseTypeManager,
-        DbContext databaseContext)
+        MapToDatabaseTypeManager mapToDatabaseTypeManager)
         : base(scalarConverter, listTypeConstructor, lookup, entityHandler)
     {
         _keepUnmatchedManager = keepUnmatchedManager;
         _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
-        _databaseContext = databaseContext;
+        DatabaseContext = null!;
     }
+
+    public DbContext DatabaseContext { private get; set; }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(
         TSource source,
         Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer,
+        IEntityTracker<TTarget> tracker,
         IRecursiveMappingContext context)
         where TSource : class
         where TTarget : class
@@ -96,11 +97,6 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
 
         var sourceHasId = EntityHandler.HasId<TSource>() && !EntityHandler.IdIsEmpty(source);
         var mapType = _mapToDatabaseTypeManager.Get<TSource, TTarget>();
-        var trackedTarget = context.GetTracked<TSource, TTarget>(source, out var tracker);
-        if (trackedTarget != null)
-        {
-            return trackedTarget;
-        }
 
         if (sourceHasId)
         {
@@ -114,11 +110,11 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
                     throw new AsNoTrackingNotAllowedException(includerString);
                 }
 
-                target = await includer.Compile()(_databaseContext.Set<TTarget>()).FirstOrDefaultAsync(identityEqualsExpression);
+                target = await includer.Compile()(DatabaseContext.Set<TTarget>()).FirstOrDefaultAsync(identityEqualsExpression);
             }
             else
             {
-                target = await _databaseContext.Set<TTarget>().FirstOrDefaultAsync(identityEqualsExpression);
+                target = await DatabaseContext.Set<TTarget>().FirstOrDefaultAsync(identityEqualsExpression);
             }
 
             if (target != default)
@@ -252,7 +248,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
 
             if (unmatchedSources.Any())
             {
-                var targetsFound = _databaseContext.Set<TTarget>().Where(EntityHandler.GetContainsTargetIdExpression<TSource, TTarget>(unmatchedSources.Select(s => s.Item1).ToList())).ToList();
+                var targetsFound = DatabaseContext.Set<TTarget>().Where(EntityHandler.GetContainsTargetIdExpression<TSource, TTarget>(unmatchedSources.Select(s => s.Item1).ToList())).ToList();
                 if (targetsFound.Any() && !mapType.AllowsUpdate())
                 {
                     throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
@@ -297,7 +293,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         var newTarget = EntityHandler.Make<TTarget>();
         tracker.Track(newTarget);
         Map(source, newTarget, mapKeyProperties, context);
-        _databaseContext.Set<TTarget>().Add(newTarget);
+        DatabaseContext.Set<TTarget>().Add(newTarget);
         return newTarget;
     }
 
@@ -321,7 +317,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
         where TTarget : class
     {
         var identityEqualsExpression = EntityHandler.GetIdEqualsExpression<TSource, TTarget>(source);
-        var target = _databaseContext.Set<TTarget>().FirstOrDefault(identityEqualsExpression);
+        var target = DatabaseContext.Set<TTarget>().FirstOrDefault(identityEqualsExpression);
         if (target == null)
         {
             if (!mapType.AllowsInsert())
@@ -330,7 +326,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             }
 
             target = EntityHandler.Make<TTarget>();
-            _databaseContext.Set<TTarget>().Add(target);
+            DatabaseContext.Set<TTarget>().Add(target);
         }
         else
         {

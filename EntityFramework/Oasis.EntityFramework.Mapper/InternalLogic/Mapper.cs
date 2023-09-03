@@ -32,6 +32,7 @@ internal sealed class Mapper : IMapper
     private readonly KeepUnmatchedManager _keepUnmatchedManager;
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
     private readonly ToMemoryRecursiveMapper _toMemoryRecursiveMapper;
+    private readonly ToDatabaseRecursiveMapper _toDatabaseRecursiveMapper;
     private readonly RecursiveMappingContextFactory _contextFactory;
     private readonly IRecursiveMappingContext _context;
 
@@ -52,6 +53,7 @@ internal sealed class Mapper : IMapper
         _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
         _contextFactory = contextFactory;
         _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityHandler);
+        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityHandler, keepUnmatchedManager, mapToDatabaseTypeManager);
         _context = _contextFactory.Make();
     }
 
@@ -69,14 +71,10 @@ internal sealed class Mapper : IMapper
         where TSource : class
         where TTarget : class
     {
-        var target = _context.GetTracked<TSource, TTarget>(source, out var tracker);
-        if (target == null)
-        {
-            target = _entityHandler.Make<TTarget>();
-            tracker!.Track(target);
-            _toMemoryRecursiveMapper.Map(source, target, MapKeyProperties.IdAndConcurrencyToken, _context);
-        }
-
+        var tracker = _context.GetTracker<TSource, TTarget>(source);
+        var target = _entityHandler.Make<TTarget>();
+        tracker!.Track(target);
+        _toMemoryRecursiveMapper.Map(source, target, MapKeyProperties.IdAndConcurrencyToken, _context);
         _context.Clear();
         return target;
     }
@@ -85,8 +83,9 @@ internal sealed class Mapper : IMapper
         where TSource : class
         where TTarget : class
     {
-        var toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(_scalarConverter, _listTypeConstructor, _lookup, _entityHandler, _keepUnmatchedManager, _mapToDatabaseTypeManager, databaseContext);
-        var target = await toDatabaseRecursiveMapper.MapAsync(source, includer, _context);
+        var tracker = _context.GetTracker<TSource, TTarget>(source);
+        _toDatabaseRecursiveMapper.DatabaseContext = databaseContext;
+        var target = await _toDatabaseRecursiveMapper.MapAsync(source, includer, tracker, _context);
         _context.Clear();
         return target;
     }
@@ -140,13 +139,22 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         DbContext databaseContext)
     {
         _context = context;
-        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityHandler, keepUnmatchedManager, mapToDatabaseTypeManager, databaseContext);
+        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(scalarConverter, listTypeConstructor, lookup, entityHandler, keepUnmatchedManager, mapToDatabaseTypeManager)
+        {
+            DatabaseContext = databaseContext,
+        };
     }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
         where TSource : class
         where TTarget : class
     {
-        return await _toDatabaseRecursiveMapper.MapAsync(source, includer, _context);
+        var trackedTarget = _context.GetTracked<TSource, TTarget>(source, out var tracker);
+        if (trackedTarget != null)
+        {
+            return trackedTarget;
+        }
+
+        return await _toDatabaseRecursiveMapper.MapAsync(source, includer, tracker!, _context);
     }
 }
