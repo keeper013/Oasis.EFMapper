@@ -22,10 +22,8 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Dictionary<Type, Dictionary<Type, TargetByIdTrackerMetaDataSet>>> _targetByIdTrackers = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
-    private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityDefaultConstructors = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityListDefaultConstructors = new ();
-    private readonly HashSet<Type> _targetsToBeTracked = new ();
     private readonly IMapperTypeValidator _scalarMapperTypeValidator;
     private readonly IMapperTypeValidator _entityMapperTypeValidator;
     private readonly KeyPropertyNameManager _keyPropertyNames;
@@ -391,7 +389,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
 
         RegisterEntityDefaultConstructorMethod(targetType);
-        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping, _targetsToBeTracked));
+        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext());
     }
 
     private (PropertyInfo?, PropertyInfo?, PropertyInfo?, PropertyInfo?) ExtractKeyProperties(

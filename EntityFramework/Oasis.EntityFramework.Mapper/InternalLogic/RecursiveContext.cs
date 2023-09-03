@@ -42,62 +42,14 @@ internal interface IRecursiveRegister
 
 internal interface IRecursiveRegisterContext : IRecursiveContext
 {
-    void DumpLoopDependency();
-
-    void DumpTargetsToBeTracked();
-
     void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered);
 }
 
 internal sealed class RecursiveRegisterContext : RecursiveContext, IRecursiveRegisterContext
 {
-    private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping;
-    private readonly ISet<Type> _targetsToBeTracked;
-
-    public RecursiveRegisterContext(Dictionary<Type, ISet<Type>> loopDependencyMapping, ISet<Type> targetsToBeTracked)
-    {
-        _loopDependencyMapping = loopDependencyMapping;
-        _targetsToBeTracked = targetsToBeTracked;
-    }
-
-    public void DumpLoopDependency()
-    {
-        foreach (var mappingTuple in Stack)
-        {
-            if (_loopDependencyMapping.TryGetValue(mappingTuple.Item1, out var set))
-            {
-                set.Add(mappingTuple.Item2);
-            }
-            else
-            {
-                _loopDependencyMapping.Add(mappingTuple.Item1, new HashSet<Type> { mappingTuple.Item2 });
-            }
-        }
-    }
-
-    public void DumpTargetsToBeTracked()
-    {
-        foreach (var mappingTuple in Stack)
-        {
-            _targetsToBeTracked.Add(mappingTuple.Item2);
-        }
-    }
-
     public void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered)
     {
-        if (hasRegistered)
-        {
-            if (_loopDependencyMapping.TryGetValue(sourceType, out var set) && set.Contains(targetType))
-            {
-                // this is a short cut to identify loop dependency if the mapping to the same source type to target type has been recorded
-                DumpLoopDependency();
-            }
-        }
-        else if (Stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
-        {
-            DumpLoopDependency();
-        }
-        else
+        if (!hasRegistered && !Stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
         {
             recursiveRegister.RecursivelyRegister(sourceType, targetType, this);
         }
