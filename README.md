@@ -319,7 +319,10 @@ var mapper = MakeDefaultMapperBuilder()
 ```
 This configuration specifies that when mapping an instance of *Borrower* to an instance of *BorrowerBriefDTO*, "Phone" property of *BorrowerBriefDTO* should be mapped as configured by the inline method *borrower => borrower.Contact.PhoneNumber*.
 ### TestCase7_Session
-During mapping, there could be cases where multiple entities share some same instances for nevigation entities. Like in this example, many books may share the same tag. During a call of *IMapper.Map* or *IMapper.MapAsync*, **the library** makes sure that each entity is only mapped once, which avoids redundant mapping, and guarantees mapping result is correct.
+During mapping, there could be cases where multiple entities share some same instances for nevigation entities. Like in this example, many books may share the same tag. So for the different book instances, it would be ideal if the books can share the same instance for the same tags.
+
+During a call of *IMapper.Map* or *IMapper.MapAsync*, **the library** makes sure that each entity is only mapped once, which avoids redundant mapping, and guarantees mapping result is correct. But it doesn't track entities between the method calls.
+
 Examples in this test case uses a *NewBookWithNewTagDTO*, which adds new books together with new tags. Business wise this may not make sense, considering books and tags are not-so-connected entities that are supposed to be managed separately, here we ignore this, and just use it to demonstrate this feature of **the library**.
 ```C#
 var tag = new NewTagDTO { Name = "Tag1" };
@@ -332,7 +335,11 @@ _ = await mapper.MapAsync<NewBookWithNewTagDTO, Book>(book2, null, databaseConte
 _ = await databaseContext.SaveChangesAsync();
 ```
 In the sample code above we mean to add 2 new books with the same new tag, mapper.MapAsync is called twice. For the first time, **the library** inserts "Book1" and "Tag1" into the database; for the second time, **the library** tries to insert "Books2" and "Tag1", which triggers a database exception because name of tag is supposed to be unique in the database. The point is, inserting "Tag1" twice isn't the purpose, but since the same instance appears in 2 different calls to *MapAsync*, **the library** doesn't know for the second call, the data presented by the NewTagDTO has been mapped in previous processes that it's not supposed to be inserted again. **The library** only guarantees to map the same instance once per mapping, with *IMapper.Map* or *IMapper.MapAsync* there no way to trace mapped entities between such calls.
+
 To overcome this problem, **the library** provides a session concept to extend the scope of mapping-only-once scenario. *IMapper.CreateMappingSession* creates a map to memory session which can track mapped from entities among as many calls as possible; *IMapper.CreateMappingToDatabaseSession* creates a similar map to database session. I doubt if this use case is needed a lot, but in case it is, the mechanism is provided.
+
+Note that if a POCO has 2 navigagion properties of the same instance (For example, class *Class1* has Property *Property1* and *Property2*, values of both are the same instance of class *ClassP*), a session will be unnecessary for mapping an instance of *Class1* to another class instance (e.g. *Class2*). As mentioned in the beginning of this section, each entity is only mapped once during a call of *IMapper.Map* or *IMapper.MapAsync*. The same instance is considered the same entity, so Property *Property1* and *Property2* of the mapped instance of *Class2* will also be the same instance (in C#, they have the same hash code). This feature to guarantee that same instances can be mapped to same instances avoids redudent data record being inserted into databases. It's necessary due to nature of use cases of **the library**, not provided by AutoMapper (which doesn't have this use case), and is the reason for **the library** to be slower than AutoMapper.
+
 **The library** trackes both hash code of an entity or identity property value of it (for entity to be updated) to judge if an entity has been mapped from.
 ### TestCase8_InsertUpdateLimit
 **The library** provides a safety check mechanism to guarantee correct usage of mappings, which limits insertion/updation when mapping from a DTO class to a database entity class. Like for UpdateBookDTO, if it's only supposed to be used to update an existing book into database, never inserting a new book into database, this can be guaranteed with a configuration.
