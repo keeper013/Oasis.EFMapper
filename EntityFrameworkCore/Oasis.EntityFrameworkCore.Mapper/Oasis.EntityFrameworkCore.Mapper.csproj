@@ -15,6 +15,8 @@
 	<PackageTags>EntityFrameworkCore, IL weaving</PackageTags>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<PackageIcon>Oasis.png</PackageIcon>
+	<SignAssembly>True</SignAssembly>
+	<AssemblyOriginatorKeyFile>D:\GitHub\Oasis.EFMapper\Oasis.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
 	<ItemGroup>
