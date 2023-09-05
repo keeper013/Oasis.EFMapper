@@ -14,6 +14,7 @@
 	<RepositoryUrl>https://github.com/keeper013/Oasis.EFMapper.git</RepositoryUrl>
 	<PackageTags>EntityFrameworkCore, IL weaving</PackageTags>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageIcon>Oasis.png</PackageIcon>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -24,6 +25,10 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\Document\Oasis.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
