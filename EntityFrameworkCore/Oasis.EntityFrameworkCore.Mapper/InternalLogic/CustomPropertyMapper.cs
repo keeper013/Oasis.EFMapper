@@ -24,18 +24,6 @@ internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper
 
     private static PropertyInfo GetProperty<TEntity, TProperty>(Expression<Func<TEntity, TProperty>> expression)
     {
-        var member = GetMemberExpression(expression).Member;
-        var property = member as PropertyInfo;
-        if (property == null)
-        {
-            throw new InvalidOperationException(string.Format("Member with Name '{0}' is not a property.", member.Name));
-        }
-
-        return property;
-    }
-
-    private static MemberExpression GetMemberExpression<TEntity, TProperty>(Expression<Func<TEntity, TProperty>> expression)
-    {
         MemberExpression? memberExpression = null;
         if (expression.Body.NodeType == ExpressionType.Convert)
         {
@@ -52,7 +40,11 @@ internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper
             throw new ArgumentException("Not a member access", nameof(expression));
         }
 
-        return memberExpression;
+        var member = memberExpression.Member;
+        var property = member as PropertyInfo;
+        return property == null
+            ? throw new InvalidOperationException(string.Format("Member with Name '{0}' is not a property.", member.Name))
+            : property;
     }
 
     private void MapPropertiesFunc(TSource source, TTarget target)
