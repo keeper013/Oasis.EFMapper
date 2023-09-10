@@ -1,13 +1,14 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-internal sealed class MapperBuilderConfigurationBuilder : BuilderConfiguration<MapperBuilderFactory, IMapperBuilderFactory>, IMapperBuilderConfigurationBuilder, IMapperBuilderConfiguration
+internal sealed class MapperBuilderConfigurationBuilder : IMapperBuilderConfigurationBuilder, IMapperBuilderConfiguration
 {
     private readonly HashSet<string> _excludedProperties = new ();
+    private readonly IMapperBuilderFactory _factory;
 
-    public MapperBuilderConfigurationBuilder(MapperBuilderFactory factory)
-        : base(factory)
+    public MapperBuilderConfigurationBuilder(IMapperBuilderFactory factory)
     {
         MapToDatabaseType = MapToDatabaseType.Upsert;
+        _factory = factory;
     }
 
     public string? IdentityPropertyName { get; private set; }
@@ -28,6 +29,11 @@ internal sealed class MapperBuilderConfigurationBuilder : BuilderConfiguration<M
         }
 
         return this;
+    }
+
+    public IMapperBuilderFactory Finish()
+    {
+        return _factory;
     }
 
     public IMapperBuilderConfigurationBuilder SetConcurrencyTokenPropertyName(string? concurrencyTokenPropertyName)
@@ -59,10 +65,5 @@ internal sealed class MapperBuilderConfigurationBuilder : BuilderConfiguration<M
     {
         ThrowForRedundantConfiguration = doThrow ?? true;
         return this;
-    }
-
-    protected override void Configure(MapperBuilderFactory configurator)
-    {
-        configurator.Configure(this);
     }
 }

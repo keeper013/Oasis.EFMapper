@@ -31,7 +31,7 @@ public abstract class BuilderConfiguration<TConfigurator, TInterface> : IConfigu
 
 public sealed class MapperBuilderFactory : IMapperBuilderFactory
 {
-    private IMapperBuilderConfiguration? _configuration;
+    private MapperBuilderConfigurationBuilder? _configuration;
 
     public IMapperBuilder MakeMapperBuilder()
     {
@@ -40,12 +40,7 @@ public sealed class MapperBuilderFactory : IMapperBuilderFactory
 
     public IMapperBuilderConfigurationBuilder Configure()
     {
-        return new MapperBuilderConfigurationBuilder(this);
-    }
-
-    public void Configure(IMapperBuilderConfiguration configuration)
-    {
-        _configuration = configuration;
+        return _configuration ??= new MapperBuilderConfigurationBuilder(this);
     }
 
     private static string GenerateRandomTypeName(int length)
