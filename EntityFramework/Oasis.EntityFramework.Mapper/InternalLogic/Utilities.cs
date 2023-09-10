@@ -86,65 +86,82 @@ internal static class Utilities
             : new MapperMetaDataSet(customPropertiesMapper, keyMapper, contentMapper);
     }
 
-    internal static void AddIfNotExists<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, T value, bool? extraCondition = null)
+    internal static bool AddIfNotExists<TKey1, TKey2, TValue>(this Dictionary<TKey1, Dictionary<TKey2, TValue>> dict, TKey1 key1, TKey2 key2, TValue value, bool? extraCondition = null)
+        where TKey1 : notnull
+        where TKey2 : notnull
     {
         if (!extraCondition.HasValue || extraCondition.Value)
         {
-            if (!dict.TryGetValue(sourceType, out var innerDict))
+            if (!dict.TryGetValue(key1, out var innerDict))
             {
-                innerDict = new Dictionary<Type, T>();
-                dict[sourceType] = innerDict;
+                innerDict = new Dictionary<TKey2, TValue>();
+                dict[key1] = innerDict;
             }
 
-            if (!innerDict.ContainsKey(targetType))
+            if (!innerDict.ContainsKey(key2))
             {
-                innerDict.Add(targetType, value);
+                innerDict.Add(key2, value);
+                return true;
             }
         }
+
+        return false;
     }
 
-    internal static void AddOrUpdateNull<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, T value, bool? extraCondition = null)
+    internal static bool AddOrUpdateNull<TKey1, TKey2, TValue>(this Dictionary<TKey1, Dictionary<TKey2, TValue>> dict, TKey1 key1, TKey2 key2, TValue value, bool? extraCondition = null)
+        where TKey1 : notnull
+        where TKey2 : notnull
     {
         if (!extraCondition.HasValue || extraCondition.Value)
         {
-            if (!dict.TryGetValue(sourceType, out var innerDict))
+            if (!dict.TryGetValue(key1, out var innerDict))
             {
-                innerDict = new Dictionary<Type, T>();
-                dict[sourceType] = innerDict;
+                innerDict = new Dictionary<TKey2, TValue>();
+                dict[key1] = innerDict;
             }
 
-            if (!innerDict.TryGetValue(targetType, out var existing) || existing == null)
+            if (!innerDict.TryGetValue(key2, out var existing) || existing == null)
             {
-                innerDict[targetType] = value;
+                innerDict[key2] = value;
+                return true;
             }
         }
+
+        return false;
     }
 
-    internal static void AddIfNotExists<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType, Func<T> func, bool? extraCondition = null)
+    internal static bool AddIfNotExists<TKey1, TKey2, TValue>(this Dictionary<TKey1, Dictionary<TKey2, TValue>> dict, TKey1 key1, TKey2 key2, Func<TValue> func, bool? extraCondition = null)
+        where TKey1 : notnull
+        where TKey2 : notnull
     {
         if (!extraCondition.HasValue || extraCondition.Value)
         {
-            if (!dict.TryGetValue(sourceType, out var innerDict))
+            if (!dict.TryGetValue(key1, out var innerDict))
             {
-                innerDict = new Dictionary<Type, T>();
-                dict[sourceType] = innerDict;
+                innerDict = new Dictionary<TKey2, TValue>();
+                dict[key1] = innerDict;
             }
 
-            if (!innerDict.ContainsKey(targetType))
+            if (!innerDict.ContainsKey(key2))
             {
-                innerDict![targetType] = func();
+                innerDict![key2] = func();
+                return true;
             }
         }
+
+        return false;
     }
 
-    internal static T? Pop<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
+    internal static TValue? Pop<TKey1, TKey2, TValue>(this Dictionary<TKey1, Dictionary<TKey2, TValue>> dict, TKey1 key1, TKey2 key2)
+        where TKey1 : notnull
+        where TKey2 : notnull
     {
-        if (dict.TryGetValue(sourceType, out var innerDict) && innerDict.TryGetValue(targetType, out var item))
+        if (dict.TryGetValue(key1, out var innerDict) && innerDict.TryGetValue(key2, out var item))
         {
-            innerDict.Remove(targetType);
+            innerDict.Remove(key2);
             if (!innerDict.Any())
             {
-                dict.Remove(sourceType);
+                dict.Remove(key1);
             }
 
             return item;
@@ -153,29 +170,37 @@ internal static class Utilities
         return default;
     }
 
-    internal static T? Find<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
+    internal static TValue? Find<TKey1, TKey2, TValue>(this Dictionary<TKey1, Dictionary<TKey2, TValue>> dict, TKey1 key1, TKey2 key2)
+        where TKey1 : notnull
+        where TKey2 : notnull
     {
-        return dict.TryGetValue(sourceType, out var innerDict) && innerDict.TryGetValue(targetType, out var item)
+        return dict.TryGetValue(key1, out var innerDict) && innerDict.TryGetValue(key2, out var item)
             ? item : default;
     }
 
-    internal static bool Contains<T>(this Dictionary<Type, Dictionary<Type, T>> dict, Type sourceType, Type targetType)
+    internal static bool Contains<TKey1, TKey2, TValue>(this Dictionary<TKey1, Dictionary<TKey2, TValue>> dict, TKey1 key1, TKey2 key2)
+        where TKey1 : notnull
+        where TKey2 : notnull
     {
-        return dict.TryGetValue(sourceType, out var innerDict) && innerDict.ContainsKey(targetType);
+        return dict.TryGetValue(key1, out var innerDict) && innerDict.ContainsKey(key2);
     }
 
-    internal static T? Find<T>(this IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, T>> dict, Type sourceType, Type targetType)
+    internal static TValue? Find<TKey1, TKey2, TValue>(this IReadOnlyDictionary<TKey1, IReadOnlyDictionary<TKey2, TValue>> dict, TKey1 key1, TKey2 key2)
+        where TKey1 : notnull
+        where TKey2 : notnull
     {
-        return dict.TryGetValue(sourceType, out var innerDict) && innerDict.TryGetValue(targetType, out var item)
+        return dict.TryGetValue(key1, out var innerDict) && innerDict.TryGetValue(key2, out var item)
             ? item : default;
     }
 
-    internal static Dictionary<Type, IReadOnlyDictionary<Type, Delegate>> MakeDelegateDictionary(IReadOnlyDictionary<Type, Dictionary<Type, MethodMetaData>> metaDataDict, Type type)
+    internal static Dictionary<TKey1, IReadOnlyDictionary<TKey2, Delegate>> MakeDelegateDictionary<TKey1, TKey2>(IReadOnlyDictionary<TKey1, Dictionary<TKey2, MethodMetaData>> metaDataDict, Type type)
+        where TKey1 : notnull
+        where TKey2 : notnull
     {
-        var result = new Dictionary<Type, IReadOnlyDictionary<Type, Delegate>>();
+        var result = new Dictionary<TKey1, IReadOnlyDictionary<TKey2, Delegate>>();
         foreach (var pair in metaDataDict)
         {
-            var innerDictionary = new Dictionary<Type, Delegate>();
+            var innerDictionary = new Dictionary<TKey2, Delegate>();
             foreach (var innerPair in pair.Value)
             {
                 var comparer = innerPair.Value;

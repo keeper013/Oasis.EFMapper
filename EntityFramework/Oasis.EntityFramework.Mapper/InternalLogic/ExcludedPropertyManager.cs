@@ -48,12 +48,6 @@ internal class ExcludedPropertyManager
 
     public void Add(Type sourceType, Type targetType, ISet<string> excludedProperties)
     {
-        if (!_mappingExcludedProperties.TryGetValue(sourceType, out var inner))
-        {
-            inner = new Dictionary<Type, ISet<string>>();
-            _mappingExcludedProperties.Add(sourceType, inner);
-        }
-
-        inner.Add(targetType, excludedProperties);
+        _mappingExcludedProperties.AddIfNotExists(sourceType, targetType, excludedProperties);
     }
 }

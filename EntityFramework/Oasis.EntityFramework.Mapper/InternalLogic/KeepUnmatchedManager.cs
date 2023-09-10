@@ -33,12 +33,6 @@ internal class KeepUnmatchedManager
 
     public void Add(Type sourceType, Type targetType, ISet<string> excludedProperties)
     {
-        if (!_mappingKeepUnmatchedProperties.TryGetValue(sourceType, out var inner))
-        {
-            inner = new Dictionary<Type, ISet<string>>();
-            _mappingKeepUnmatchedProperties.Add(sourceType, inner);
-        }
-
-        inner.Add(targetType, excludedProperties);
+        _mappingKeepUnmatchedProperties.AddIfNotExists(sourceType, targetType, excludedProperties);
     }
 }
