@@ -280,58 +280,65 @@ internal sealed class MapperRegistry : IRecursiveRegister
 
         var configuration = _toBeRegistered.Pop(sourceType, targetType);
 
-        using var ctx = new RecursiveContextPopper(context, sourceType, targetType);
-        var (sourceExcludedProperties, targetExcludedProperties) = _excludedPropertyManager.GetExcludedPropertyNames(sourceType, targetType);
-        var sourceProperties = sourceExcludedProperties != null
-            ? sourceType.GetProperties(Utilities.PublicInstance).Where(p => !sourceExcludedProperties.Contains(p.Name)).ToList()
-            : sourceType.GetProperties(Utilities.PublicInstance).ToList();
-        var targetProperties = targetExcludedProperties != null
-            ? targetType.GetProperties(Utilities.PublicInstance).Where(p => !targetExcludedProperties.Contains(p.Name)).ToList()
-            : targetType.GetProperties(Utilities.PublicInstance).ToList();
-        if (configuration?.CustomPropertyMapper != null)
+        try
         {
-            targetProperties = targetProperties.Except(configuration.CustomPropertyMapper.MappedTargetProperties).ToList();
-        }
-
-        var (sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty) =
-            ExtractKeyProperties(sourceType, targetType, sourceProperties, targetProperties, sourceExcludedProperties, targetExcludedProperties);
-
-        RegisterSourceIdEqualsTargetIdMethod(sourceType, sourceIdentityProperty, targetType, targetIdentityProperty);
-        RegisterKeyProperty(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder, _typeIdProxies, KeyType.Id);
-        RegisterKeyProperty(sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder, _typeConcurrencyTokenProxies, KeyType.ConcurrencyToken);
-        RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder);
-        RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder);
-        RegisterTargetByIdTracker(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty);
-
-        if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet?>? innerMapper))
-        {
-            innerMapper = new Dictionary<Type, MapperMetaDataSet?>();
-            _mapper[sourceType] = innerMapper;
-        }
-
-        if (!innerMapper.ContainsKey(targetType))
-        {
-            if (configuration?.MapToDatabaseType != null)
+            context.Push(sourceType, targetType);
+            var (sourceExcludedProperties, targetExcludedProperties) = _excludedPropertyManager.GetExcludedPropertyNames(sourceType, targetType);
+            var sourceProperties = sourceExcludedProperties != null
+                ? sourceType.GetProperties(Utilities.PublicInstance).Where(p => !sourceExcludedProperties.Contains(p.Name)).ToList()
+                : sourceType.GetProperties(Utilities.PublicInstance).ToList();
+            var targetProperties = targetExcludedProperties != null
+                ? targetType.GetProperties(Utilities.PublicInstance).Where(p => !targetExcludedProperties.Contains(p.Name)).ToList()
+                : targetType.GetProperties(Utilities.PublicInstance).ToList();
+            if (configuration?.CustomPropertyMapper != null)
             {
-                _mapToDatabaseDictionary.AddIfNotExists(sourceType, targetType, configuration.MapToDatabaseType.Value);
+                targetProperties = targetProperties.Except(configuration.CustomPropertyMapper.MappedTargetProperties).ToList();
             }
 
-            var keyMapper = _dynamicMethodBuilder.BuildUpKeyPropertiesMapperMethod(
-                sourceType,
-                targetType,
-                sourceIdentityProperty,
-                targetIdentityProperty,
-                sourceConcurrencyTokenProperty,
-                targetConcurrencyTokenProperty);
+            var (sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty) =
+                ExtractKeyProperties(sourceType, targetType, sourceProperties, targetProperties, sourceExcludedProperties, targetExcludedProperties);
 
-            var contentMapper = _dynamicMethodBuilder.BuildUpContentMappingMethod(
-                sourceType,
-                targetType,
-                sourceProperties,
-                targetProperties,
-                this,
-                context);
-            innerMapper[targetType] = Utilities.BuildMapperMetaDataSet(configuration?.CustomPropertyMapper?.MapProperties, keyMapper, contentMapper);
+            RegisterSourceIdEqualsTargetIdMethod(sourceType, sourceIdentityProperty, targetType, targetIdentityProperty);
+            RegisterKeyProperty(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder, _typeIdProxies, KeyType.Id);
+            RegisterKeyProperty(sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder, _typeConcurrencyTokenProxies, KeyType.ConcurrencyToken);
+            RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder);
+            RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder);
+            RegisterTargetByIdTracker(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty);
+
+            if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet?>? innerMapper))
+            {
+                innerMapper = new Dictionary<Type, MapperMetaDataSet?>();
+                _mapper[sourceType] = innerMapper;
+            }
+
+            if (!innerMapper.ContainsKey(targetType))
+            {
+                if (configuration?.MapToDatabaseType != null)
+                {
+                    _mapToDatabaseDictionary.AddIfNotExists(sourceType, targetType, configuration.MapToDatabaseType.Value);
+                }
+
+                var keyMapper = _dynamicMethodBuilder.BuildUpKeyPropertiesMapperMethod(
+                    sourceType,
+                    targetType,
+                    sourceIdentityProperty,
+                    targetIdentityProperty,
+                    sourceConcurrencyTokenProperty,
+                    targetConcurrencyTokenProperty);
+
+                var contentMapper = _dynamicMethodBuilder.BuildUpContentMappingMethod(
+                    sourceType,
+                    targetType,
+                    sourceProperties,
+                    targetProperties,
+                    this,
+                    context);
+                innerMapper[targetType] = Utilities.BuildMapperMetaDataSet(configuration?.CustomPropertyMapper?.MapProperties, keyMapper, contentMapper);
+            }
+        }
+        finally
+        {
+            context.Pop();
         }
     }
 

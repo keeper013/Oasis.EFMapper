@@ -1,34 +1,5 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-internal abstract class RecursiveContext
-{
-    public Type CurrentTarget => Stack.Peek().Item2;
-
-    public (Type, Type) Current => Stack.Peek();
-
-    protected Stack<(Type, Type)> Stack { get; } = new ();
-
-    public void Push(Type sourceType, Type targetType) => Stack.Push((sourceType, targetType));
-
-    public void Pop() => Stack.Pop();
-}
-
-internal sealed class RecursiveContextPopper : IDisposable
-{
-    private readonly IRecursiveContext? _context;
-
-    public RecursiveContextPopper(IRecursiveContext? context, Type sourceType, Type targetType)
-    {
-        _context = context;
-        _context?.Push(sourceType, targetType);
-    }
-
-    public void Dispose()
-    {
-        _context?.Pop();
-    }
-}
-
 internal interface IRecursiveRegister
 {
     void RecursivelyRegister(Type sourceType, Type targetType, IRecursiveRegisterContext context);
@@ -40,16 +11,26 @@ internal interface IRecursiveRegister
     void RegisterForListItemProperty(Type sourceListItemPropertyType, Type targetListItemPropertyType);
 }
 
-internal interface IRecursiveRegisterContext : IRecursiveContext
+internal interface IRecursiveRegisterContext
 {
+    void Push(Type sourceType, Type targetType);
+
+    void Pop();
+
     void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered);
 }
 
-internal sealed class RecursiveRegisterContext : RecursiveContext, IRecursiveRegisterContext
+internal sealed class RecursiveRegisterContext : IRecursiveRegisterContext
 {
+    private Stack<(Type, Type)> _stack = new ();
+
+    public void Push(Type sourceType, Type targetType) => _stack.Push((sourceType, targetType));
+
+    public void Pop() => _stack.Pop();
+
     public void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered)
     {
-        if (!hasRegistered && !Stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
+        if (!hasRegistered && !_stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
         {
             recursiveRegister.RecursivelyRegister(sourceType, targetType, this);
         }
@@ -173,7 +154,7 @@ internal sealed class RecursiveMappingContextFactory
         return new RecursiveMappingContext(dict, this);
     }
 
-    private sealed class RecursiveMappingContext : RecursiveContext, IRecursiveMappingContext
+    private sealed class RecursiveMappingContext : IRecursiveMappingContext
     {
         private readonly Dictionary<Type, Dictionary<int, object>> _targetByHashCode = new ();
         private readonly IReadOnlyDictionary<Type, ITargetByIdTracker> _targetByIdTrackers;

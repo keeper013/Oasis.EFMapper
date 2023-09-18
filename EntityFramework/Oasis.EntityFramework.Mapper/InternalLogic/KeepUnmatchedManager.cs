@@ -4,23 +4,40 @@ internal class KeepUnmatchedManager
 {
     private readonly Dictionary<Type, ISet<string>> _typeKeepUnmatchedProperties = new ();
     private readonly Dictionary<Type, Dictionary<Type, ISet<string>>> _mappingKeepUnmatchedProperties = new ();
+    private readonly Stack<(Type, Type)> _stack = new ();
+
+    public bool IsEmpty => !_typeKeepUnmatchedProperties.Any() && !_mappingKeepUnmatchedProperties.Any();
+
+    public void Push(Type sourceType, Type targetType)
+    {
+        _stack.Push((sourceType, targetType));
+    }
+
+    public void Pop()
+    {
+        _stack.Pop();
+    }
 
     public bool ContainsTypeConfiguration(Type type)
     {
         return _typeKeepUnmatchedProperties.ContainsKey(type);
     }
 
-    public bool KeepUnmatched(Type sourceType, Type targetType, string propertyName)
+    public bool KeepUnmatched(string propertyName)
     {
-        var mappingProperties = _mappingKeepUnmatchedProperties.Find(sourceType, targetType);
-        if (mappingProperties != null && mappingProperties.Contains(propertyName))
+        if (_stack.Any())
         {
-            return true;
-        }
+            var (sourceType, targetType) = _stack.Peek();
+            var mappingProperties = _mappingKeepUnmatchedProperties.Find(sourceType, targetType);
+            if (mappingProperties != null && mappingProperties.Contains(propertyName))
+            {
+                return true;
+            }
 
-        if (_typeKeepUnmatchedProperties.TryGetValue(targetType, out var keepUnmatchedProperties) && keepUnmatchedProperties.Contains(propertyName))
-        {
-            return true;
+            if (_typeKeepUnmatchedProperties.TryGetValue(targetType, out var keepUnmatchedProperties) && keepUnmatchedProperties.Contains(propertyName))
+            {
+                return true;
+            }
         }
 
         return false;

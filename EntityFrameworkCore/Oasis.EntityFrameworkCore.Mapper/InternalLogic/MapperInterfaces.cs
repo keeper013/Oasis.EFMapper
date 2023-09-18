@@ -5,25 +5,14 @@ public interface IScalarTypeConverter
     TTarget Convert<TSource, TTarget>(TSource source);
 }
 
-public interface IRecursiveContext
-{
-    void Push(Type sourceType, Type targetType);
-
-    void Pop();
-}
-
 public interface IEntityTracker<TTarget>
     where TTarget : class
 {
     void Track(TTarget target);
 }
 
-public interface IRecursiveMappingContext : IRecursiveContext
+public interface IRecursiveMappingContext
 {
-    Type CurrentTarget { get; }
-
-    (Type, Type) Current { get; }
-
     /// <summary>
     /// If target is tracked by hash code or id, return tracked target, or else make a new target and track it, then return the target.
     /// </summary>

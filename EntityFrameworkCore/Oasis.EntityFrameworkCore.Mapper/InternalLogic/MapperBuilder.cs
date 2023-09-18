@@ -25,7 +25,7 @@ internal sealed class MapperBuilder : IMapperBuilder
         var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
         var entityHandler = _mapperRegistry.MakeEntityHandler(type, scalarTypeConverter);
         var recursiveMappingContextFactory = _mapperRegistry.MakeRecursiveMappingContextFactory(type, entityHandler, scalarTypeConverter);
-        var keepUnmatchedManager = _mapperRegistry.KeepUnmatchedManager;
+        var keepUnmatchedManager = _mapperRegistry.KeepUnmatchedManager.IsEmpty ? null : _mapperRegistry.KeepUnmatchedManager;
         var mapToDatabaseTypeManager = _mapperRegistry.MakeMapToDatabaseTypeManager();
 
         // release some memory ahead

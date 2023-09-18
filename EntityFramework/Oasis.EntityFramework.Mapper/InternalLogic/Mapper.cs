@@ -1,27 +1,8 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
-using Oasis.EntityFramework.Mapper;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
-
-internal enum MapKeyProperties : byte
-{
-    /// <summary>
-    /// Mapping neither id nor concurrency token
-    /// </summary>
-    None = 0,
-
-    /// <summary>
-    /// Mapping id only
-    /// </summary>
-    IdOnly = 1,
-
-    /// <summary>
-    /// Mapping both id and concurrency token
-    /// </summary>
-    IdAndConcurrencyToken = 2,
-}
 
 internal sealed class Mapper : IMapper
 {
@@ -29,7 +10,7 @@ internal sealed class Mapper : IMapper
     private readonly IListTypeConstructor _listTypeConstructor;
     private readonly MapperSetLookUp _lookup;
     private readonly EntityHandler _entityHandler;
-    private readonly KeepUnmatchedManager _keepUnmatchedManager;
+    private readonly KeepUnmatchedManager? _keepUnmatchedManager;
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
     private readonly ToMemoryRecursiveMapper _toMemoryRecursiveMapper;
     private readonly ToDatabaseRecursiveMapper _toDatabaseRecursiveMapper;
@@ -41,7 +22,7 @@ internal sealed class Mapper : IMapper
         IListTypeConstructor listTypeConstructor,
         MapperSetLookUp lookup,
         EntityHandler entityHandler,
-        KeepUnmatchedManager keepUnmatchedManager,
+        KeepUnmatchedManager? keepUnmatchedManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
         RecursiveMappingContextFactory contextFactory)
     {
@@ -74,7 +55,7 @@ internal sealed class Mapper : IMapper
         var tracker = _context.GetTracker<TSource, TTarget>(source);
         var target = _entityHandler.Make<TTarget>();
         tracker!.Track(target);
-        _toMemoryRecursiveMapper.Map(source, target, MapKeyProperties.IdAndConcurrencyToken, _context);
+        _toMemoryRecursiveMapper.Map(source, target, _context);
         _context.Clear();
         return target;
     }
@@ -116,7 +97,7 @@ internal sealed class MappingSession : IMappingSession
         {
             target = _entityHandler.Make<TTarget>();
             tracker!.Track(target);
-            _toMemoryRecursiveMapper.Map(source, target, MapKeyProperties.IdAndConcurrencyToken, _context);
+            _toMemoryRecursiveMapper.Map(source, target, _context);
         }
 
         return target;
@@ -134,7 +115,7 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         MapperSetLookUp lookup,
         EntityHandler entityHandler,
         IRecursiveMappingContext context,
-        KeepUnmatchedManager keepUnmatchedManager,
+        KeepUnmatchedManager? keepUnmatchedManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
         DbContext databaseContext)
     {
