@@ -249,7 +249,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper, IRecursiveMap
         }
     }
 
-    private void DoMapping<TSource, TTarget>(TSource source, TTarget target, bool mapId, IRecursiveMappingContext context)
+    private void Map<TSource, TTarget>(TSource source, TTarget target, bool mapId, IRecursiveMappingContext context)
         where TSource : class
         where TTarget : class
     {
@@ -277,6 +277,10 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper, IRecursiveMap
                 _keepUnmatchedManager?.Pop();
             }
         }
+        else
+        {
+            throw new UnregisteredMappingException(sourceType, targetType);
+        }
     }
 
     private TTarget MapToNewTarget<TSource, TTarget>(TSource source, bool mapId, IRecursiveMappingContext context, IEntityTracker<TTarget> tracker)
@@ -285,7 +289,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper, IRecursiveMap
     {
         var newTarget = _entityHandler.Make<TTarget>();
         tracker.Track(newTarget);
-        DoMapping(source, newTarget, mapId, context);
+        Map(source, newTarget, mapId, context);
         DatabaseContext.Set<TTarget>().Add(newTarget);
         return newTarget;
     }
@@ -302,7 +306,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper, IRecursiveMap
         }
 
         tracker.Track(existingTarget);
-        DoMapping(source, existingTarget, mapId, context);
+        Map(source, existingTarget, mapId, context);
     }
 
     private TTarget MapToExistingOrNewTarget<TSource, TTarget>(TSource source, IRecursiveMappingContext context, IEntityTracker<TTarget> tracker, MapToDatabaseType mapType)
@@ -337,7 +341,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper, IRecursiveMap
         }
 
         tracker.Track(target);
-        DoMapping(source, target, true, context);
+        Map(source, target, true, context);
         return target;
     }
 }
@@ -422,6 +426,10 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper, IRecursiveMappe
             (mapper.customPropertiesMapper as Action<TSource, TTarget>)?.Invoke(source, target);
             (mapper.keyMapper as Utilities.MapKeyProperties<TSource, TTarget>)?.Invoke(source, target, _scalarConverter, false);
             (mapper.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, _scalarConverter, this, context);
+        }
+        else
+        {
+            throw new UnregisteredMappingException(sourceType, targetType);
         }
     }
 }
