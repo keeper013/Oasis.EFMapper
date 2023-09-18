@@ -184,6 +184,13 @@ internal static class Utilities
         return dict.TryGetValue(key1, out var innerDict) && innerDict.ContainsKey(key2);
     }
 
+    internal static bool Contains<TKey1, TKey2>(this IReadOnlyDictionary<TKey1, IReadOnlySet<TKey2>> dict, TKey1 key1, TKey2 key2)
+        where TKey1 : notnull
+        where TKey2 : notnull
+    {
+        return dict.TryGetValue(key1, out var inner) && inner.Contains(key2);
+    }
+
     internal static TValue? Find<TKey1, TKey2, TValue>(this IReadOnlyDictionary<TKey1, IReadOnlyDictionary<TKey2, TValue>> dict, TKey1 key1, TKey2 key2)
         where TKey1 : notnull
         where TKey2 : notnull

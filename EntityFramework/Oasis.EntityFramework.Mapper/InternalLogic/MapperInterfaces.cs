@@ -13,6 +13,10 @@ public interface IEntityTracker<TTarget>
 
 public interface IRecursiveMappingContext
 {
+    TTarget TrackIfNecessaryAndMap<TSource, TTarget>(TSource source, TTarget? target, Func<TTarget> makeTarget, Action<TSource, TTarget, IRecursiveMappingContext> doMapping, bool tryGetTracked)
+            where TSource : class
+            where TTarget : class;
+
     /// <summary>
     /// If target is tracked by hash code or id, return tracked target, or else make a new target and track it, then return the target.
     /// </summary>

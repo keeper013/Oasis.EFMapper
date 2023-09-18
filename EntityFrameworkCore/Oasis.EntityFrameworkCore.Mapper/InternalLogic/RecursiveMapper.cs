@@ -370,22 +370,7 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper, IRecursiveMappe
     {
         if (source != default)
         {
-            var trackedTarget = context.GetTracked<TSource, TTarget>(source, out var tracker);
-            if (trackedTarget != null)
-            {
-                return trackedTarget;
-            }
-            else
-            {
-                if (target == default)
-                {
-                    target = _entityHandler.Make<TTarget>();
-                }
-
-                tracker!.Track(target);
-                Map(source, target!, context);
-                return target;
-            }
+            return context.TrackIfNecessaryAndMap(source, target, () => _entityHandler.Make<TTarget>(), (s, t, c) => Map(s, t, c), true);
         }
 
         return default;
@@ -397,14 +382,14 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper, IRecursiveMappe
     {
         if (source != default)
         {
+            var cach = new Dictionary<int, TTarget>();
             foreach (var s in source)
             {
-                var t = context.GetTracked<TSource, TTarget>(s, out var tracker);
-                if (t == default)
+                var sourceHashCode = s.GetHashCode();
+                if (!cach.TryGetValue(sourceHashCode, out var t))
                 {
-                    t = _entityHandler.Make<TTarget>();
-                    tracker!.Track(t);
-                    Map(s, t, context);
+                    t = context.TrackIfNecessaryAndMap(s, null, () => _entityHandler.Make<TTarget>(), (s, t, c) => Map(s, t, c), true);
+                    cach[sourceHashCode] = t;
                 }
 
                 target.Add(t);

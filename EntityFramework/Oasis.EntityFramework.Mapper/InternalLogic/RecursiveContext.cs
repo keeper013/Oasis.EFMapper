@@ -22,15 +22,48 @@ internal interface IRecursiveRegisterContext
 
 internal sealed class RecursiveRegisterContext : IRecursiveRegisterContext
 {
-    private Stack<(Type, Type)> _stack = new ();
+    private readonly Stack<(Type, Type)> _stack = new ();
+    private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping;
+
+    public RecursiveRegisterContext(Dictionary<Type, ISet<Type>> loopDependencyMapping)
+    {
+        _loopDependencyMapping = loopDependencyMapping;
+    }
 
     public void Push(Type sourceType, Type targetType) => _stack.Push((sourceType, targetType));
 
     public void Pop() => _stack.Pop();
 
+    public void DumpLoopDependency()
+    {
+        foreach (var mappingTuple in _stack)
+        {
+            if (_loopDependencyMapping.TryGetValue(mappingTuple.Item1, out var set))
+            {
+                set.Add(mappingTuple.Item2);
+            }
+            else
+            {
+                _loopDependencyMapping.Add(mappingTuple.Item1, new HashSet<Type> { mappingTuple.Item2 });
+            }
+        }
+    }
+
     public void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered)
     {
-        if (!hasRegistered && !_stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
+        if (hasRegistered)
+        {
+            if (_loopDependencyMapping.TryGetValue(sourceType, out var set) && set.Contains(targetType))
+            {
+                // this is a short cut to identify loop dependency if the mapping to the same source type to target type has been recorded
+                DumpLoopDependency();
+            }
+        }
+        else if (_stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
+        {
+            DumpLoopDependency();
+        }
+        else if (!hasRegistered && !_stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
         {
             recursiveRegister.RecursivelyRegister(sourceType, targetType, this);
         }
@@ -134,16 +167,22 @@ internal sealed class RecursiveMappingContextFactory
 {
     private readonly IReadOnlyDictionary<Type, Type> _targetIdentityTypeMapping;
     private readonly IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> _targetByIdTrackerFactories;
+    private readonly IReadOnlyDictionary<Type, ISet<Type>>? _loopDependencyMapping;
     private readonly EntityHandler _entityHandler;
 
-    public RecursiveMappingContextFactory(EntityHandler entityHandler, IReadOnlyDictionary<Type, Type> targetIdentityTypeMapping, IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories)
+    public RecursiveMappingContextFactory(
+        EntityHandler entityHandler,
+        IReadOnlyDictionary<Type, Type> targetIdentityTypeMapping,
+        IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories,
+        IReadOnlyDictionary<Type, ISet<Type>>? loopDependencyMapping)
     {
         _entityHandler = entityHandler;
         _targetIdentityTypeMapping = targetIdentityTypeMapping;
         _targetByIdTrackerFactories = targetByIdTrackerFactories;
+        _loopDependencyMapping = loopDependencyMapping;
     }
 
-    public IRecursiveMappingContext Make()
+    public IRecursiveMappingContext Make(bool forceTrack)
     {
         var dict = new Dictionary<Type, ITargetByIdTracker>();
         foreach (var kvp in _targetByIdTrackerFactories)
@@ -151,7 +190,18 @@ internal sealed class RecursiveMappingContextFactory
             dict.Add(kvp.Key, kvp.Value.Make());
         }
 
-        return new RecursiveMappingContext(dict, this);
+        if (forceTrack)
+        {
+            return new RecursiveMappingContext(dict, this, true);
+        }
+        else if (_loopDependencyMapping != null && _loopDependencyMapping.Any())
+        {
+            return new RecursiveMappingContext(dict, this, _loopDependencyMapping);
+        }
+        else
+        {
+            return new RecursiveMappingContext(dict, this, false);
+        }
     }
 
     private sealed class RecursiveMappingContext : IRecursiveMappingContext
@@ -159,16 +209,84 @@ internal sealed class RecursiveMappingContextFactory
         private readonly Dictionary<Type, Dictionary<int, object>> _targetByHashCode = new ();
         private readonly IReadOnlyDictionary<Type, ITargetByIdTracker> _targetByIdTrackers;
         private readonly RecursiveMappingContextFactory _factory;
+        private readonly IReadOnlyDictionary<Type, ISet<Type>>? _loopDependencyMapping;
+        private readonly bool? _track;
 
         // for mapping a single entity, it's ok to keep all tracker data here
         // for mapping list of entities, though this value will be overritten by every list item, but its value is gonna be correct for the whole list
         private Dictionary<int, object>? _hashCodeDictionary;
 
-        public RecursiveMappingContext(IReadOnlyDictionary<Type, ITargetByIdTracker> targetByIdTrackers, RecursiveMappingContextFactory factory)
+        public RecursiveMappingContext(IReadOnlyDictionary<Type, ITargetByIdTracker> targetByIdTrackers, RecursiveMappingContextFactory factory, bool track)
         {
             _targetByIdTrackers = targetByIdTrackers;
             _factory = factory;
             _hashCodeDictionary = null;
+            _loopDependencyMapping = null;
+            _track = track;
+        }
+
+        public RecursiveMappingContext(
+            IReadOnlyDictionary<Type, ITargetByIdTracker> targetByIdTrackers,
+            RecursiveMappingContextFactory factory,
+            IReadOnlyDictionary<Type, ISet<Type>> loopDependencyMapping)
+        {
+            _targetByIdTrackers = targetByIdTrackers;
+            _factory = factory;
+            _hashCodeDictionary = null;
+            _loopDependencyMapping = loopDependencyMapping;
+            _track = null;
+        }
+
+        public TTarget TrackIfNecessaryAndMap<TSource, TTarget>(
+            TSource source,
+            TTarget? target,
+            Func<TTarget> makeTarget,
+            Action<TSource, TTarget, IRecursiveMappingContext> doMapping,
+            bool tryGetTracked)
+            where TSource : class
+            where TTarget : class
+        {
+            if ((_track.HasValue && _track.Value) || (_loopDependencyMapping != null && _loopDependencyMapping.Contains(typeof(TSource), typeof(TTarget))))
+            {
+                IEntityTracker<TTarget>? tracker;
+                if (tryGetTracked)
+                {
+                    var trackedTarget = GetTracked(source, out tracker);
+                    if (trackedTarget != null)
+                    {
+                        return trackedTarget;
+                    }
+                }
+                else
+                {
+                    tracker = GetTracker<TSource, TTarget>(source);
+                }
+
+                if (target == default)
+                {
+                    target = makeTarget();
+                }
+
+                tracker!.Track(target);
+                doMapping(source, target, this);
+
+                if (!tryGetTracked)
+                {
+                    Clear();
+                }
+
+                return target;
+            }
+            else
+            {
+                if (target == default)
+                {
+                    target = makeTarget();
+                }
+
+                doMapping(source, target, this);
+                return target;
+            }
         }
 
         public TTarget? GetTracked<TSource, TTarget>(TSource source, out IEntityTracker<TTarget>? tracker)

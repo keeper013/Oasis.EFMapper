@@ -1,5 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
+using System.Collections.Generic;
 using System.Reflection.Emit;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
@@ -20,6 +21,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _sourceIdEqualsTargetId = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _sourceIdListContainsTargetId = new ();
     private readonly Dictionary<Type, Dictionary<Type, Dictionary<Type, TargetByIdTrackerMetaDataSet>>> _targetByIdTrackers = new ();
+    private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityDefaultConstructors = new ();
@@ -216,7 +218,17 @@ internal sealed class MapperRegistry : IRecursiveRegister
             }
         }
 
-        return new RecursiveMappingContextFactory(entityHandler, targetIdentityTypeMapping, targetByIdTrackerFactories);
+        Dictionary<Type, IReadOnlySet<Type>>? loopDependencies = null;
+        if (_loopDependencyMapping.Any())
+        {
+            loopDependencies = new Dictionary<Type, IReadOnlySet<Type>>();
+            foreach (var kvp in _loopDependencyMapping)
+            {
+                loopDependencies.Add(kvp.Key, new HashSet<Type>(kvp.Value));
+            }
+        }
+
+        return new RecursiveMappingContextFactory(entityHandler, targetIdentityTypeMapping, targetByIdTrackerFactories, loopDependencies);
     }
 
     public void RegisterEntityListDefaultConstructorMethod(Type listType)
@@ -396,7 +408,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
 
         RegisterEntityDefaultConstructorMethod(targetType);
-        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext());
+        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping));
     }
 
     private (PropertyInfo?, PropertyInfo?, PropertyInfo?, PropertyInfo?) ExtractKeyProperties(
