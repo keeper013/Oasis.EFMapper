@@ -382,14 +382,14 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapper, IRecursiveMappe
     {
         if (source != default)
         {
-            var cach = new Dictionary<int, TTarget>();
+            var cache = new Dictionary<int, TTarget>();
             foreach (var s in source)
             {
                 var sourceHashCode = s.GetHashCode();
-                if (!cach.TryGetValue(sourceHashCode, out var t))
+                if (!cache.TryGetValue(sourceHashCode, out var t))
                 {
                     t = context.TrackIfNecessaryAndMap(s, null, () => _entityHandler.Make<TTarget>(), (s, t, c) => Map(s, t, c), true);
-                    cach[sourceHashCode] = t;
+                    cache[sourceHashCode] = t;
                 }
 
                 target.Add(t);
