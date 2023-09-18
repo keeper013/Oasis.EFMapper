@@ -276,12 +276,15 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapper
             }
         }
 
-        var current = context.Current;
-        if (shadowSet.Any() && !_keepUnmatchedManager.KeepUnmatched(current.Item1, current.Item2, propertyName))
+        if (shadowSet.Any())
         {
-            foreach (var toBeRemoved in shadowSet)
+            var current = context.Current;
+            if (!_keepUnmatchedManager.KeepUnmatched(current.Item1, current.Item2, propertyName))
             {
-                target.Remove(toBeRemoved);
+                foreach (var toBeRemoved in shadowSet)
+                {
+                    target.Remove(toBeRemoved);
+                }
             }
         }
     }

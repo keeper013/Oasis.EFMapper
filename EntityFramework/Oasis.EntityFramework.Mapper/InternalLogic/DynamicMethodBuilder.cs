@@ -253,26 +253,26 @@ internal sealed class DynamicMethodBuilder
         var sourceIdentityType = sourceIdentityProperty.PropertyType;
         var targetIdentityType = targetIdentityProperty.PropertyType;
         var needToConvert = sourceIdentityType != targetIdentityType;
-        var idListType = typeof(List<>).MakeGenericType(targetIdentityType);
+        var identityListType = typeof(List<>).MakeGenericType(targetIdentityType);
         var countMethod = sourceListType.GetProperty(nameof(List<int>.Count), Utilities.PublicInstance)!.GetMethod!;
-        var idListConstructor = idListType.GetConstructor(new[] { typeof(int) })!;
+        var identityListConstructor = identityListType.GetConstructor(new[] { typeof(int) })!;
         var getEnumeratorMethod = sourceListType.GetMethod(nameof(List<int>.GetEnumerator), Utilities.PublicInstance)!;
         var enumeratorType = typeof(List<>.Enumerator).MakeGenericType(sourceType);
         var getCurrentMethod = enumeratorType.GetProperty(nameof(List<int>.Enumerator.Current), Utilities.PublicInstance)!.GetMethod!;
-        var addMethod = idListType.GetMethod(nameof(List<int>.Add), Utilities.PublicInstance)!;
+        var addMethod = identityListType.GetMethod(nameof(List<int>.Add), Utilities.PublicInstance)!;
         var moveNextMethod = enumeratorType.GetMethod(nameof(List<int>.Enumerator.MoveNext), Utilities.PublicInstance)!;
         var disposeMethod = enumeratorType.GetMethod(nameof(List<int>.Enumerator.Dispose), Utilities.PublicInstance)!;
         var makeContainsIdExpressionMethod =
             typeof(ExpressionUtilities).GetMethod(nameof(ExpressionUtilities.MakeContainsIdExpression), BindingFlags.Static | BindingFlags.Public)!
             .MakeGenericMethod(targetType, targetIdentityType);
 
-        var listLocalVariable = generator.DeclareLocal(idListType);
+        var listLocalVariable = generator.DeclareLocal(identityListType);
         var enumeratorLocalVariable = generator.DeclareLocal(enumeratorType);
         var sourceLocalVaraible = generator.DeclareLocal(sourceType);
 
         generator.Emit(OpCodes.Ldarg_0);
         generator.Emit(OpCodes.Callvirt, countMethod);
-        generator.Emit(OpCodes.Newobj, idListConstructor);
+        generator.Emit(OpCodes.Newobj, identityListConstructor);
         generator.Emit(OpCodes.Stloc, listLocalVariable);
         generator.Emit(OpCodes.Ldarg_0);
         generator.Emit(OpCodes.Callvirt, getEnumeratorMethod);
