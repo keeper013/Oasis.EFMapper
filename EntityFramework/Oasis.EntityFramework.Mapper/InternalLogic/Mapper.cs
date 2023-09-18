@@ -87,15 +87,7 @@ internal sealed class MappingSession : IMappingSession
         where TSource : class
         where TTarget : class
     {
-        var target = _context.GetTracked<TSource, TTarget>(source, out var tracker);
-        if (target == null)
-        {
-            target = _entityHandler.Make<TTarget>();
-            tracker!.Track(target);
-            _toMemoryRecursiveMapper.Map(source, target, _context);
-        }
-
-        return target;
+        return _context.TrackIfNecessaryAndMap(source, null, () => _entityHandler.Make<TTarget>(), _toMemoryRecursiveMapper.Map<TSource, TTarget>, true);
     }
 }
 
