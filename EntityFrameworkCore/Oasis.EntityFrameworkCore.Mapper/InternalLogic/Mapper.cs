@@ -52,7 +52,7 @@ internal sealed class Mapper : IMapper
         where TSource : class
         where TTarget : class
     {
-        return _context.TrackIfNecessaryAndMap(source, null, () => _entityHandler.Make<TTarget>(), (s, t, c) => _toMemoryRecursiveMapper.Map(s, t, c), false);
+        return _context.TrackIfNecessaryAndMap(source, null, _entityHandler.Make<TTarget>, _toMemoryRecursiveMapper.Map<TSource, TTarget>, false);
     }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, DbContext databaseContext)
@@ -87,7 +87,7 @@ internal sealed class MappingSession : IMappingSession
         where TSource : class
         where TTarget : class
     {
-        return _context.TrackIfNecessaryAndMap(source, null, () => _entityHandler.Make<TTarget>(), _toMemoryRecursiveMapper.Map<TSource, TTarget>, true);
+        return _context.TrackIfNecessaryAndMap(source, null, _entityHandler.Make<TTarget>, _toMemoryRecursiveMapper.Map<TSource, TTarget>, true);
     }
 }
 

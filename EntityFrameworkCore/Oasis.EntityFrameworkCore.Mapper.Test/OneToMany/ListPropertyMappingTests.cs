@@ -21,7 +21,7 @@ public class ListPropertyMappingTests : TestBase
         // Assert
         var result = mapper.Map<CollectionEntity1, CollectionEntity2>(entity1);
         Assert.Equal(2, result.Scs!.Count);
-        Assert.Equal(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
+        Assert.NotEqual(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
     }
 
     [Fact]

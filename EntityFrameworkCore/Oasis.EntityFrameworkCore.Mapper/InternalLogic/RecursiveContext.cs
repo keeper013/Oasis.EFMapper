@@ -246,7 +246,17 @@ internal sealed class RecursiveMappingContextFactory
             where TSource : class
             where TTarget : class
         {
-            if ((_track.HasValue && _track.Value) || (_loopDependencyMapping != null && _loopDependencyMapping.Contains(typeof(TSource), typeof(TTarget))))
+            if ((_track.HasValue && !_track.Value) || _loopDependencyMapping == null || !_loopDependencyMapping.Contains(typeof(TSource), typeof(TTarget)))
+            {
+                if (target == default)
+                {
+                    target = makeTarget();
+                }
+
+                doMapping(source, target, this);
+                return target;
+            }
+            else
             {
                 IEntityTracker<TTarget>? tracker;
                 if (tryGetTracked)
@@ -275,16 +285,6 @@ internal sealed class RecursiveMappingContextFactory
                     Clear();
                 }
 
-                return target;
-            }
-            else
-            {
-                if (target == default)
-                {
-                    target = makeTarget();
-                }
-
-                doMapping(source, target, this);
                 return target;
             }
         }
