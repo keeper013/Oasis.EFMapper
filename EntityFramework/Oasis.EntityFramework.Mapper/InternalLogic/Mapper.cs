@@ -52,17 +52,16 @@ internal sealed class Mapper : IMapper
         where TSource : class
         where TTarget : class
     {
-        return _context.TrackIfNecessaryAndMap(source, null, _entityHandler.Make<TTarget>, _toMemoryRecursiveMapper.Map<TSource, TTarget>, false);
+        return _toMemoryRecursiveMapper.MapNew<TSource, TTarget>(source, _context);
     }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer, DbContext databaseContext)
         where TSource : class
         where TTarget : class
     {
-        var tracker = _context.GetTracker<TSource, TTarget>(source);
         _toDatabaseRecursiveMapper.DatabaseContext = databaseContext;
-        var target = await _toDatabaseRecursiveMapper.MapAsync(source, includer, tracker, _context);
-        _context.Clear();
+        var target = await _toDatabaseRecursiveMapper.MapAsync(source, includer, _context, false);
+
         return target;
     }
 }
@@ -87,7 +86,7 @@ internal sealed class MappingSession : IMappingSession
         where TSource : class
         where TTarget : class
     {
-        return _context.TrackIfNecessaryAndMap(source, null, _entityHandler.Make<TTarget>, _toMemoryRecursiveMapper.Map<TSource, TTarget>, true);
+        return _toMemoryRecursiveMapper.MapTrackedOrNew<TSource, TTarget>(source, _context);
     }
 }
 
@@ -117,12 +116,6 @@ internal sealed class MappingToDatabaseSession : IMappingToDatabaseSession
         where TSource : class
         where TTarget : class
     {
-        var trackedTarget = _context.GetTracked<TSource, TTarget>(source, out var tracker);
-        if (trackedTarget != null)
-        {
-            return trackedTarget;
-        }
-
-        return await _toDatabaseRecursiveMapper.MapAsync(source, includer, tracker!, _context);
+        return await _toDatabaseRecursiveMapper.MapAsync(source, includer, _context, true);
     }
 }

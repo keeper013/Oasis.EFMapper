@@ -11,7 +11,7 @@ using System.Data.Entity;
 public class ListPropertyMappingTests : TestBase
 {
     [Test]
-    public void MapListProperties_ToMemory_SameInstance_ShouldThrowException()
+    public void MapListProperties_ToMemory_SameInstance_ShouldSucceed()
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity1, CollectionEntity2>().Build();
@@ -19,9 +19,10 @@ public class ListPropertyMappingTests : TestBase
         var entity1 = new CollectionEntity1(1, new[] { sc1, sc1 });
 
         // Assert
-        var result = mapper.Map<CollectionEntity1, CollectionEntity2>(entity1);
+        var session = mapper.CreateMappingSession();
+        var result = session.Map<CollectionEntity1, CollectionEntity2>(entity1);
         Assert.AreEqual(2, result.Scs!.Count);
-        Assert.AreNotEqual(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
+        Assert.AreEqual(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
     }
 
     [Test]
@@ -35,7 +36,8 @@ public class ListPropertyMappingTests : TestBase
         // Act & Assert
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result = await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null, databaseContext);
+            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
+            var result = await session.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null);
             Assert.AreEqual(2, result.Scs!.Count);
             Assert.AreEqual(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
             await databaseContext.SaveChangesAsync();

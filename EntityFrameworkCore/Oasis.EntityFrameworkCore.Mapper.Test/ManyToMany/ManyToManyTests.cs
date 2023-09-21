@@ -21,7 +21,7 @@ public class ManyToManyTests : TestBase
         var session = mapper.CreateMappingSession();
         var result1 = session.Map<ManyToManyParent1, ManyToManyParent2>(parent1);
         var result2 = session.Map<ManyToManyParent1, ManyToManyParent2>(parent2);
-        Assert.NotEqual(result1.Children[0].GetHashCode(), result2.Children[0].GetHashCode());
+        Assert.Equal(result1.Children[0].GetHashCode(), result2.Children[0].GetHashCode());
     }
 
     [Fact]

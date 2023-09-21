@@ -1,5 +1,7 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
+using System.Linq.Expressions;
+
 internal interface IRecursiveRegister
 {
     void RecursivelyRegister(Type sourceType, Type targetType, IRecursiveRegisterContext context);
@@ -237,56 +239,11 @@ internal sealed class RecursiveMappingContextFactory
             _track = null;
         }
 
-        public TTarget TrackIfNecessaryAndMap<TSource, TTarget>(
-            TSource source,
-            TTarget? target,
-            Func<TTarget> makeTarget,
-            Action<TSource, TTarget, IRecursiveMappingContext> doMapping,
-            bool tryGetTracked)
+        public bool NeedToTrackEntity<TSource, TTarget>()
             where TSource : class
             where TTarget : class
         {
-            if ((_track.HasValue && !_track.Value) || _loopDependencyMapping == null || !_loopDependencyMapping.Contains(typeof(TSource), typeof(TTarget)))
-            {
-                if (target == default)
-                {
-                    target = makeTarget();
-                }
-
-                doMapping(source, target, this);
-                return target;
-            }
-            else
-            {
-                IEntityTracker<TTarget>? tracker;
-                if (tryGetTracked)
-                {
-                    var trackedTarget = GetTracked(source, out tracker);
-                    if (trackedTarget != null)
-                    {
-                        return trackedTarget;
-                    }
-                }
-                else
-                {
-                    tracker = GetTracker<TSource, TTarget>(source);
-                }
-
-                if (target == default)
-                {
-                    target = makeTarget();
-                }
-
-                tracker!.Track(target);
-                doMapping(source, target, this);
-
-                if (!tryGetTracked)
-                {
-                    Clear();
-                }
-
-                return target;
-            }
+            return (_track.HasValue && _track.Value) || (_loopDependencyMapping != null && _loopDependencyMapping.Contains(typeof(TSource), typeof(TTarget)));
         }
 
         public TTarget? GetTracked<TSource, TTarget>(TSource source, out IEntityTracker<TTarget>? tracker)

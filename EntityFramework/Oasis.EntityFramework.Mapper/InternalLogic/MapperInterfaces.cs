@@ -13,7 +13,7 @@ public interface IEntityTracker<TTarget>
 
 public interface IRecursiveMappingContext
 {
-    TTarget TrackIfNecessaryAndMap<TSource, TTarget>(TSource source, TTarget? target, Func<TTarget> makeTarget, Action<TSource, TTarget, IRecursiveMappingContext> doMapping, bool tryGetTracked)
+    bool NeedToTrackEntity<TSource, TTarget>()
             where TSource : class
             where TTarget : class;
 

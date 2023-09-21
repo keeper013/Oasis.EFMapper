@@ -9,6 +9,7 @@ public abstract class TestBase : IDisposable
 {
     private readonly DbContextOptions _options;
     private readonly SqliteConnection _connection;
+    private bool _isDisposed;
 
     protected TestBase()
     {
@@ -19,7 +20,11 @@ public abstract class TestBase : IDisposable
             .Options;
     }
 
-    public void Dispose() => _connection.Close();
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
     protected static IMapperBuilder MakeDefaultMapperBuilder(string[]? excludedProperties = null)
     {
@@ -29,6 +34,22 @@ public abstract class TestBase : IDisposable
                 .ExcludedPropertiesByName(excludedProperties)
                 .Finish()
             .MakeMapperBuilder();
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            // free managed resources
+            _connection.Close();
+        }
+
+        _isDisposed = true;
     }
 
     protected async Task ExecuteWithNewDatabaseContext(Func<DbContext, Task> action)
