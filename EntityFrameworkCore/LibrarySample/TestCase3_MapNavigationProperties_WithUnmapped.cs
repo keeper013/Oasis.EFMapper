@@ -28,7 +28,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         const string BorrowerAddress = "Dummy Address";
         const string UpdatedBorrowerAddress = "Updated Address 1";
@@ -52,7 +53,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         const string BorrowerAddress = "Dummy Address";
         const string UpdatedBorrowerAddress = "Updated Address 1";
@@ -80,7 +82,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         const string BorrowerAddress = "Dummy Address";
         const string UpdatedBorrowerAddress = "Updated Address 1";
@@ -108,7 +111,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         const string BorrowerAddress = "Dummy Address";
         const string UpdatedBorrowerAddress = "Updated Address 1";
@@ -136,7 +140,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         const string BorrowerAddress = "Dummy Address";
         const string UpdatedBorrowerAddress = "Updated Address 1";
@@ -164,7 +169,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         const string BorrowerAddress = "Dummy Address";
         const string UpdatedBorrowerAddress = "Updated Address 1";
@@ -193,7 +199,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             .Register<Contact, UpdateContactDTO>()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         const string BorrowerAddress = "Dummy Address";
         const string UpdatedBorrowerAddress = "Updated Address 1";
@@ -222,7 +229,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             .Register<UpdateContactDTO, Contact>()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         const string BorrowerAddress = "Dummy Address";
         const string UpdatedBorrowerAddress = "Updated Address 1";
@@ -243,7 +251,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 .Finish()
             .Register<NewBookDTO, Book>()
             .Register<Book, BookDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         // create new book
         const string BookName = "Book 1";
@@ -256,7 +265,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 bookDto.Copies.Add(new NewCopyDTO { Number = $"Copy{i + 1}" });
             }
 
-            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
+            mapper.DatabaseContext = databaseContext;
+            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null);
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().Include(b => b.Copies).FirstAsync();
             Assert.Equal(BookName, book.Name);
@@ -286,7 +296,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
             .Register<NewBookDTO, Book>()
             .Register<Book, BookDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         // create new tag
         const string Tag1Name = "English";
@@ -294,10 +305,11 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
         List<Tag> tags = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             var tag1Dto = new NewTagDTO { Name = Tag1Name };
             var tag2Dto = new NewTagDTO { Name = Tag2Name };
-            _ = await mapper.MapAsync<NewTagDTO, Tag>(tag1Dto, null, databaseContext);
-            _ = await mapper.MapAsync<NewTagDTO, Tag>(tag2Dto, null, databaseContext);
+            _ = await mapper.MapAsync<NewTagDTO, Tag>(tag1Dto, null);
+            _ = await mapper.MapAsync<NewTagDTO, Tag>(tag2Dto, null);
             _ = await databaseContext.SaveChangesAsync();
             tags = await databaseContext.Set<Tag>().ToListAsync();
             Assert.Equal(2, tags.Count);
@@ -314,10 +326,11 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
         Book book = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             var bookDto = new NewBookDTO { Name = BookName };
             bookDto.Tags.Add(tag1);
             bookDto.Tags.Add(tag2);
-            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, b => b.Include(b => b.Tags), databaseContext);
+            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, b => b.Include(b => b.Tags));
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().Include(b => b.Tags).FirstAsync();
             Assert.Equal(BookName, book.Name);
@@ -336,8 +349,9 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
         Borrower borrower = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             var borrowerDto = new NewBorrowerDTO { IdentityNumber = "Identity1", Name = BorrowerName, Contact = new NewContactDTO { PhoneNumber = "12345678", Address = address1 } };
-            _ = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null, databaseContext);
+            _ = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null);
             _ = await databaseContext.SaveChangesAsync();
             borrower = await databaseContext.Set<Borrower>().Include(b => b.Contact).FirstAsync();
             Assert.Equal(BorrowerName, borrower.Name);
@@ -353,7 +367,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
 
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            _ = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(updateBorrowerDto, b => b.Include(b => b.Contact), databaseContext);
+            mapper.DatabaseContext = databaseContext;
+            _ = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(updateBorrowerDto, b => b.Include(b => b.Contact));
             _ = await databaseContext.SaveChangesAsync();
             borrower = await databaseContext.Set<Borrower>().Include(b => b.Contact).FirstAsync();
             Assert.Equal(UpdatedBorrowerName, borrower.Name);

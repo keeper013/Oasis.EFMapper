@@ -17,12 +17,14 @@ public sealed class TestCase8_InsertUpdateLimit : TestBase
         var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
             .Register<UpdateBookDTO, Book>()
-            .Build();
+            .Build()
+            .MakeToDatabaseMapper();
 
         var updateBookDto = new UpdateBookDTO { Name = "Test Book 1" };
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null, databaseContext);
+            mapper.DatabaseContext = databaseContext;
+            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null);
             _ = await databaseContext.SaveChangesAsync();
             Assert.Single(await databaseContext.Set<Book>().ToListAsync());
         });
@@ -37,14 +39,16 @@ public sealed class TestCase8_InsertUpdateLimit : TestBase
             .Configure<UpdateBookDTO, Book>()
                 .SetMapToDatabaseType(MapToDatabaseType.Update)
                 .Finish()
-            .Build();
+            .Build()
+            .MakeToDatabaseMapper();
 
         var updateBookDto = new UpdateBookDTO { Name = "Test Book 1" };
         await Assert.ThrowsAsync<UpdateToDatabaseWithoutIdException>(async () =>
         {
             await ExecuteWithNewDatabaseContext(async databaseContext =>
             {
-                _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null, databaseContext);
+                mapper.DatabaseContext = databaseContext;
+                _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null);
             });
         });
     }

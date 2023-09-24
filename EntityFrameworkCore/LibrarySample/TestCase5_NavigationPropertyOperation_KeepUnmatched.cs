@@ -27,7 +27,8 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
                 .Finish()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         // Act
         const string BorrowerName = "Borrower 1";
@@ -42,7 +43,8 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
                 Contact = new NewContactDTO { PhoneNumber = "12345678", Address = "test address 1" }
             };
 
-            _ = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null, databaseContext);
+            mapper.DatabaseContext = databaseContext;
+            _ = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null);
             _ = await databaseContext.SaveChangesAsync();
             borrower = await databaseContext.Set<Borrower>().Include(b => b.Contact).FirstAsync();
         });
@@ -52,7 +54,8 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
         borrowerDto.Contact = new UpdateContactDTO { PhoneNumber = "23456789", Address = "test address 2" };
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            _ = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(borrowerDto, b => b.Include(b => b.Contact), databaseContext);
+            mapper.DatabaseContext= databaseContext;
+            _ = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(borrowerDto, b => b.Include(b => b.Contact));
             await databaseContext.SaveChangesAsync();
             var newContact = await databaseContext.Set<Contact>().ToListAsync();
             Assert.Single(newContact);
@@ -89,20 +92,22 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
             .Register<Book, UpdateBookDTO>()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         // Act
         UpdateBookDTO book = null!;
         UpdateBorrowerDTO borrower = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             var bookDto = new NewBookDTO { Name = "Test" };
             for (var i = 0; i < 2; i++)
             {
                 bookDto.Copies.Add(new NewCopyDTO { Number = $"Copy{i + 1}" });
             }
 
-            var bk = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
+            var bk = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null);
 
             var borrowerDto = new NewBorrowerDTO
             {
@@ -111,7 +116,7 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
                 Contact = new NewContactDTO { PhoneNumber = "12345678", Address = "test address 1" }
             };
 
-            var br = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null, databaseContext);
+            var br = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null);
 
             _ = await databaseContext.SaveChangesAsync();
 
@@ -121,8 +126,9 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
 
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             borrower.Reserved = book.Copies[0]!;
-            var br = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(borrower, b => b.Include(b => b.Reserved), databaseContext);
+            var br = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(borrower, b => b.Include(b => b.Reserved));
             _ = await databaseContext.SaveChangesAsync();
             borrower = mapper.Map<Borrower, UpdateBorrowerDTO>(br);
         });
@@ -130,8 +136,9 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
         // Assert
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             borrower.Reserved = book.Copies[1]!;
-            var br = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(borrower, b => b.Include(b => b.Reserved), databaseContext);
+            var br = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(borrower, b => b.Include(b => b.Reserved));
             _ = await databaseContext.SaveChangesAsync();
             br = await databaseContext.Set<Borrower>().Include(b => b.Reserved).FirstOrDefaultAsync();
             Assert.NotNull(br);
@@ -182,20 +189,22 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
                 .Finish()
             .Register<NewBookDTO, Book>()
             .RegisterTwoWay<Book, UpdateBookDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         // Act
         const string BookName = "Book 1";
         Book book = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             var bookDto = new NewBookDTO { Name = BookName };
             for (var i = 0; i < 5; i++)
             {
                 bookDto.Copies.Add(new NewCopyDTO { Number = $"Copy{i + 1}" });
             }
 
-            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
+            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null);
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().Include(b => b.Copies).FirstAsync();
         });
@@ -206,7 +215,8 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
         updateBookDto.Copies.RemoveAt(3);
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            _ = mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, b => b.Include(b => b.Copies), databaseContext);
+            mapper.DatabaseContext = databaseContext;
+            _ = mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, b => b.Include(b => b.Copies));
             _ = await databaseContext.SaveChangesAsync();
             var copies = await databaseContext.Set<Copy>().ToListAsync();
             Assert.Equal(number, copies.Count);
@@ -246,20 +256,22 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
             .Register<Book, UpdateBookDTO>()
             .Register<NewBorrowerDTO, Borrower>()
             .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         // Act
         UpdateBookDTO book = null!;
         UpdateBorrowerDTO borrower = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             var bookDto = new NewBookDTO { Name = "Test" };
             for (var i = 0; i < 2; i++)
             {
                 bookDto.Copies.Add(new NewCopyDTO { Number = $"Copy{i + 1}" });
             }
 
-            var bk = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
+            var bk = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null);
 
             var borrowerDto = new NewBorrowerDTO
             {
@@ -268,7 +280,7 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
                 Contact = new NewContactDTO { PhoneNumber = "12345678", Address = "test address 1" }
             };
 
-            var br = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null, databaseContext);
+            var br = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null);
 
             _ = await databaseContext.SaveChangesAsync();
 
@@ -278,8 +290,9 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
 
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             borrower.Borrowed.Add(book.Copies[0]!);
-            var br = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(borrower, b => b.Include(b => b.Borrowed), databaseContext);
+            var br = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(borrower, b => b.Include(b => b.Borrowed));
             _ = await databaseContext.SaveChangesAsync();
             borrower = mapper.Map<Borrower, UpdateBorrowerDTO>(br);
         });
@@ -287,9 +300,10 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
         // Assert
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             borrower.Borrowed.Clear();
             borrower.Borrowed.Add(book.Copies[1]!);
-            var br = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(borrower, b => b.Include(b => b.Borrowed), databaseContext);
+            var br = await mapper.MapAsync<UpdateBorrowerDTO, Borrower>(borrower, b => b.Include(b => b.Borrowed));
             _ = await databaseContext.SaveChangesAsync();
             br = await databaseContext.Set<Borrower>().Include(b => b.Borrowed).FirstOrDefaultAsync();
             Assert.NotNull(br);

@@ -18,15 +18,17 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .Register<NewBookDTO, Book>()
             .Register<Book, BookDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         // create new book
         const string BookName = "Book 1";
         Book book = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             var bookDto = new NewBookDTO { Name = BookName };
-            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
+            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null);
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().FirstAsync();
             Assert.Equal(BookName, book.Name);
@@ -53,7 +55,9 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
         {
             await ExecuteWithNewDatabaseContext(async databaseContext =>
             {
-                _ = await tuple.Item1.MapAsync<UpdateBookDTO, Book>(tuple.Item2, null, databaseContext);
+                var mapper = tuple.Item1;
+                mapper.DatabaseContext = databaseContext;
+                _ = await mapper.MapAsync<UpdateBookDTO, Book>(tuple.Item2, null);
             });
         });
     }
@@ -66,15 +70,17 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
             .Register<NewBookDTO, Book>()
             .RegisterTwoWay<Book, UpdateBookDTO>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         // create new book
         const string BookName = "Book 1";
         Book book = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             var bookDto = new NewBookDTO { Name = BookName };
-            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
+            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null);
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().FirstAsync();
             Assert.Equal(BookName, book.Name);
@@ -89,7 +95,8 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
 
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null, databaseContext);
+            mapper.DatabaseContext = databaseContext;
+            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null);
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().FirstAsync();
             Assert.Equal(UpdatedBookName, book.Name);

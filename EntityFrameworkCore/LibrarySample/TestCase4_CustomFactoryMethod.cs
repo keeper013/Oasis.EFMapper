@@ -44,7 +44,8 @@ public sealed class TestCase4_CustomFactoryMethod : TestBase
             .WithFactoryMethod<IBook>(() => new BookImplementation())
             .Register<NewBookDTO, Book>()
             .Register<Book, IBook>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         // create new book
         const string BookName = "Book 1";
@@ -53,10 +54,11 @@ public sealed class TestCase4_CustomFactoryMethod : TestBase
         Book book = null!;
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             var bookDto = new NewBookDTO { Name = BookName };
             bookDto.Copies.Add(new NewCopyDTO { Number = Copy1Number });
             bookDto.Copies.Add(new NewCopyDTO { Number = Copy2Number });
-            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
+            _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null);
             _ = await databaseContext.SaveChangesAsync();
             book = await databaseContext.Set<Book>().FirstAsync();
             Assert.Equal(BookName, book.Name);

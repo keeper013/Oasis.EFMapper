@@ -14,7 +14,7 @@ public sealed class TestCase8_InsertUpdateLimit : TestBase
     public async Task Test1_NewEntityInsertedWithEmptyId()
     {
         // initialize mapper
-        var mapper = MakeDefaultMapperBuilder()
+        var factory = MakeDefaultMapperBuilder()
             .WithScalarConverter<string, long>(s => long.Parse(s))
             .Register<UpdateBookDTO, Book>()
             .Build();
@@ -22,7 +22,8 @@ public sealed class TestCase8_InsertUpdateLimit : TestBase
         var updateBookDto = new UpdateBookDTO { Name = "Test Book 1" };
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null, databaseContext);
+            var mapper = factory.MakeToDatabaseMapper(databaseContext);
+            _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null);
             _ = await databaseContext.SaveChangesAsync();
             Assert.AreEqual(1, await databaseContext.Set<Book>().CountAsync());
         });
@@ -32,7 +33,7 @@ public sealed class TestCase8_InsertUpdateLimit : TestBase
     public void Test2_ExcetionThrownWhenUsageLimited()
     {
         // initialize mapper
-        var mapper = MakeDefaultMapperBuilder()
+        var factory = MakeDefaultMapperBuilder()
             .WithScalarConverter<string, long>(s => long.Parse(s))
             .Configure<UpdateBookDTO, Book>()
                 .SetMapToDatabaseType(MapToDatabaseType.Update)
@@ -44,7 +45,8 @@ public sealed class TestCase8_InsertUpdateLimit : TestBase
         {
             await ExecuteWithNewDatabaseContext(async databaseContext =>
             {
-                _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null, databaseContext);
+                var mapper = factory.MakeToDatabaseMapper(databaseContext);
+                _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null);
             });
         });
     }

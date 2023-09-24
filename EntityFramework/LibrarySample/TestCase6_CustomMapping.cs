@@ -28,7 +28,8 @@ public sealed class TestCase6_CustomMapping : TestBase
                 .MapProperty(brief => brief.Phone, borrower => borrower.Contact.PhoneNumber)
                 .Finish()
             .Register<NewBorrowerDTO, Borrower>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         // Act
         const string BorrowerName = "Borrower 1";
@@ -38,6 +39,7 @@ public sealed class TestCase6_CustomMapping : TestBase
 
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            mapper.DatabaseContext = databaseContext;
             var borrowerDto = new NewBorrowerDTO
             {
                 IdentityNumber = BorrowerId,
@@ -45,7 +47,7 @@ public sealed class TestCase6_CustomMapping : TestBase
                 Contact = new NewContactDTO { PhoneNumber = Phone, Address = "test address 1" }
             };
 
-            _ = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null, databaseContext);
+            _ = await mapper.MapAsync<NewBorrowerDTO, Borrower>(borrowerDto, null);
             _ = await databaseContext.SaveChangesAsync();
             borrower = await databaseContext.Set<Borrower>().Include(b => b.Contact).FirstAsync();
         });

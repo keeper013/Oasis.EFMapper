@@ -190,7 +190,7 @@ public class KeyPropertyTypeTests : TestBase
     private async Task Test<T>()
     {
         // arrange
-        var mapper = MakeDefaultMapperBuilder().Register<SomeSourceEntity<T>, SomeTargetEntity<T>>().Build();
+        var mapper = MakeDefaultMapperBuilder().Register<SomeSourceEntity<T>, SomeTargetEntity<T>>().Build().MakeToMemoryMapper();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -216,7 +216,9 @@ public class KeyPropertyTypeTests : TestBase
         // arrange
         var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter(func)
-            .Register<SomeSourceEntity<TSourceIdentity>, SomeTargetEntity<TTargetIdentity>>().Build();
+            .Register<SomeSourceEntity<TSourceIdentity>, SomeTargetEntity<TTargetIdentity>>()
+            .Build()
+            .MakeToMemoryMapper();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {

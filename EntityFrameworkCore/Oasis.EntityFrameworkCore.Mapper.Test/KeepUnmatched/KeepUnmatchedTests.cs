@@ -60,7 +60,7 @@ public sealed class KeepUnmatchedTests : TestBase
             mapperBuilder = mapperBuilder.Configure<UnmatchedPrincipal2, UnmatchedPrincipal1>().KeepUnmatched(nameof(UnmatchedPrincipal2.DependentList)).Finish();
         }
 
-        var mapper = mapperBuilder.RegisterTwoWay<UnmatchedPrincipal1, UnmatchedPrincipal2>().Build();
+        var mapper = mapperBuilder.RegisterTwoWay<UnmatchedPrincipal1, UnmatchedPrincipal2>().Build().MakeMapper();
 
         await DoTest(mapper, count);
     }
@@ -77,7 +77,7 @@ public sealed class KeepUnmatchedTests : TestBase
             mapperBuilder = mapperBuilder.Configure<UnmatchedPrincipal1>().KeepUnmatched(nameof(UnmatchedPrincipal2.DependentList)).Finish();
         }
 
-        var mapper = mapperBuilder.RegisterTwoWay<UnmatchedPrincipal1, UnmatchedPrincipal2>().Build();
+        var mapper = mapperBuilder.RegisterTwoWay<UnmatchedPrincipal1, UnmatchedPrincipal2>().Build().MakeMapper();
 
         await DoTest(mapper, count);
     }
@@ -88,7 +88,8 @@ public sealed class KeepUnmatchedTests : TestBase
         var principal = new UnmatchedPrincipal2 { DependentList = new List<UnmatchedDependent2> { new UnmatchedDependent2 { IntProp = 1 } } };
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            await mapper.MapAsync<UnmatchedPrincipal2, UnmatchedPrincipal1>(principal, null, databaseContext);
+            mapper.DatabaseContext = databaseContext;
+            await mapper.MapAsync<UnmatchedPrincipal2, UnmatchedPrincipal1>(principal, null);
             await databaseContext.SaveChangesAsync();
             Assert.Equal(1, await databaseContext.Set<UnmatchedPrincipal1>().CountAsync());
             Assert.Equal(1, await databaseContext.Set<UnmatchedDependent1>().CountAsync());
@@ -103,9 +104,10 @@ public sealed class KeepUnmatchedTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
+            mapper.DatabaseContext = databaseContext;
             mappedPrincipal.DependentList.Clear();
             mappedPrincipal.DependentList.Add(new UnmatchedDependent2 { IntProp = 2 });
-            await mapper.MapAsync<UnmatchedPrincipal2, UnmatchedPrincipal1>(mappedPrincipal, p => p.Include(p => p.DependentList), databaseContext);
+            await mapper.MapAsync<UnmatchedPrincipal2, UnmatchedPrincipal1>(mappedPrincipal, p => p.Include(p => p.DependentList));
             await databaseContext.SaveChangesAsync();
             Assert.Equal(1, await databaseContext.Set<UnmatchedPrincipal1>().CountAsync());
         });

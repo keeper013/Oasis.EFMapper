@@ -14,7 +14,8 @@ public class CustomPropertyMappingTests
             .Configure<CustomEntity1, CustomEntity2>()
                 .MapProperty(c2 => c2.InternalIntProperty, c1 => c1.InternalProperty.IntProperty)
                 .Finish()
-            .Build();
+            .Build()
+            .MakeToMemoryMapper();
 
         var c1 = new CustomEntity1
         {
@@ -36,7 +37,8 @@ public class CustomPropertyMappingTests
             .Configure<CustomEntity3, CustomEntity2>()
                 .MapProperty(c2 => c2.InternalIntProperty, c3 => c3.InternalProperty.IntProperty)
                 .Finish()
-            .Build();
+            .Build()
+            .MakeToMemoryMapper();
 
         var c3 = new CustomEntity3
         {

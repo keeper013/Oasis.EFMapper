@@ -51,7 +51,7 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
     {
         // arrange
         var mapperBuilder = MakeDefaultMapperBuilder(new string[] { nameof(ExcludedPropertyEntity1.StringProp) });
-        var mapper = mapperBuilder.Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().Build();
+        var mapper = mapperBuilder.Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().Build().MakeToMemoryMapper();
 
         // act
         var entity2 = new ExcludedPropertyEntity2
@@ -74,7 +74,9 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
             .Configure<ExcludedPropertyEntity2>()
                 .ExcludePropertiesByName(nameof(ExcludedPropertyEntity2.StringProp))
                 .Finish()
-            .Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().Build();
+            .Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>()
+            .Build()
+            .MakeToMemoryMapper();
 
         // act
         var entity2 = new ExcludedPropertyEntity2
@@ -97,7 +99,9 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
             .Configure<ExcludedPropertyEntity1>()
                 .ExcludePropertiesByName(nameof(ExcludedPropertyEntity1.StringProp))
                 .Finish()
-            .Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>().Build();
+            .Register<ExcludedPropertyEntity2, ExcludedPropertyEntity1>()
+            .Build()
+            .MakeToMemoryMapper();
 
         // act
         var entity2 = new ExcludedPropertyEntity2
@@ -120,7 +124,8 @@ public sealed class ExcludedPropertyEntitiesTests : TestBase
             .Configure<ExcludedPropertyEntity2, ExcludedPropertyEntity1>()
                 .ExcludePropertiesByName(nameof(ExcludedPropertyEntity1.StringProp))
                 .Finish()
-            .Build();
+            .Build()
+            .MakeToMemoryMapper();
 
         // act
         var entity2 = new ExcludedPropertyEntity2

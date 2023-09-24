@@ -17,21 +17,23 @@ internal sealed class MapperBuilder : IMapperBuilder
         _throwForRedundantConfiguration = configuration?.ThrowForRedundantConfiguration ?? true;
     }
 
-    public IMapper Build()
+    public IMapperFactory Build()
     {
         var type = _mapperRegistry.Build();
         var scalarTypeConverter = _mapperRegistry.MakeScalarTypeConverter();
-        var listTypeConstructor = _mapperRegistry.MakeListTypeConstructor(type);
         var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
-        var entityHandler = _mapperRegistry.MakeEntityHandler(type, scalarTypeConverter);
-        var recursiveMappingContextFactory = _mapperRegistry.MakeRecursiveMappingContextFactory(type, entityHandler, scalarTypeConverter);
+        var entityHandlerData = _mapperRegistry.MakeEntityHandler(type);
+        var entityTrackerData = _mapperRegistry.MakeEntityTrackerData(type, scalarTypeConverter);
         var keepUnmatchedManager = _mapperRegistry.KeepUnmatchedManager.IsEmpty ? null : _mapperRegistry.KeepUnmatchedManager;
         var mapToDatabaseTypeManager = _mapperRegistry.MakeMapToDatabaseTypeManager();
 
-        // release some memory ahead
-        _mapperRegistry.Clear();
-
-        return new Mapper(scalarTypeConverter, listTypeConstructor, lookup, entityHandler, keepUnmatchedManager, mapToDatabaseTypeManager, recursiveMappingContextFactory);
+        return new MapperFactory(
+            keepUnmatchedManager,
+            mapToDatabaseTypeManager,
+            lookup,
+            entityTrackerData,
+            entityHandlerData,
+            scalarTypeConverter);
     }
 
     public IMapperBuilder Register<TSource, TTarget>()

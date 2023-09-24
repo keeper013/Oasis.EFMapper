@@ -1,7 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 internal interface IRecursiveRegister
 {
@@ -166,189 +165,144 @@ internal sealed class TargetByIdTrackerFactory<TKeyType> : ITargetByIdTrackerFac
     }
 }
 
-internal sealed class RecursiveMappingContextFactory
+internal interface IRecursiveMapperContext
 {
-    private readonly IReadOnlyDictionary<Type, Type> _targetIdentityTypeMapping;
-    private readonly IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> _targetByIdTrackerFactories;
-    private readonly IReadOnlyDictionary<Type, IReadOnlySet<Type>>? _loopDependencyMapping;
-    private readonly EntityHandler _entityHandler;
+    bool TargetIsIdentifyableById<TSource, TTarget>(TSource source)
+        where TSource : class
+        where TTarget : class;
 
-    public RecursiveMappingContextFactory(
-        EntityHandler entityHandler,
-        IReadOnlyDictionary<Type, Type> targetIdentityTypeMapping,
-        IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories,
-        IReadOnlyDictionary<Type, IReadOnlySet<Type>>? loopDependencyMapping)
-    {
-        _entityHandler = entityHandler;
-        _targetIdentityTypeMapping = targetIdentityTypeMapping;
-        _targetByIdTrackerFactories = targetByIdTrackerFactories;
-        _loopDependencyMapping = loopDependencyMapping;
-    }
+    Type GetIdentityType(Type type);
+}
 
-    public IRecursiveMappingContext Make(bool forceTrack)
+internal sealed class RecursiveMappingContext : IRecursiveMappingContext
+{
+    private readonly Dictionary<Type, Dictionary<int, object>> _targetByHashCode = new ();
+    private readonly IReadOnlyDictionary<Type, ITargetByIdTracker> _targetByIdTrackers;
+    private readonly IRecursiveMapperContext _mapperContext;
+
+    // for mapping a single entity, it's ok to keep all tracker data here
+    // for mapping list of entities, though this value will be overritten by every list item, but its value is gonna be correct for the whole list
+    private Dictionary<int, object>? _hashCodeDictionary;
+
+    public RecursiveMappingContext(IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories, IRecursiveMapperContext mapperContext, bool forceTrack, DbContext? databaseContext = null)
     {
         var dict = new Dictionary<Type, ITargetByIdTracker>();
-        foreach (var kvp in _targetByIdTrackerFactories)
+        foreach (var kvp in targetByIdTrackerFactories)
         {
             dict.Add(kvp.Key, kvp.Value.Make());
         }
 
-        if (forceTrack)
+        _targetByIdTrackers = dict;
+        _mapperContext = mapperContext;
+        ForceTrack = forceTrack;
+        DatabaseContext = databaseContext;
+        _hashCodeDictionary = null;
+    }
+
+    public bool ForceTrack { get; init; }
+
+    public DbContext? DatabaseContext { get; set; }
+
+    public void Clear()
+    {
+        foreach (var targetByIdTracker in _targetByIdTrackers.Values)
         {
-            return new RecursiveMappingContext(dict, this, true);
+            targetByIdTracker.Clear();
         }
-        else if (_loopDependencyMapping != null && _loopDependencyMapping.Any())
+
+        foreach (var dict in _targetByHashCode.Values)
         {
-            return new RecursiveMappingContext(dict, this, _loopDependencyMapping);
-        }
-        else
-        {
-            return new RecursiveMappingContext(dict, this, false);
+            dict.Clear();
         }
     }
 
-    private sealed class RecursiveMappingContext : IRecursiveMappingContext
+    public TTarget? GetTracked<TSource, TTarget>(TSource source, out IEntityTracker<TTarget>? tracker)
+        where TSource : class
+        where TTarget : class
     {
-        private readonly Dictionary<Type, Dictionary<int, object>> _targetByHashCode = new ();
-        private readonly IReadOnlyDictionary<Type, ITargetByIdTracker> _targetByIdTrackers;
-        private readonly RecursiveMappingContextFactory _factory;
-        private readonly IReadOnlyDictionary<Type, IReadOnlySet<Type>>? _loopDependencyMapping;
-        private readonly bool? _track;
-
-        // for mapping a single entity, it's ok to keep all tracker data here
-        // for mapping list of entities, though this value will be overritten by every list item, but its value is gonna be correct for the whole list
-        private Dictionary<int, object>? _hashCodeDictionary;
-
-        public RecursiveMappingContext(IReadOnlyDictionary<Type, ITargetByIdTracker> targetByIdTrackers, RecursiveMappingContextFactory factory, bool track)
+        var sourceHashCode = source.GetHashCode();
+        var targetType = typeof(TTarget);
+        if (_targetByHashCode.TryGetValue(targetType, out _hashCodeDictionary) && _hashCodeDictionary.TryGetValue(sourceHashCode, out var value))
         {
-            _targetByIdTrackers = targetByIdTrackers;
-            _factory = factory;
-            _hashCodeDictionary = null;
-            _loopDependencyMapping = null;
-            _track = track;
+            tracker = null;
+            return (TTarget)value;
         }
-
-        public RecursiveMappingContext(
-            IReadOnlyDictionary<Type, ITargetByIdTracker> targetByIdTrackers,
-            RecursiveMappingContextFactory factory,
-            IReadOnlyDictionary<Type, IReadOnlySet<Type>> loopDependencyMapping)
+        else
         {
-            _targetByIdTrackers = targetByIdTrackers;
-            _factory = factory;
-            _hashCodeDictionary = null;
-            _loopDependencyMapping = loopDependencyMapping;
-            _track = null;
-        }
-
-        public bool NeedToTrackEntity<TSource, TTarget>()
-            where TSource : class
-            where TTarget : class
-        {
-            return (_track.HasValue && _track.Value) || (_loopDependencyMapping != null && _loopDependencyMapping.Contains(typeof(TSource), typeof(TTarget)));
-        }
-
-        public TTarget? GetTracked<TSource, TTarget>(TSource source, out IEntityTracker<TTarget>? tracker)
-            where TSource : class
-            where TTarget : class
-        {
-            var sourceHashCode = source.GetHashCode();
-            var targetType = typeof(TTarget);
-            if (_targetByHashCode.TryGetValue(targetType, out _hashCodeDictionary) && _hashCodeDictionary.TryGetValue(sourceHashCode, out var value))
-            {
-                tracker = null;
-                return (TTarget)value;
-            }
-            else
-            {
-                var targetIsIdentifyableById = _factory._entityHandler.HasId<TSource>() && _factory._entityHandler.HasId<TTarget>() && !_factory._entityHandler.IdIsEmpty(source);
-                ITargetByIdTracker? targetByIdTracker = null;
-                if (targetIsIdentifyableById)
-                {
-                    targetByIdTracker = _targetByIdTrackers[_factory._targetIdentityTypeMapping[targetType]];
-                    var trackedTarget = targetByIdTracker.Find<TSource, TTarget>(source);
-                    if (trackedTarget != default)
-                    {
-                        if (!_targetByHashCode.TryGetValue(targetType, out var inner1))
-                        {
-                            inner1 = new Dictionary<int, object> { { sourceHashCode, trackedTarget } };
-                            _targetByHashCode.Add(targetType, inner1);
-                        }
-                        else
-                        {
-                            inner1.Add(sourceHashCode, trackedTarget);
-                        }
-
-                        tracker = null;
-                        return trackedTarget;
-                    }
-                }
-
-                tracker = new EntityTracker<TSource, TTarget>(source, this, sourceHashCode, targetType, targetByIdTracker);
-                return null;
-            }
-        }
-
-        public IEntityTracker<TTarget> GetTracker<TSource, TTarget>(TSource source)
-            where TSource : class
-            where TTarget : class
-        {
-            var sourceHashCode = source.GetHashCode();
-            var targetType = typeof(TTarget);
             ITargetByIdTracker? targetByIdTracker = null;
-            if (_factory._entityHandler.HasId<TSource>() && _factory._entityHandler.HasId<TTarget>() && !_factory._entityHandler.IdIsEmpty(source))
+            if (_mapperContext.TargetIsIdentifyableById<TSource, TTarget>(source))
             {
-                targetByIdTracker = _targetByIdTrackers[_factory._targetIdentityTypeMapping[targetType]];
-            }
-
-            return new EntityTracker<TSource, TTarget>(source, this, sourceHashCode, targetType, targetByIdTracker);
-        }
-
-        public void Clear()
-        {
-            foreach (var targetByIdTracker in _targetByIdTrackers.Values)
-            {
-                targetByIdTracker.Clear();
-            }
-
-            foreach (var dict in _targetByHashCode.Values)
-            {
-                dict.Clear();
-            }
-        }
-
-        private readonly struct EntityTracker<TSource, TTarget> : IEntityTracker<TTarget>
-            where TSource : class
-            where TTarget : class
-        {
-            private readonly TSource _source;
-            private readonly RecursiveMappingContext _context;
-            private readonly int _sourceHashCode;
-            private readonly Type _targetType;
-            private readonly ITargetByIdTracker? _targetByIdTracker;
-
-            public EntityTracker(TSource source, RecursiveMappingContext context, int sourceHashCode, Type targetType, ITargetByIdTracker? targetByIdTracker)
-            {
-                _source = source;
-                _context = context;
-                _sourceHashCode = sourceHashCode;
-                _targetType = targetType;
-                _targetByIdTracker = targetByIdTracker;
-            }
-
-            public void Track(TTarget target)
-            {
-                // add to hash code dictionary
-                if (_context._hashCodeDictionary == default)
+                targetByIdTracker = _targetByIdTrackers[_mapperContext.GetIdentityType(targetType)];
+                var trackedTarget = targetByIdTracker.Find<TSource, TTarget>(source);
+                if (trackedTarget != default)
                 {
-                    _context._hashCodeDictionary = new Dictionary<int, object>();
-                    _context._targetByHashCode.Add(_targetType, _context._hashCodeDictionary);
+                    if (!_targetByHashCode.TryGetValue(targetType, out var inner1))
+                    {
+                        inner1 = new Dictionary<int, object> { { sourceHashCode, trackedTarget } };
+                        _targetByHashCode.Add(targetType, inner1);
+                    }
+                    else
+                    {
+                        inner1.Add(sourceHashCode, trackedTarget);
+                    }
+
+                    tracker = null;
+                    return trackedTarget;
                 }
-
-                _context._hashCodeDictionary.Add(_sourceHashCode, target);
-
-                // add to identity dictionary
-                _targetByIdTracker?.Track(_source, target);
             }
+
+            tracker = new EntityTracker<TSource, TTarget>(source, this, sourceHashCode, targetType, targetByIdTracker);
+            return null;
+        }
+    }
+
+    public IEntityTracker<TTarget> GetTracker<TSource, TTarget>(TSource source)
+        where TSource : class
+        where TTarget : class
+    {
+        var sourceHashCode = source.GetHashCode();
+        var targetType = typeof(TTarget);
+        ITargetByIdTracker? targetByIdTracker = null;
+        if (_mapperContext.TargetIsIdentifyableById<TSource, TTarget>(source))
+        {
+            targetByIdTracker = _targetByIdTrackers[_mapperContext.GetIdentityType(targetType)];
+        }
+
+        return new EntityTracker<TSource, TTarget>(source, this, sourceHashCode, targetType, targetByIdTracker);
+    }
+
+    private readonly struct EntityTracker<TSource, TTarget> : IEntityTracker<TTarget>
+        where TSource : class
+        where TTarget : class
+    {
+        private readonly TSource _source;
+        private readonly RecursiveMappingContext _context;
+        private readonly int _sourceHashCode;
+        private readonly Type _targetType;
+        private readonly ITargetByIdTracker? _targetByIdTracker;
+
+        public EntityTracker(TSource source, RecursiveMappingContext context, int sourceHashCode, Type targetType, ITargetByIdTracker? targetByIdTracker)
+        {
+            _source = source;
+            _context = context;
+            _sourceHashCode = sourceHashCode;
+            _targetType = targetType;
+            _targetByIdTracker = targetByIdTracker;
+        }
+
+        public void Track(TTarget target)
+        {
+            // add to hash code dictionary
+            if (_context._hashCodeDictionary == default)
+            {
+                _context._hashCodeDictionary = new Dictionary<int, object>();
+                _context._targetByHashCode.Add(_targetType, _context._hashCodeDictionary);
+            }
+
+            _context._hashCodeDictionary.Add(_sourceHashCode, target);
+
+            // add to identity dictionary
+            _targetByIdTracker?.Track(_source, target);
         }
     }
 }

@@ -51,5 +51,5 @@ public interface IMapperBuilder
         where TSource : class
         where TTarget : class;
 
-    IMapper Build();
+    IMapperFactory Build();
 }

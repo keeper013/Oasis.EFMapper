@@ -60,7 +60,7 @@ public class KeyPropertyTypeTests : TestBase
         where TSourceEntity : SomeSourceEntity<T>
     {
         // arrange
-        var mapper = MakeDefaultMapperBuilder().Register<TSourceEntity, SomeTargetEntity<T>>().Build();
+        var mapper = MakeDefaultMapperBuilder().Register<TSourceEntity, SomeTargetEntity<T>>().Build().MakeToMemoryMapper();
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {

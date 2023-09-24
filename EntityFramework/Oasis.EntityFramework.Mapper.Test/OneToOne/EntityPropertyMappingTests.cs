@@ -11,7 +11,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task AddOneToOneEntity_ShouldSucceed()
     {
         // arrange
-        var mapper = MakeDefaultMapperBuilder().Register<PrincipalOptional1, PrincipalOptional2>().Build();
+        var mapper = MakeDefaultMapperBuilder().Register<PrincipalOptional1, PrincipalOptional2>().Build().MakeToMemorySession();
 
         var principalOptional1 = new PrincipalOptional1(1);
         var inner1 = new DependentOptional1_1(1);
@@ -51,7 +51,8 @@ public sealed class EntityPropertyMappingTests : TestBase
                 .SetMapToDatabaseType(MapToDatabaseType.Update)
                 .Finish()
             .Register<PrincipalOptional2, PrincipalOptional1>()
-            .Build();
+            .Build()
+            .MakeToDatabaseMapper();
 
         var principalOptional2 = new PrincipalOptional2(1);
         var inner1 = new Dependent2_1(1);
@@ -63,7 +64,8 @@ public sealed class EntityPropertyMappingTests : TestBase
         {
             await ExecuteWithNewDatabaseContext(async (databaseContext) =>
             {
-                _ = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, p => p.Include(p => p.Inner1).Include(p => p.Inner2), databaseContext);
+                mapper.DatabaseContext = databaseContext;
+                _ = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, p => p.Include(p => p.Inner1).Include(p => p.Inner2));
             });
         });
     }
@@ -72,7 +74,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task UpdateOneToOneEntityWithNew_ShouldSucceed()
     {
         // arrange
-        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>().Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>().Build().MakeMapper();
 
         var principalOptional1 = new PrincipalOptional1(1);
         var inner1 = new DependentOptional1_1(1);
@@ -97,7 +99,8 @@ public sealed class EntityPropertyMappingTests : TestBase
         principalOptional2.Inner2 = new Dependent2_2("2");
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, o => o.Include(o => o.Inner1).Include(o => o.Inner2), databaseContext);
+            mapper.DatabaseContext = databaseContext;
+            var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
             await databaseContext.SaveChangesAsync();
         });
 
@@ -124,7 +127,8 @@ public sealed class EntityPropertyMappingTests : TestBase
                 .SetMapToDatabaseType(MapToDatabaseType.Update)
                 .Finish()
             .RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>()
-            .Build();
+            .Build()
+            .MakeMapper();
 
         var principalOptional1 = new PrincipalOptional1(1);
         var inner1 = new DependentOptional1_1(1);
@@ -151,7 +155,8 @@ public sealed class EntityPropertyMappingTests : TestBase
         {
             await ExecuteWithNewDatabaseContext(async (databaseContext) =>
             {
-                var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, o => o.Include(o => o.Inner1).Include(o => o.Inner2), databaseContext);
+                mapper.DatabaseContext = databaseContext;
+                var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
                 await databaseContext.SaveChangesAsync();
             });
         });
@@ -162,7 +167,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task UpdateOneToOneRequiredEntityWithExisting_ShouldSucceed()
     {
         // arrange
-        var mapper = MakeDefaultMapperBuilder()
+        var factory = MakeDefaultMapperBuilder()
             .Configure<PrincipalRequired1>()
                 .Finish()
             .RegisterTwoWay<PrincipalRequired1, PrincipalRequired2>()
@@ -184,7 +189,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var entity = await databaseContext.Set<PrincipalRequired1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
-            var session1 = mapper.CreateMappingSession();
+            var session1 = factory.MakeToMemorySession();
             principalRequired2 = session1.Map<PrincipalRequired1, PrincipalRequired2>(entity);
             principalRequired2.Inner1 = session1.Map<DependentRequired1_1, Dependent2_1>(new DependentRequired1_1(2));
             principalRequired2.Inner2 = session1.Map<DependentRequired1_2, Dependent2_2>(new DependentRequired1_2("2"));
@@ -192,7 +197,8 @@ public sealed class EntityPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result1 = await mapper.MapAsync<PrincipalRequired2, PrincipalRequired1>(principalRequired2, o => o.Include(o => o.Inner1).Include(o => o.Inner2), databaseContext);
+            var mapper = factory.MakeToDatabaseMapper(databaseContext);
+            var result1 = await mapper.MapAsync<PrincipalRequired2, PrincipalRequired1>(principalRequired2, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
             await databaseContext.SaveChangesAsync();
         });
 
@@ -243,7 +249,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task AddRecursiveEntity_ShouldSucceed()
     {
         // arrange
-        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<RecursiveEntity1, RecursiveEntity2>().Build();
+        var mapper = MakeDefaultMapperBuilder().RegisterTwoWay<RecursiveEntity1, RecursiveEntity2>().Build().MakeMapper();
 
         var parent = new RecursiveEntity1("parent");
         var child1 = new RecursiveEntity1("child");
@@ -275,7 +281,8 @@ public sealed class EntityPropertyMappingTests : TestBase
         RecursiveEntity1 r3 = null!;
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            r3 = await mapper.MapAsync<RecursiveEntity2, RecursiveEntity1>(r2, r => r.Include(r => r.Parent).Include(r => r.Child), databaseContext);
+            mapper.DatabaseContext = databaseContext;
+            r3 = await mapper.MapAsync<RecursiveEntity2, RecursiveEntity1>(r2, r => r.Include(r => r.Parent).Include(r => r.Child));
         });
 
         Assert.AreEqual("parent 1", r3.StringProperty);
@@ -285,7 +292,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         Assert.AreEqual("child 1", r3.Child.StringProperty);
     }
 
-    private async Task ReplaceOptinoalOneToOneMapping(IMapper mapper)
+    private async Task ReplaceOptinoalOneToOneMapping(IMapperFactory factory)
     {
         var principalOptional1 = new PrincipalOptional1(1);
         var inner1 = new DependentOptional1_1(1);
@@ -305,7 +312,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var entity = await databaseContext.Set<PrincipalOptional1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
-            var session1 = mapper.CreateMappingSession();
+            var session1 = factory.MakeToMemorySession();
             principalOptional2 = session1.Map<PrincipalOptional1, PrincipalOptional2>(entity);
             principalOptional2.Inner1 = session1.Map<DependentOptional1_1, Dependent2_1>(await databaseContext.Set<DependentOptional1_1>().FirstAsync(i => i.LongProp == 2));
             principalOptional2.Inner2 = session1.Map<DependentOptional1_2, Dependent2_2>(await databaseContext.Set<DependentOptional1_2>().FirstAsync(i => i.StringProp == "2"));
@@ -313,7 +320,8 @@ public sealed class EntityPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, o => o.Include(o => o.Inner1).Include(o => o.Inner2), databaseContext);
+            var mapper = factory.MakeToDatabaseMapper(databaseContext);
+            var result1 = await mapper.MapAsync<PrincipalOptional2, PrincipalOptional1>(principalOptional2, o => o.Include(o => o.Inner1).Include(o => o.Inner2));
             await databaseContext.SaveChangesAsync();
         });
     }

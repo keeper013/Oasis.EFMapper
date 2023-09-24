@@ -199,27 +199,6 @@ internal static class Utilities
         return dict.TryGetValue(key1, out var innerDict) && innerDict.TryGetValue(key2, out var item)
             ? item : default;
     }
-
-    internal static Dictionary<TKey1, IReadOnlyDictionary<TKey2, Delegate>> MakeDelegateDictionary<TKey1, TKey2>(IReadOnlyDictionary<TKey1, Dictionary<TKey2, MethodMetaData>> metaDataDict, Type type)
-        where TKey1 : notnull
-        where TKey2 : notnull
-    {
-        var result = new Dictionary<TKey1, IReadOnlyDictionary<TKey2, Delegate>>();
-        foreach (var pair in metaDataDict)
-        {
-            var innerDictionary = new Dictionary<TKey2, Delegate>();
-            foreach (var innerPair in pair.Value)
-            {
-                var comparer = innerPair.Value;
-                var @delegate = Delegate.CreateDelegate(comparer.type, type.GetMethod(comparer.name)!);
-                innerDictionary.Add(innerPair.Key, @delegate);
-            }
-
-            result.Add(pair.Key, innerDictionary);
-        }
-
-        return result;
-    }
 }
 
 internal record struct MethodMetaData(Type type, string name);

@@ -184,19 +184,22 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new ScalarTypeConverter(_scalarConverterDictionary);
     }
 
-    public IListTypeConstructor MakeListTypeConstructor(Type type)
-    {
-        return new ListTypeConstructor(_entityListFactoryMethods, _entityListDefaultConstructors, type);
-    }
-
     public MapperSetLookUp MakeMapperSetLookUp(Type type)
     {
         return new MapperSetLookUp(_mapper, type);
     }
 
-    public EntityHandler MakeEntityHandler(Type type, IScalarTypeConverter scalarTypeConverter)
+    public EntityHandlerData MakeEntityHandler(Type type)
     {
-        return new EntityHandler(_typeIdProxies, _typeConcurrencyTokenProxies, _idComparers, _concurrencyTokenComparers, _sourceIdEqualsTargetId, _sourceIdListContainsTargetId, _factoryMethods, _entityDefaultConstructors, type, scalarTypeConverter);
+        return new EntityHandlerData(
+            MakeTypeKeyProxyDictionary(_typeIdProxies, type),
+            MakeTypeKeyProxyDictionary(_typeConcurrencyTokenProxies, type),
+            MakeDelegateDictionary(_idComparers, type),
+            MakeDelegateDictionary(_concurrencyTokenComparers, type),
+            MakeDelegateDictionary(_sourceIdEqualsTargetId, type),
+            MakeDelegateDictionary(_sourceIdListContainsTargetId, type),
+            MakeFactoryMethods(_factoryMethods, _entityDefaultConstructors, type),
+            MakeFactoryMethods(_entityListFactoryMethods, _entityListDefaultConstructors, type));
     }
 
     public MapToDatabaseTypeManager MakeMapToDatabaseTypeManager()
@@ -204,7 +207,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new MapToDatabaseTypeManager(_defaultMapToDatabase, _mapToDatabaseDictionary);
     }
 
-    public RecursiveMappingContextFactory MakeRecursiveMappingContextFactory(Type type, EntityHandler entityHandler, IScalarTypeConverter scalarTypeConverter)
+    public EntityTrackerData MakeEntityTrackerData(Type type, IScalarTypeConverter scalarTypeConverter)
     {
         var targetIdentityTypeMapping = new Dictionary<Type, Type>();
         var targetByIdTrackerFactories = new Dictionary<Type, ITargetByIdTrackerFactory>();
@@ -228,7 +231,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
             }
         }
 
-        return new RecursiveMappingContextFactory(entityHandler, targetIdentityTypeMapping, targetByIdTrackerFactories, loopDependencies);
+        return new EntityTrackerData(targetIdentityTypeMapping, targetByIdTrackerFactories, loopDependencies);
     }
 
     public void RegisterEntityListDefaultConstructorMethod(Type listType)
@@ -354,20 +357,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
     }
 
-    public void Clear()
-    {
-        _scalarConverterDictionary.Clear();
-        _keyPropertyNames.Clear();
-        _typeIdProxies.Clear();
-        _typeConcurrencyTokenProxies.Clear();
-        _mapper.Clear();
-        _idComparers.Clear();
-        _concurrencyTokenComparers.Clear();
-        _targetByIdTrackers.Clear();
-        _entityDefaultConstructors.Clear();
-        _entityListDefaultConstructors.Clear();
-    }
-
     private static TypeKeyProxyMetaDataSet BuildTypeKeyProxy(
         Type type,
         PropertyInfo property,
@@ -393,6 +382,53 @@ internal sealed class MapperRegistry : IRecursiveRegister
             targetType,
             () => methodBuilder.BuildUpKeyEqualComparerMethod(keyType, sourceType, targetType, sourceKeyProperty!, targetKeyProperty!),
             sourceKeyProperty != default && targetKeyProperty != default);
+    }
+
+    private static Dictionary<Type, TypeKeyProxy> MakeTypeKeyProxyDictionary(Dictionary<Type, TypeKeyProxyMetaDataSet> proxies, Type type)
+    {
+        var result = new Dictionary<Type, TypeKeyProxy>();
+        foreach (var pair in proxies)
+        {
+            var typeKeyDataSet = pair.Value;
+            var proxy = new TypeKeyProxy(
+                Delegate.CreateDelegate(typeKeyDataSet.isEmpty.type, type.GetMethod(typeKeyDataSet.isEmpty.name)!),
+                typeKeyDataSet.property);
+            result.Add(pair.Key, proxy);
+        }
+
+        return result;
+    }
+
+    private static Dictionary<Type, Delegate> MakeFactoryMethods(IReadOnlyDictionary<Type, Delegate> direct, IReadOnlyDictionary<Type, MethodMetaData> generated, Type type)
+    {
+        var factoryMethods = new Dictionary<Type, Delegate>(direct);
+        foreach (var kvp in generated)
+        {
+            factoryMethods.Add(kvp.Key, Delegate.CreateDelegate(kvp.Value.type, type.GetMethod(kvp.Value.name)!));
+        }
+
+        return factoryMethods;
+    }
+
+    private static Dictionary<TKey1, IReadOnlyDictionary<TKey2, Delegate>> MakeDelegateDictionary<TKey1, TKey2>(IReadOnlyDictionary<TKey1, Dictionary<TKey2, MethodMetaData>> metaDataDict, Type type)
+        where TKey1 : notnull
+        where TKey2 : notnull
+    {
+        var result = new Dictionary<TKey1, IReadOnlyDictionary<TKey2, Delegate>>();
+        foreach (var pair in metaDataDict)
+        {
+            var innerDictionary = new Dictionary<TKey2, Delegate>();
+            foreach (var innerPair in pair.Value)
+            {
+                var comparer = innerPair.Value;
+                var @delegate = Delegate.CreateDelegate(comparer.type, type.GetMethod(comparer.name)!);
+                innerDictionary.Add(innerPair.Key, @delegate);
+            }
+
+            result.Add(pair.Key, innerDictionary);
+        }
+
+        return result;
     }
 
     private void RegisterAndPop(Type sourceType, Type targetType)

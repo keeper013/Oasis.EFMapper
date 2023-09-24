@@ -15,19 +15,21 @@ public sealed class TestCase7_Session : TestBase
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
             .Register<NewBookWithNewTagDTO, Book>()
-            .Build();
+            .Build()
+            .MakeToDatabaseMapper();
 
         Assert.ThrowsAsync<DbUpdateException>(async () =>
         {
             await ExecuteWithNewDatabaseContext(async databaseContext =>
             {
+                mapper.DatabaseContext = databaseContext;
                 var tag = new NewTagDTO { Name = "Tag1" };
                 var book1 = new NewBookWithNewTagDTO { Name = "Book1" };
                 book1.Tags.Add(tag);
                 var book2 = new NewBookWithNewTagDTO { Name = "Book2" };
                 book2.Tags.Add(tag);
-                _ = await mapper.MapAsync<NewBookWithNewTagDTO, Book>(book1, null, databaseContext);
-                _ = await mapper.MapAsync<NewBookWithNewTagDTO, Book>(book2, null, databaseContext);
+                _ = await mapper.MapAsync<NewBookWithNewTagDTO, Book>(book1, null);
+                _ = await mapper.MapAsync<NewBookWithNewTagDTO, Book>(book2, null);
                 _ = await databaseContext.SaveChangesAsync();
             });
         });
@@ -37,7 +39,7 @@ public sealed class TestCase7_Session : TestBase
     public async Task Test2_MapWithSession_EntityNotDuplicated()
     {
         // initialize mapper
-        var mapper = MakeDefaultMapperBuilder()
+        var factory = MakeDefaultMapperBuilder()
             .Register<NewBookWithNewTagDTO, Book>()
             .Build();
 
@@ -48,7 +50,7 @@ public sealed class TestCase7_Session : TestBase
             book1.Tags.Add(tag);
             var book2 = new NewBookWithNewTagDTO { Name = "Book2" };
             book2.Tags.Add(tag);
-            var session = mapper.CreateMappingToDatabaseSession(databaseContext);
+            var session = factory.MakeToDatabaseSession(databaseContext);
             _ = await session.MapAsync<NewBookWithNewTagDTO, Book>(book1, null);
             _ = await session.MapAsync<NewBookWithNewTagDTO, Book>(book2, null);
             _ = await databaseContext.SaveChangesAsync();

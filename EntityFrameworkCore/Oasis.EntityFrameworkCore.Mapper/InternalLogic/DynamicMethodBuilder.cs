@@ -624,7 +624,6 @@ internal sealed class DynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg_1);
             generator.Emit(OpCodes.Callvirt, matched.Item3.GetMethod!);
             generator.Emit(OpCodes.Ldarg, 4);
-            generator.Emit(OpCodes.Ldstr, matched.Item3.Name);
             generator.Emit(OpCodes.Callvirt, _entityPropertyMapperCache.CreateIfNotExist(matched.Item2, matched.Item4));
             generator.Emit(OpCodes.Callvirt, matched.Item3.SetMethod!);
         }
@@ -699,8 +698,8 @@ internal sealed class DynamicMethodBuilder
             generator.Emit(OpCodes.Callvirt, match.Item1.GetMethod!);
             generator.Emit(OpCodes.Ldarg_1);
             generator.Emit(OpCodes.Callvirt, match.Item3.GetMethod!);
-            generator.Emit(OpCodes.Ldarg, 4);
             generator.Emit(OpCodes.Ldstr, match.Item3.Name);
+            generator.Emit(OpCodes.Ldarg, 4);
             generator.Emit(OpCodes.Callvirt, _entityListPropertyMapperCache.CreateIfNotExist(match.Item2, match.Item4));
         }
     }
