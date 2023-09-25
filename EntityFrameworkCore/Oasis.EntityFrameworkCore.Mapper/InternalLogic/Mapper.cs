@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
 
-internal sealed class ToDatabaseMapper : IToDatabaseMapper
+internal sealed class ToDatabaseMapper : IToDatabaseSession
 {
     private readonly ToDatabaseRecursiveMapper _mapper;
     private readonly IRecursiveMappingContext _context;
@@ -32,9 +32,14 @@ internal sealed class ToDatabaseMapper : IToDatabaseMapper
 
         return await _mapper.MapAsync(source, includer, _context);
     }
+
+    public void Reset()
+    {
+        _context.Clear();
+    }
 }
 
-internal sealed class ToMemoryMapper : IToMemoryMapper
+internal sealed class ToMemoryMapper : IToMemorySession
 {
     private readonly ToMemoryRecursiveMapper _mapper;
     private readonly IRecursiveMappingContext _context;
@@ -49,6 +54,11 @@ internal sealed class ToMemoryMapper : IToMemoryMapper
         where TSource : class
         where TTarget : class
         => _mapper.MapNew<TSource, TTarget>(source, _context);
+
+    public void Reset()
+    {
+        _context.Clear();
+    }
 }
 
 internal sealed class Mapper : IMapper
@@ -118,10 +128,10 @@ internal sealed class MapperFactory : IMapperFactory
     public IToDatabaseMapper MakeToDatabaseMapper(DbContext? databaseContext = null)
         => new ToDatabaseMapper(_toDatabaseRecursiveMapper, _targetByIdTrackerFactories, false, databaseContext);
 
-    public IToDatabaseMapper MakeToDatabaseSession(DbContext? databaseContext = null)
+    public IToDatabaseSession MakeToDatabaseSession(DbContext? databaseContext = null)
         => new ToDatabaseMapper(_toDatabaseRecursiveMapper, _targetByIdTrackerFactories, true, databaseContext);
 
     public IToMemoryMapper MakeToMemoryMapper() => new ToMemoryMapper(_toMemoryRecursiveMapper, _targetByIdTrackerFactories, false);
 
-    public IToMemoryMapper MakeToMemorySession() => new ToMemoryMapper(_toMemoryRecursiveMapper, _targetByIdTrackerFactories, true);
+    public IToMemorySession MakeToMemorySession() => new ToMemoryMapper(_toMemoryRecursiveMapper, _targetByIdTrackerFactories, true);
 }

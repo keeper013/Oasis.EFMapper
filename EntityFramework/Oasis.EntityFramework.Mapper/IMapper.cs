@@ -10,6 +10,11 @@ public interface IToMemoryMapper
         where TTarget : class;
 }
 
+public interface IToMemorySession : IToMemoryMapper
+{
+    void Reset();
+}
+
 public interface IToDatabaseMapper
 {
     DbContext DatabaseContext { set; }
@@ -17,6 +22,11 @@ public interface IToDatabaseMapper
     Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
         where TSource : class
         where TTarget : class;
+}
+
+public interface IToDatabaseSession : IToDatabaseMapper
+{
+    void Reset();
 }
 
 public interface IMapper : IToDatabaseMapper, IToMemoryMapper
@@ -29,9 +39,9 @@ public interface IMapperFactory
 
     IToMemoryMapper MakeToMemoryMapper();
 
-    IToMemoryMapper MakeToMemorySession();
+    IToMemorySession MakeToMemorySession();
 
     IToDatabaseMapper MakeToDatabaseMapper(DbContext? databaseContext = null);
 
-    IToDatabaseMapper MakeToDatabaseSession(DbContext? databaseContext = null);
+    IToDatabaseSession MakeToDatabaseSession(DbContext? databaseContext = null);
 }
