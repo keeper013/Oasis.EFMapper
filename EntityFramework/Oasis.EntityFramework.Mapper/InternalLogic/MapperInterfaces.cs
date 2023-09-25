@@ -19,11 +19,6 @@ public interface IRecursiveMappingContext
         where TTarget : class;
 }
 
-public interface IScalarTypeConverter
-{
-    TTarget Convert<TSource, TTarget>(TSource source);
-}
-
 public interface IEntityTracker<TTarget>
     where TTarget : class
 {

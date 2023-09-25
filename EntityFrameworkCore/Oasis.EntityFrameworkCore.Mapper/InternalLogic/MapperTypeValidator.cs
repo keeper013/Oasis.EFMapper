@@ -1,4 +1,6 @@
-﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 internal interface IMapperTypeValidator
 {
@@ -23,7 +25,9 @@ internal static class MapperTypeValidatorExtensions
 
     public static bool IsScalarType(this Type type)
     {
-        return (type.IsValueType && (type.IsPrimitive || type.IsEnum || type.IsNullablePrimitiveOrEnum())) || NonPrimitiveScalarTypes.Contains(type);
+        return (type.IsValueType && (type.IsPrimitive || type.IsEnum))
+            || (type.IsNullable(out var argumentType) && (argumentType.IsPrimitive || argumentType.IsEnum))
+            || NonPrimitiveScalarTypes.Contains(type);
     }
 
     public static bool IsEntityType(this Type type)
@@ -34,7 +38,7 @@ internal static class MapperTypeValidatorExtensions
     public static bool IsListOfEntityType(this Type type)
     {
         var itemType = type.GetListItemType();
-        return itemType != null ? itemType.IsEntityType() : false;
+        return itemType != null && itemType.IsEntityType();
     }
 
     public static Type? GetListType(this Type type)
@@ -53,10 +57,17 @@ internal static class MapperTypeValidatorExtensions
         return types.Count == 1 ? types[0] : default;
     }
 
-    public static bool IsNullablePrimitiveOrEnum(this Type type)
+    public static bool IsNullable(this Type type, [NotNullWhen(true)] out Type? argumentType)
     {
         const string NullableTypeName = "System.Nullable`1[[";
-        return type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1 && (type.GenericTypeArguments[0].IsPrimitive || type.GenericTypeArguments[0].IsEnum);
+        if (type.FullName!.StartsWith(NullableTypeName) && type.GenericTypeArguments.Length == 1)
+        {
+            argumentType = type.GenericTypeArguments[0];
+            return true;
+        }
+
+        argumentType = null;
+        return false;
     }
 
     private static bool IsOfGenericTypeDefinition(Type source, Type target)

@@ -20,10 +20,9 @@ internal sealed class MapperBuilder : IMapperBuilder
     public IMapperFactory Build()
     {
         var type = _mapperRegistry.Build();
-        var scalarTypeConverter = _mapperRegistry.MakeScalarTypeConverter();
         var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
         var entityHandlerData = _mapperRegistry.MakeEntityHandler(type);
-        var entityTrackerData = _mapperRegistry.MakeEntityTrackerData(type, scalarTypeConverter);
+        var entityTrackerData = _mapperRegistry.MakeEntityTrackerData(type, entityHandlerData.scalarTypeConverters);
         var keepUnmatchedManager = _mapperRegistry.KeepUnmatchedManager.IsEmpty ? null : _mapperRegistry.KeepUnmatchedManager;
         var mapToDatabaseTypeManager = _mapperRegistry.MakeMapToDatabaseTypeManager();
 
@@ -32,8 +31,7 @@ internal sealed class MapperBuilder : IMapperBuilder
             mapToDatabaseTypeManager,
             lookup,
             entityTrackerData,
-            entityHandlerData,
-            scalarTypeConverter);
+            entityHandlerData);
     }
 
     public IMapperBuilder Register<TSource, TTarget>()

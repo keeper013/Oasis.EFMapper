@@ -94,11 +94,11 @@ internal sealed class TargetByIdTrackerFactory<TKeyType> : ITargetByIdTrackerFac
     where TKeyType : notnull
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, TargetByIdTrackerMethods>> _index;
-    private readonly IScalarTypeConverter _scalarTypeConverter;
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _scalarTypeConverters;
 
-    public TargetByIdTrackerFactory(Dictionary<Type, Dictionary<Type, TargetByIdTrackerMetaDataSet>> index, IScalarTypeConverter scalarTypeConverter, Type type)
+    public TargetByIdTrackerFactory(Dictionary<Type, Dictionary<Type, TargetByIdTrackerMetaDataSet>> index, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarTypeConverters, Type type)
     {
-        _scalarTypeConverter = scalarTypeConverter;
+        _scalarTypeConverters = scalarTypeConverters;
         var dict = new Dictionary<Type, IReadOnlyDictionary<Type, TargetByIdTrackerMethods>>();
         foreach (var kvp in index)
         {
@@ -137,7 +137,7 @@ internal sealed class TargetByIdTrackerFactory<TKeyType> : ITargetByIdTrackerFac
         {
             var targetType = typeof(TTarget);
             return _objects.TryGetValue(targetType, out var dict)
-                ? ((Utilities.EntityTrackerFindById<TSource, TTarget, TKeyType>)_factory._index.Find(typeof(TSource), targetType)!.find)(dict, source, _factory._scalarTypeConverter)
+                ? ((Utilities.EntityTrackerFindById<TSource, TTarget, TKeyType>)_factory._index.Find(typeof(TSource), targetType)!.find)(dict, source, _factory._scalarTypeConverters)
                 : null;
         }
 
@@ -152,7 +152,7 @@ internal sealed class TargetByIdTrackerFactory<TKeyType> : ITargetByIdTrackerFac
                 _objects.Add(targetType, dict);
             }
 
-            ((Utilities.EntityTrackerTrackById<TSource, TTarget, TKeyType>)_factory._index.Find(typeof(TSource), targetType)!.track)(dict, source, target, _factory._scalarTypeConverter);
+            ((Utilities.EntityTrackerTrackById<TSource, TTarget, TKeyType>)_factory._index.Find(typeof(TSource), targetType)!.track)(dict, source, target, _factory._scalarTypeConverters);
         }
 
         public void Clear()

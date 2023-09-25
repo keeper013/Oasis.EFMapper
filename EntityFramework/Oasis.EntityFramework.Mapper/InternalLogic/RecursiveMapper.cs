@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq.Expressions;
+using System.Data.Entity;
 using Oasis.EntityFramework.Mapper.Exceptions;
 
 internal record struct EntityHandlerData(
@@ -13,6 +13,7 @@ internal record struct EntityHandlerData(
     IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> entityConcurrencyTokenComparers,
     IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> sourceIdForTarget,
     IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> sourceIdListContainsTargetId,
+    IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarTypeConverters,
     IReadOnlyDictionary<Type, Delegate> factoryMethods,
     Dictionary<Type, Delegate> listTypeFactoryMethods);
 
@@ -28,11 +29,8 @@ internal abstract class RecursiveMapperBase
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _sourceIdListContainsTargetId;
     private readonly IReadOnlyDictionary<Type, Delegate> _factoryMethods;
     private readonly Dictionary<Type, Delegate> _listTypeFactoryMethods;
-    private readonly IScalarTypeConverter _scalarTypeConverter;
 
-    internal RecursiveMapperBase(
-        EntityHandlerData entityHandlerData,
-        IScalarTypeConverter scalarConverter)
+    internal RecursiveMapperBase(EntityHandlerData entityHandlerData)
     {
         _entityIdProxies = entityHandlerData.entityIdProxies;
         _entityConcurrencyTokenProxies = entityHandlerData.entityConcurrencyTokenProxies;
@@ -40,10 +38,12 @@ internal abstract class RecursiveMapperBase
         _entityConcurrencyTokenComparers = entityHandlerData.entityConcurrencyTokenComparers;
         _targetIdEqualsSourceId = entityHandlerData.sourceIdForTarget;
         _sourceIdListContainsTargetId = entityHandlerData.sourceIdListContainsTargetId;
+        ScalarTypeConverters = entityHandlerData.scalarTypeConverters;
         _factoryMethods = entityHandlerData.factoryMethods;
         _listTypeFactoryMethods = entityHandlerData.listTypeFactoryMethods;
-        _scalarTypeConverter = scalarConverter;
     }
+
+    protected IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> ScalarTypeConverters { get; }
 
     public TList ConstructListType<TList, TItem>()
         where TList : class, ICollection<TItem>
@@ -86,12 +86,12 @@ internal abstract class RecursiveMapperBase
     protected bool IdEquals<TSource, TTarget>(TSource source, TTarget target)
         where TSource : class
         where TTarget : class
-        => ((Utilities.ScalarPropertiesAreEqual<TSource, TTarget>)_entityIdComparers[typeof(TSource)][typeof(TTarget)])(source, target, _scalarTypeConverter);
+        => ((Utilities.ScalarPropertiesAreEqual<TSource, TTarget>)_entityIdComparers[typeof(TSource)][typeof(TTarget)])(source, target, ScalarTypeConverters);
 
     protected bool ConcurrencyTokenEquals<TSource, TTarget>(TSource source, TTarget target)
         where TSource : class
         where TTarget : class
-        => ((Utilities.ScalarPropertiesAreEqual<TSource, TTarget>)_entityConcurrencyTokenComparers[typeof(TSource)][typeof(TTarget)])(source, target, _scalarTypeConverter);
+        => ((Utilities.ScalarPropertiesAreEqual<TSource, TTarget>)_entityConcurrencyTokenComparers[typeof(TSource)][typeof(TTarget)])(source, target, ScalarTypeConverters);
 
     protected PropertyInfo GetIdProperty<TEntity>()
         where TEntity : class
@@ -100,12 +100,12 @@ internal abstract class RecursiveMapperBase
     protected Expression<Func<TTarget, bool>> GetContainsTargetIdExpression<TSource, TTarget>(List<TSource> sourceList)
         where TSource : class
         where TTarget : class
-        => ((Utilities.GetSourceIdListContainsTargetId<TSource, TTarget>)_sourceIdListContainsTargetId.Find(typeof(TSource), typeof(TTarget))!)(sourceList, _scalarTypeConverter);
+        => ((Utilities.GetSourceIdListContainsTargetId<TSource, TTarget>)_sourceIdListContainsTargetId.Find(typeof(TSource), typeof(TTarget))!)(sourceList, ScalarTypeConverters);
 
     protected Expression<Func<TTarget, bool>> GetIdEqualsExpression<TSource, TTarget>(TSource source)
         where TSource : class
         where TTarget : class
-        => ((Utilities.GetSourceIdEqualsTargetId<TSource, TTarget>)_targetIdEqualsSourceId.Find(typeof(TSource), typeof(TTarget))!)(source, _scalarTypeConverter);
+        => ((Utilities.GetSourceIdEqualsTargetId<TSource, TTarget>)_targetIdEqualsSourceId.Find(typeof(TSource), typeof(TTarget))!)(source, ScalarTypeConverters);
 
     protected TEntity Make<TEntity>()
         where TEntity : class
@@ -131,9 +131,8 @@ internal abstract class RecursiveMapperContext : RecursiveMapperBase, IRecursive
 
     protected RecursiveMapperContext(
         EntityTrackerData entityTrackerData,
-        EntityHandlerData entityHandlerData,
-        IScalarTypeConverter scalarConverter)
-        : base(entityHandlerData, scalarConverter)
+        EntityHandlerData entityHandlerData)
+        : base(entityHandlerData)
     {
         _targetIdentityTypeMapping = entityTrackerData.targetIdentityTypeMapping;
         _loopDependencyMapping = entityTrackerData.loopDependencyMapping;
@@ -155,7 +154,6 @@ internal abstract class RecursiveMapperContext : RecursiveMapperBase, IRecursive
 internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecursiveMapper<int>
 {
     private readonly MapperSetLookUp _lookup;
-    private readonly IScalarTypeConverter _scalarConverter;
     private readonly KeepUnmatchedManager? _keepUnmatchedManager;
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
 
@@ -164,11 +162,9 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
         MapperSetLookUp lookup,
         EntityTrackerData entityTrackerData,
-        EntityHandlerData entityHandlerData,
-        IScalarTypeConverter scalarConverter)
-        : base(entityTrackerData, entityHandlerData, scalarConverter)
+        EntityHandlerData entityHandlerData)
+        : base(entityTrackerData, entityHandlerData)
     {
-        _scalarConverter = scalarConverter;
         _lookup = lookup;
         _keepUnmatchedManager = keepUnmatchedManager;
         _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
@@ -423,10 +419,10 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
 
                 if (mapId)
                 {
-                    (mapper.keyMapper as Utilities.MapKeyProperties<TSource, TTarget>)?.Invoke(source, target, _scalarConverter, true);
+                    (mapper.keyMapper as Utilities.MapKeyProperties<TSource, TTarget>)?.Invoke(source, target, ScalarTypeConverters, true);
                 }
 
-                (mapper.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, _scalarConverter, this, context);
+                (mapper.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, ScalarTypeConverters, this, context);
             }
             finally
             {
@@ -505,16 +501,13 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
 internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursiveMapper<int>
 {
     private readonly MapperSetLookUp _lookup;
-    private readonly IScalarTypeConverter _scalarConverter;
 
     public ToMemoryRecursiveMapper(
         MapperSetLookUp lookup,
         EntityTrackerData entityTrackerData,
-        EntityHandlerData entityHandlerData,
-        IScalarTypeConverter scalarConverter)
-        : base(entityTrackerData, entityHandlerData, scalarConverter)
+        EntityHandlerData entityHandlerData)
+        : base(entityTrackerData, entityHandlerData)
     {
-        _scalarConverter = scalarConverter;
         _lookup = lookup;
     }
 
@@ -616,8 +609,8 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursi
         {
             var mapper = mapperSet.Value;
             (mapper.customPropertiesMapper as Action<TSource, TTarget>)?.Invoke(source, target);
-            (mapper.keyMapper as Utilities.MapKeyProperties<TSource, TTarget>)?.Invoke(source, target, _scalarConverter, false);
-            (mapper.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, _scalarConverter, this, context);
+            (mapper.keyMapper as Utilities.MapKeyProperties<TSource, TTarget>)?.Invoke(source, target, ScalarTypeConverters, false);
+            (mapper.contentMapper as Utilities.MapProperties<TSource, TTarget, int>)?.Invoke(source, target, ScalarTypeConverters, this, context);
         }
         else
         {

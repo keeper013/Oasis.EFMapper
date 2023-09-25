@@ -104,13 +104,12 @@ internal sealed class MapperFactory : IMapperFactory
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
         MapperSetLookUp lookup,
         EntityTrackerData entityTrackerData,
-        EntityHandlerData entityHandlerData,
-        IScalarTypeConverter scalarConverter)
+        EntityHandlerData entityHandlerData)
     {
         _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(
-            lookup, entityTrackerData, entityHandlerData, scalarConverter);
+            lookup, entityTrackerData, entityHandlerData);
         _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(
-            keepUnmatchedManager, mapToDatabaseTypeManager, lookup, entityTrackerData, entityHandlerData, scalarConverter);
+            keepUnmatchedManager, mapToDatabaseTypeManager, lookup, entityTrackerData, entityHandlerData);
         _targetByIdTrackerFactories = entityTrackerData.targetByIdTrackerFactories;
     }
 

@@ -2,7 +2,7 @@
 
 internal sealed class GenericMapperMethodCache
 {
-    private readonly Dictionary<Type, Dictionary<Type, MethodInfo>> _dict = new Dictionary<Type, Dictionary<Type, MethodInfo>>();
+    private readonly Dictionary<Type, Dictionary<Type, MethodInfo>> _dict = new ();
     private readonly MethodInfo _template;
 
     public GenericMapperMethodCache(MethodInfo template)
@@ -12,18 +12,7 @@ internal sealed class GenericMapperMethodCache
 
     public MethodInfo CreateIfNotExist(Type sourceType, Type targetType)
     {
-        if (!_dict.TryGetValue(sourceType, out var innerDictionary))
-        {
-            innerDictionary = new Dictionary<Type, MethodInfo>();
-            _dict[sourceType] = innerDictionary;
-        }
-
-        if (!innerDictionary.TryGetValue(targetType, out var method))
-        {
-            method = _template.MakeGenericMethod(sourceType, targetType);
-            innerDictionary[targetType] = method;
-        }
-
-        return method;
+        _dict.AddIfNotExists(sourceType, targetType, () => _template.MakeGenericMethod(sourceType, targetType));
+        return _dict[sourceType][targetType];
     }
 }

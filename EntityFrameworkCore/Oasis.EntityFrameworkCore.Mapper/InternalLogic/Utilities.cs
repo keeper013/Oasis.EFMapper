@@ -5,15 +5,20 @@ using System.Linq.Expressions;
 internal static class Utilities
 {
     public const BindingFlags PublicInstance = BindingFlags.Public | BindingFlags.Instance;
+    public const BindingFlags PublicStatic = BindingFlags.Public | BindingFlags.Static;
 
-    public delegate void MapKeyProperties<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter, bool mapIdOnly)
+    public delegate void MapKeyProperties<TSource, TTarget>(
+        TSource source,
+        TTarget target,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> converter,
+        bool mapIdOnly)
         where TSource : class
         where TTarget : class;
 
     public delegate void MapProperties<TSource, TTarget, TKeyType>(
         TSource source,
         TTarget target,
-        IScalarTypeConverter converter,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> converter,
         IRecursiveMapper<TKeyType> mapper,
         IRecursiveMappingContext context)
         where TSource : class
@@ -23,24 +28,24 @@ internal static class Utilities
     public delegate bool ScalarPropertyIsEmpty<TEntity>(TEntity entity)
         where TEntity : class;
 
-    public delegate bool ScalarPropertiesAreEqual<TSource, TTarget>(TSource source, TTarget target, IScalarTypeConverter converter)
+    public delegate bool ScalarPropertiesAreEqual<TSource, TTarget>(TSource source, TTarget target, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> converter)
         where TSource : class
         where TTarget : class;
 
-    public delegate Expression<Func<TTarget, bool>> GetSourceIdListContainsTargetId<TSource, TTarget>(List<TSource> sourceList, IScalarTypeConverter converter)
+    public delegate Expression<Func<TTarget, bool>> GetSourceIdListContainsTargetId<TSource, TTarget>(List<TSource> sourceList, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> converter)
         where TSource : class
         where TTarget : class;
 
-    public delegate Expression<Func<TTarget, bool>> GetSourceIdEqualsTargetId<TSource, TTarget>(TSource source, IScalarTypeConverter converter)
+    public delegate Expression<Func<TTarget, bool>> GetSourceIdEqualsTargetId<TSource, TTarget>(TSource source, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> converter)
         where TSource : class
         where TTarget : class;
 
-    public delegate TTarget? EntityTrackerFindById<TSource, TTarget, TKeyType>(Dictionary<TKeyType, object> dict, TSource source, IScalarTypeConverter converter)
+    public delegate TTarget? EntityTrackerFindById<TSource, TTarget, TKeyType>(Dictionary<TKeyType, object> dict, TSource source, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> converter)
         where TSource : class
         where TTarget : class
         where TKeyType : notnull;
 
-    public delegate void EntityTrackerTrackById<TSource, TTarget, TKeyType>(Dictionary<TKeyType, object> dict, TSource source, TTarget target, IScalarTypeConverter converter)
+    public delegate void EntityTrackerTrackById<TSource, TTarget, TKeyType>(Dictionary<TKeyType, object> dict, TSource source, TTarget target, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> converter)
         where TSource : class
         where TTarget : class
         where TKeyType : notnull;

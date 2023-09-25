@@ -1,6 +1,7 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
+using System;
 using System.Linq.Expressions;
 using System.Reflection.Emit;
 
@@ -15,6 +16,34 @@ internal enum KeyType
     /// Concurrenty Token
     /// </summary>
     ConcurrencyToken,
+}
+
+internal enum TypeEqualCategory
+{
+    /// <summary>
+    /// Types overrides equal operator
+    /// </summary>
+    OpEquality,
+
+    /// <summary>
+    /// Types that are primitive or enum or class
+    /// </summary>
+    PrimitiveEnumClass,
+
+    /// <summary>
+    /// Nullable structs that overrides equal operator
+    /// </summary>
+    NullableOpEquality,
+
+    /// <summary>
+    /// Nullable primitive or enum
+    /// </summary>
+    NullablePrimitiveEnum,
+
+    /// <summary>
+    /// Equals as objects
+    /// </summary>
+    ObjectEquals,
 }
 
 internal sealed class DynamicMethodBuilder
@@ -32,15 +61,23 @@ internal sealed class DynamicMethodBuilder
     private const char TargetByIdTrackerFind = 't';
     private const char TargetByIdTrackerTrack = 'a';
 
+    private const string DictionaryItemMethodName = "get_Item";
+    private const string EqualOperatorMethodName = "op_Equality";
+    private const string GetValueOrDefaultMethodName = "GetValueOrDefault";
+    private const string HasValuePropertyName = "HasValue";
+
     private static readonly MethodInfo ObjectEqual = typeof(object).GetMethod(nameof(object.Equals), new[] { typeof(object) })!;
     private static readonly Type DelegateType = typeof(Delegate);
-    private readonly GenericMapperMethodCache _scalarPropertyConverterCache = new (typeof(IScalarTypeConverter).GetMethods().First(m => string.Equals(m.Name, nameof(IScalarTypeConverter.Convert)) && m.IsGenericMethod));
+    private static readonly Type ByteArrayType = typeof(byte[]);
+    private static readonly Type ByteType = typeof(byte);
+    private static readonly MethodInfo TypeOfMethod = typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle), BindingFlags.Static | BindingFlags.Public)!;
+    private static readonly MethodInfo ScalarConvertorOuterGetItem = typeof(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>).GetMethod(DictionaryItemMethodName, Utilities.PublicInstance)!;
+    private static readonly MethodInfo ScalarConvertorInnerGetItem = typeof(IReadOnlyDictionary<Type, Delegate>).GetMethod(DictionaryItemMethodName, Utilities.PublicInstance)!;
+    private static readonly MethodInfo ByteArraySequenceEqual = typeof(Enumerable).GetMethods(Utilities.PublicStatic).Single(m => string.Equals(m.Name, nameof(Enumerable.SequenceEqual)) && m.GetParameters().Length == 2).MakeGenericMethod(ByteType);
     private readonly GenericMapperMethodCache _entityPropertyMapperCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapEntityProperty), Utilities.PublicInstance)!);
     private readonly GenericMapperMethodCache _entityListPropertyMapperCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapListProperty), Utilities.PublicInstance)!);
     private readonly GenericMapperMethodCache _listTypeConstructorCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.ConstructListType), Utilities.PublicInstance)!);
     private readonly IScalarTypeMethodCache _isDefaultValueCache = new ScalarTypeMethodCache(typeof(ScalarTypeIsDefaultValueMethods), nameof(ScalarTypeIsDefaultValueMethods.IsDefaultValue), new[] { typeof(object) });
-    private readonly IScalarTypeMethodCache _areEqualCache = new ScalarTypeMethodCache(typeof(ScalarTypeEqualMethods), nameof(ScalarTypeEqualMethods.AreEqual), new[] { typeof(object), typeof(object) });
-    private readonly MethodInfo typeOfMethod = typeof(Type).GetMethod(nameof(Type.GetTypeFromHandle), BindingFlags.Static | BindingFlags.Public)!;
     private readonly ConstructorInfo initializeOnlyPropertyExceptionContructor = typeof(InitializeOnlyPropertyException).GetConstructor(new[] { typeof(Type), typeof(string) })!;
     private readonly TypeBuilder _typeBuilder;
     private readonly IMapperTypeValidator _scalarMapperTypeValidator;
@@ -75,7 +112,7 @@ internal sealed class DynamicMethodBuilder
         if (sourceIdentityProperty != default && targetIdentityProperty != default)
         {
             var methodName = BuildMethodName(MapKeyPropertiesMethod, sourceType, targetType);
-            var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter), typeof(bool) }, typeof(void));
+            var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>), typeof(bool) }, typeof(void));
             var generator = method.GetILGenerator();
             GenerateKeyPropertiesMappingCode(generator, sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty);
             generator.Emit(OpCodes.Ret);
@@ -106,7 +143,7 @@ internal sealed class DynamicMethodBuilder
             var methodName = BuildMethodName(sourceType, targetType);
             var method = BuildMethod(
                 methodName,
-                new[] { sourceType, targetType, typeof(IScalarTypeConverter), typeof(IRecursiveMapper<int>), typeof(IRecursiveMappingContext) },
+                new[] { sourceType, targetType, typeof(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>), typeof(IRecursiveMapper<int>), typeof(IRecursiveMappingContext) },
                 typeof(void));
             var generator = method.GetILGenerator();
 
@@ -140,50 +177,87 @@ internal sealed class DynamicMethodBuilder
         PropertyInfo targetKeyProperty)
     {
         var methodName = BuildPropertyCompareMethodName(keyType == KeyType.Id ? CompareIdMethod : CompareConcurrencyTokenMethod, sourceType, targetType);
-        var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IScalarTypeConverter) }, typeof(bool));
+        var method = BuildMethod(methodName, new[] { sourceType, targetType, typeof(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>) }, typeof(bool));
         var generator = method.GetILGenerator();
 
         var sourcePropertyType = sourceKeyProperty.PropertyType;
         var targetPropertyType = targetKeyProperty.PropertyType;
-        var equalMethod = _areEqualCache.GetMethodFor(targetPropertyType);
-        var needToConvert = sourcePropertyType != targetPropertyType;
-
-        if (needToConvert)
+        var equalCategory = GetTypeEqualityCategory(targetPropertyType);
+        var targetTypeIsNullable = equalCategory == TypeEqualCategory.NullableOpEquality || equalCategory == TypeEqualCategory.NullablePrimitiveEnum;
+        var needToBox = equalCategory == TypeEqualCategory.ObjectEquals && targetPropertyType.IsValueType;
+        var typeIsByteArray = targetPropertyType == ByteArrayType;
+        LocalBuilder? sourceLocal = null;
+        LocalBuilder? targetLocal = null;
+        Label jumpLabel = default;
+        if (targetTypeIsNullable)
         {
-            generator.Emit(OpCodes.Ldarg_2);
+            sourceLocal = generator.DeclareLocal(targetPropertyType);
+            targetLocal = generator.DeclareLocal(targetPropertyType);
+        }
+        else if (typeIsByteArray)
+        {
+            sourceLocal = generator.DeclareLocal(targetPropertyType);
         }
 
-        generator.Emit(OpCodes.Ldarg_0);
-        generator.Emit(OpCodes.Callvirt, sourceKeyProperty.GetMethod!);
+        GenerateScalarPropertyConvertingCode(
+            generator,
+            sourcePropertyType,
+            targetPropertyType,
+            g => g.Emit(OpCodes.Ldarg_2),
+            g =>
+            {
+                g.Emit(OpCodes.Ldarg_0);
+                g.Emit(OpCodes.Callvirt, sourceKeyProperty.GetMethod!);
+                if (targetTypeIsNullable)
+                {
+                    g.Emit(OpCodes.Stloc, sourceLocal!);
+                }
+            });
 
-        if (needToConvert)
-        {
-            generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourcePropertyType, targetPropertyType));
-        }
-
-        if (equalMethod == default && targetPropertyType.IsValueType)
+        if (needToBox)
         {
             generator.Emit(OpCodes.Box, targetPropertyType);
+        }
+        else if (typeIsByteArray)
+        {
+            generator.Emit(OpCodes.Stloc, sourceLocal!);
+            generator.Emit(OpCodes.Ldloc, sourceLocal!);
+            jumpLabel = generator.DefineLabel();
+            generator.Emit(OpCodes.Brfalse_S, jumpLabel);
         }
 
         generator.Emit(OpCodes.Ldarg_1);
         generator.Emit(OpCodes.Callvirt, targetKeyProperty.GetMethod!);
-        if (equalMethod == default && targetPropertyType.IsValueType)
+        if (targetTypeIsNullable)
+        {
+            generator.Emit(OpCodes.Stloc, targetLocal!);
+        }
+
+        if (needToBox)
         {
             generator.Emit(OpCodes.Box, targetPropertyType);
         }
-
-        if (equalMethod != default)
+        else if (typeIsByteArray)
         {
-            generator.Emit(OpCodes.Call, equalMethod);
+            generator.Emit(OpCodes.Brfalse_S, jumpLabel);
+        }
+
+        if (!typeIsByteArray)
+        {
+            GenerateEqualCode(generator, targetPropertyType, equalCategory, sourceLocal, targetLocal);
         }
         else
         {
-            generator.Emit(OpCodes.Call, _areEqualCache.DefaultMethod);
+            generator.Emit(OpCodes.Ldloc, sourceLocal!);
+            generator.Emit(OpCodes.Ldarg_1);
+            generator.Emit(OpCodes.Callvirt, targetKeyProperty.GetMethod!);
+            generator.Emit(OpCodes.Call, ByteArraySequenceEqual);
+            generator.Emit(OpCodes.Ret);
+            generator.MarkLabel(jumpLabel);
+            generator.Emit(OpCodes.Ldc_I4_0);
         }
 
         generator.Emit(OpCodes.Ret);
-
         return new MethodMetaData(typeof(Utilities.ScalarPropertiesAreEqual<,>).MakeGenericType(sourceType, targetType), method.Name);
     }
 
@@ -247,7 +321,7 @@ internal sealed class DynamicMethodBuilder
         var sourceListType = typeof(List<>).MakeGenericType(sourceType);
         var method = BuildMethod(
             methodName,
-            new[] { sourceListType, typeof(IScalarTypeConverter) },
+            new[] { sourceListType, typeof(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>) },
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(targetType, typeof(bool))));
         var generator = method.GetILGenerator();
         var sourceIdentityType = sourceIdentityProperty.PropertyType;
@@ -287,17 +361,17 @@ internal sealed class DynamicMethodBuilder
         generator.Emit(OpCodes.Call, getCurrentMethod);
         generator.Emit(OpCodes.Stloc, sourceLocalVaraible);
         generator.Emit(OpCodes.Ldloc, listLocalVariable);
-        if (needToConvert)
-        {
-            generator.Emit(OpCodes.Ldarg_1);
-        }
 
-        generator.Emit(OpCodes.Ldloc, sourceLocalVaraible);
-        generator.Emit(OpCodes.Callvirt, sourceIdentityProperty.GetMethod!);
-        if (needToConvert)
-        {
-            generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourceIdentityType, targetIdentityType));
-        }
+        GenerateScalarPropertyConvertingCode(
+            generator,
+            sourceIdentityType,
+            targetIdentityType,
+            g => g.Emit(OpCodes.Ldarg_1),
+            g =>
+            {
+                generator.Emit(OpCodes.Ldloc, sourceLocalVaraible);
+                generator.Emit(OpCodes.Callvirt, sourceIdentityProperty.GetMethod!);
+            });
 
         generator.Emit(OpCodes.Callvirt, addMethod);
         generator.MarkLabel(startingJumpLabel);
@@ -328,7 +402,7 @@ internal sealed class DynamicMethodBuilder
         var methodName = BuildMethodName(SourceIdEqualsTargetId, sourceType, targetType);
         var method = BuildMethod(
             methodName,
-            new[] { sourceType, typeof(IScalarTypeConverter) },
+            new[] { sourceType, typeof(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>) },
             typeof(Expression<>).MakeGenericType(typeof(Func<,>).MakeGenericType(targetType, typeof(bool))));
         var generator = method.GetILGenerator();
         var sourceIdentityType = sourceIdentityProperty.PropertyType;
@@ -338,20 +412,19 @@ internal sealed class DynamicMethodBuilder
             typeof(ExpressionUtilities).GetMethod(nameof(ExpressionUtilities.MakeIdEqualsExpression), BindingFlags.Static | BindingFlags.Public)!
             .MakeGenericMethod(targetType, targetIdentityType);
 
-        if (needToConvert)
-        {
-            generator.Emit(OpCodes.Ldarg_1);
-        }
-
-        generator.Emit(OpCodes.Ldarg_0);
-        generator.Emit(OpCodes.Callvirt, sourceIdentityProperty.GetMethod!);
-        if (needToConvert)
-        {
-            generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourceIdentityType, targetIdentityType));
-        }
+        GenerateScalarPropertyConvertingCode(
+            generator,
+            sourceIdentityType,
+            targetIdentityType,
+            g => g.Emit(OpCodes.Ldarg_1),
+            g =>
+            {
+                generator.Emit(OpCodes.Ldarg_0);
+                generator.Emit(OpCodes.Callvirt, sourceIdentityProperty.GetMethod!);
+            });
 
         generator.Emit(OpCodes.Ldtoken, targetIdentityType);
-        generator.Emit(OpCodes.Call, typeOfMethod);
+        generator.Emit(OpCodes.Call, TypeOfMethod);
         generator.Emit(OpCodes.Ldstr, targetIdentityProperty.Name);
         generator.Emit(OpCodes.Call, makeIdEqualsExpression);
         generator.Emit(OpCodes.Ret);
@@ -374,7 +447,7 @@ internal sealed class DynamicMethodBuilder
         var tryGetValueMethod = typeof(Dictionary<,>).MakeGenericType(targetIdentityKeyType, objectType).GetMethod(nameof(Dictionary<int, object>.TryGetValue), Utilities.PublicInstance)!;
         var method = BuildMethod(
             methodName,
-            new[] { typeof(Dictionary<,>).MakeGenericType(targetIdentityKeyType, objectType), sourceType, typeof(IScalarTypeConverter) },
+            new[] { typeof(Dictionary<,>).MakeGenericType(targetIdentityKeyType, objectType), sourceType, typeof(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>) },
             targetType);
         var generator = method.GetILGenerator();
 
@@ -387,19 +460,16 @@ internal sealed class DynamicMethodBuilder
 
         generator.Emit(OpCodes.Ldarg_0);
 
-        if (needToConvert)
-        {
-            // convert source id to target id, if necessary
-            generator.Emit(OpCodes.Ldarg_2);
-        }
-
-        generator.Emit(OpCodes.Ldarg_1);
-        generator.Emit(OpCodes.Callvirt, sourceIdentityProperty.GetMethod!);
-        if (needToConvert)
-        {
-            // convert source id to target id, if necessary
-            generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourceIdentityType, targetIdentityType));
-        }
+        GenerateScalarPropertyConvertingCode(
+            generator,
+            sourceIdentityType,
+            targetIdentityType,
+            g => g.Emit(OpCodes.Ldarg_2),
+            g =>
+            {
+                generator.Emit(OpCodes.Ldarg_1);
+                generator.Emit(OpCodes.Callvirt, sourceIdentityProperty.GetMethod!);
+            });
 
         if (needTargetIdentityLocalVariable)
         {
@@ -440,7 +510,7 @@ internal sealed class DynamicMethodBuilder
         var addMethod = typeof(Dictionary<,>).MakeGenericType(targetIdentityKeyType, objectType).GetMethod(nameof(Dictionary<int, object>.Add), Utilities.PublicInstance)!;
         var method = BuildMethod(
             methodName,
-            new[] { typeof(Dictionary<,>).MakeGenericType(targetIdentityKeyType, objectType), sourceType, targetType, typeof(IScalarTypeConverter) },
+            new[] { typeof(Dictionary<,>).MakeGenericType(targetIdentityKeyType, objectType), sourceType, targetType, typeof(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>) },
             typeof(void));
         var generator = method.GetILGenerator();
 
@@ -451,19 +521,16 @@ internal sealed class DynamicMethodBuilder
         }
 
         generator.Emit(OpCodes.Ldarg_0);
-        if (needToConvert)
-        {
-            // convert source id to target id, if necessary
-            generator.Emit(OpCodes.Ldarg_3);
-        }
-
-        generator.Emit(OpCodes.Ldarg_1);
-        generator.Emit(OpCodes.Callvirt, sourceIdentityProperty.GetMethod!);
-        if (needToConvert)
-        {
-            // convert source id to target id, if necessary
-            generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourceIdentityType, targetIdentityType));
-        }
+        GenerateScalarPropertyConvertingCode(
+            generator,
+            sourceIdentityType,
+            targetIdentityType,
+            g => g.Emit(OpCodes.Ldarg_3),
+            g =>
+            {
+                generator.Emit(OpCodes.Ldarg_1);
+                generator.Emit(OpCodes.Callvirt, sourceIdentityProperty.GetMethod!);
+            });
 
         if (needTargetIdentityLocalVariable)
         {
@@ -493,6 +560,106 @@ internal sealed class DynamicMethodBuilder
         generator.Emit(OpCodes.Newobj, constructorInfo);
         generator.Emit(OpCodes.Ret);
         return new MethodMetaData(typeof(Func<>).MakeGenericType(type), method.Name);
+    }
+
+    private static void GenerateEqualCode(ILGenerator generator, Type type, TypeEqualCategory category, LocalBuilder? sourceLocal, LocalBuilder? targetLocal)
+    {
+        if (sourceLocal != default)
+        {
+            // nullable value type case
+            var getValueOrDefaultMethod = type.GetMethod(GetValueOrDefaultMethodName, Utilities.PublicInstance, Array.Empty<Type>())!;
+            var hasValueGetter = type.GetProperty(HasValuePropertyName, Utilities.PublicInstance)!.GetGetMethod()!;
+            generator.Emit(OpCodes.Ldloca_S, sourceLocal);
+            generator.Emit(OpCodes.Call, getValueOrDefaultMethod);
+            generator.Emit(OpCodes.Ldloca_S, targetLocal!);
+            generator.Emit(OpCodes.Call, getValueOrDefaultMethod);
+            if (category == TypeEqualCategory.NullableOpEquality)
+            {
+                generator.Emit(OpCodes.Call, type.GenericTypeArguments[0].GetMethod(EqualOperatorMethodName, Utilities.PublicStatic)!);
+            }
+            else
+            {
+                generator.Emit(OpCodes.Ceq);
+            }
+
+            generator.Emit(OpCodes.Ldloca_S, sourceLocal);
+            generator.Emit(OpCodes.Call, hasValueGetter);
+            generator.Emit(OpCodes.Ldloca_S, targetLocal!);
+            generator.Emit(OpCodes.Call, hasValueGetter);
+            generator.Emit(OpCodes.Ceq);
+            generator.Emit(OpCodes.And);
+        }
+        else if (category == TypeEqualCategory.OpEquality)
+        {
+            generator.Emit(OpCodes.Call, type.GetMethod(EqualOperatorMethodName, Utilities.PublicStatic)!);
+        }
+        else if (category == TypeEqualCategory.PrimitiveEnumClass)
+        {
+            generator.Emit(OpCodes.Ceq);
+        }
+        else
+        {
+            generator.Emit(OpCodes.Call, ObjectEqual);
+        }
+    }
+
+    private static TypeEqualCategory GetTypeEqualityCategory(Type type)
+    {
+        var equalOperator = type.GetMethod(EqualOperatorMethodName, Utilities.PublicStatic);
+        if (equalOperator != null && equalOperator.IsHideBySig && equalOperator.IsSpecialName)
+        {
+            return TypeEqualCategory.OpEquality;
+        }
+
+        if (type.IsPrimitive || type.IsEnum || type.IsClass)
+        {
+            return TypeEqualCategory.PrimitiveEnumClass;
+        }
+
+        if (type.IsNullable(out var argumentType))
+        {
+            equalOperator = argumentType.GetMethod(EqualOperatorMethodName, Utilities.PublicStatic);
+            if (equalOperator != null && equalOperator.IsHideBySig && equalOperator.IsSpecialName)
+            {
+                return TypeEqualCategory.NullableOpEquality;
+            }
+
+            if (type.IsPrimitive || type.IsEnum)
+            {
+                return TypeEqualCategory.NullablePrimitiveEnum;
+            }
+        }
+
+        return TypeEqualCategory.ObjectEquals;
+}
+
+    private static void GenerateScalarPropertyConvertingCode(
+        ILGenerator generator,
+        Type sourcePropertyType,
+        Type targetPropertyType,
+        Action<ILGenerator> generateLoadDictionaryCode,
+        Action<ILGenerator> generateLoadPropertyCode)
+    {
+        var needToConvert = sourcePropertyType != targetPropertyType;
+        var functionType = typeof(Func<,>).MakeGenericType(sourcePropertyType, targetPropertyType);
+        if (needToConvert)
+        {
+            generateLoadDictionaryCode(generator);
+            generator.Emit(OpCodes.Ldtoken, sourcePropertyType);
+            generator.Emit(OpCodes.Call, TypeOfMethod);
+            generator.Emit(OpCodes.Callvirt, ScalarConvertorOuterGetItem);
+            generator.Emit(OpCodes.Ldtoken, targetPropertyType);
+            generator.Emit(OpCodes.Call, TypeOfMethod);
+            generator.Emit(OpCodes.Callvirt, ScalarConvertorInnerGetItem);
+            generator.Emit(OpCodes.Castclass, functionType);
+        }
+
+        generateLoadPropertyCode(generator);
+
+        if (needToConvert)
+        {
+            generator.Emit(OpCodes.Callvirt, functionType.GetMethod("Invoke", Utilities.PublicInstance)!);
+        }
     }
 
     private static string GetTypeName(Type type)
@@ -686,7 +853,7 @@ internal sealed class DynamicMethodBuilder
             else
             {
                 generator.Emit(OpCodes.Ldtoken, match.Item4);
-                generator.Emit(OpCodes.Call, typeOfMethod);
+                generator.Emit(OpCodes.Call, TypeOfMethod);
                 generator.Emit(OpCodes.Ldstr, match.Item3.Name);
                 generator.Emit(OpCodes.Newobj, initializeOnlyPropertyExceptionContructor);
                 generator.Emit(OpCodes.Throw);
@@ -719,17 +886,17 @@ internal sealed class DynamicMethodBuilder
         var targetPropertyType = targetProperty.PropertyType;
         var needToConvert = sourcePropertyType != targetPropertyType;
         generator.Emit(OpCodes.Ldarg_1);
-        if (needToConvert)
-        {
-            generator.Emit(OpCodes.Ldarg_2);
-        }
 
-        generator.Emit(OpCodes.Ldarg_0);
-        generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
-        if (needToConvert)
-        {
-            generator.Emit(OpCodes.Callvirt, _scalarPropertyConverterCache.CreateIfNotExist(sourcePropertyType, targetPropertyType));
-        }
+        GenerateScalarPropertyConvertingCode(
+            generator,
+            sourcePropertyType,
+            targetPropertyType,
+            g => g.Emit(OpCodes.Ldarg_2),
+            g =>
+            {
+                generator.Emit(OpCodes.Ldarg_0);
+                generator.Emit(OpCodes.Callvirt, sourceProperty.GetMethod!);
+            });
 
         generator.Emit(OpCodes.Callvirt, targetProperty.SetMethod!);
     }
@@ -750,7 +917,7 @@ internal class ScalarTypeMethodCache : IScalarTypeMethodCache
 
     public ScalarTypeMethodCache(Type type, string methodName, Type[] parameters)
     {
-        _cache = type.GetMethods(BindingFlags.Public | BindingFlags.Static).ToDictionary(m => m.GetParameters()[0].ParameterType, m => m);
+        _cache = type.GetMethods(Utilities.PublicStatic).ToDictionary(m => m.GetParameters()[0].ParameterType, m => m);
         _generalMethod = type.GetMethod(methodName, parameters)!;
     }
 
@@ -854,103 +1021,5 @@ public static class ScalarTypeIsDefaultValueMethods
     public static bool IsDefaultValue(object? x)
     {
         return x == default;
-    }
-}
-
-public static class ScalarTypeEqualMethods
-{
-    public static bool AreEqual(byte x, byte y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(byte? x, byte? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(short x, short y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(ushort x, ushort y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(short? x, short? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(ushort? x, ushort? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(int x, int y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(uint x, uint y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(int? x, int? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(uint? x, uint? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(long x, long y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(ulong x, ulong y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(long? x, long? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(ulong? x, ulong? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(string? x, string? y)
-    {
-        return string.Equals(x, y);
-    }
-
-    public static bool AreEqual(byte[]? x, byte[]? y)
-    {
-        return x != default && y != default && Enumerable.SequenceEqual(x, y);
-    }
-
-    public static bool AreEqual(Guid x, Guid y)
-    {
-        return x != default && y != default && x == y;
-    }
-
-    public static bool AreEqual(Guid? x, Guid? y)
-    {
-        return x.HasValue && y.HasValue && x.Value == y.Value;
-    }
-
-    public static bool AreEqual(object? x, object? y)
-    {
-        return x != default && y != default && Equals(x, y);
     }
 }

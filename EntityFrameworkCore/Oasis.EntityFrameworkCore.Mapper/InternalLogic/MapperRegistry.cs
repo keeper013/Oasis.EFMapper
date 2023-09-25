@@ -179,11 +179,6 @@ internal sealed class MapperRegistry : IRecursiveRegister
     public bool IsConfigured(Type entityType) => _keyPropertyNames.ContainsConfiguration(entityType)
         || _excludedPropertyManager.ContainsTypeConfiguration(entityType) || _keepUnmatchedManager.ContainsTypeConfiguration(entityType);
 
-    public IScalarTypeConverter MakeScalarTypeConverter()
-    {
-        return new ScalarTypeConverter(_scalarConverterDictionary);
-    }
-
     public MapperSetLookUp MakeMapperSetLookUp(Type type)
     {
         return new MapperSetLookUp(_mapper, type);
@@ -191,6 +186,12 @@ internal sealed class MapperRegistry : IRecursiveRegister
 
     public EntityHandlerData MakeEntityHandler(Type type)
     {
+        var scalarTypeConverters = new Dictionary<Type, IReadOnlyDictionary<Type, Delegate>>();
+        foreach (var pair in _scalarConverterDictionary)
+        {
+            scalarTypeConverters.Add(pair.Key, pair.Value);
+        }
+
         return new EntityHandlerData(
             MakeTypeKeyProxyDictionary(_typeIdProxies, type),
             MakeTypeKeyProxyDictionary(_typeConcurrencyTokenProxies, type),
@@ -198,6 +199,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
             MakeDelegateDictionary(_concurrencyTokenComparers, type),
             MakeDelegateDictionary(_sourceIdEqualsTargetId, type),
             MakeDelegateDictionary(_sourceIdListContainsTargetId, type),
+            scalarTypeConverters,
             MakeFactoryMethods(_factoryMethods, _entityDefaultConstructors, type),
             MakeFactoryMethods(_entityListFactoryMethods, _entityListDefaultConstructors, type));
     }
@@ -207,13 +209,13 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new MapToDatabaseTypeManager(_defaultMapToDatabase, _mapToDatabaseDictionary);
     }
 
-    public EntityTrackerData MakeEntityTrackerData(Type type, IScalarTypeConverter scalarTypeConverter)
+    public EntityTrackerData MakeEntityTrackerData(Type type, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarTypeConverters)
     {
         var targetIdentityTypeMapping = new Dictionary<Type, Type>();
         var targetByIdTrackerFactories = new Dictionary<Type, ITargetByIdTrackerFactory>();
         foreach (var kvp in _targetByIdTrackers)
         {
-            var factory = (ITargetByIdTrackerFactory)Activator.CreateInstance(typeof(TargetByIdTrackerFactory<>).MakeGenericType(kvp.Key), kvp.Value, scalarTypeConverter, type)!;
+            var factory = (ITargetByIdTrackerFactory)Activator.CreateInstance(typeof(TargetByIdTrackerFactory<>).MakeGenericType(kvp.Key), kvp.Value, scalarTypeConverters, type)!;
             targetByIdTrackerFactories.Add(kvp.Key, factory);
             foreach (var targetType in kvp.Value.SelectMany(v => v.Value.Keys).Distinct())
             {
