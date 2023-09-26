@@ -74,11 +74,11 @@ internal sealed class DynamicMethodBuilder
     private static readonly MethodInfo ScalarConvertorOuterGetItem = typeof(IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>).GetMethod(DictionaryItemMethodName, Utilities.PublicInstance)!;
     private static readonly MethodInfo ScalarConvertorInnerGetItem = typeof(IReadOnlyDictionary<Type, Delegate>).GetMethod(DictionaryItemMethodName, Utilities.PublicInstance)!;
     private static readonly MethodInfo ByteArraySequenceEqual = typeof(Enumerable).GetMethods(Utilities.PublicStatic).Single(m => string.Equals(m.Name, nameof(Enumerable.SequenceEqual)) && m.GetParameters().Length == 2).MakeGenericMethod(ByteType);
-    private readonly GenericMapperMethodCache _entityPropertyMapperCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapEntityProperty), Utilities.PublicInstance)!);
-    private readonly GenericMapperMethodCache _entityListPropertyMapperCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapListProperty), Utilities.PublicInstance)!);
-    private readonly GenericMapperMethodCache _listTypeConstructorCache = new (typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.ConstructListType), Utilities.PublicInstance)!);
+    private static readonly MethodInfo _entityPropertyMapper = typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapEntityProperty), Utilities.PublicInstance)!;
+    private static readonly MethodInfo _entityListPropertyMapper = typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.MapListProperty), Utilities.PublicInstance)!;
+    private static readonly MethodInfo _listTypeConstructor = typeof(IRecursiveMapper<int>).GetMethod(nameof(IRecursiveMapper<int>.ConstructListType), Utilities.PublicInstance)!;
+    private static readonly ConstructorInfo InitializeOnlyPropertyExceptionContructor = typeof(InitializeOnlyPropertyException).GetConstructor(new[] { typeof(Type), typeof(string) })!;
     private readonly IScalarTypeMethodCache _isDefaultValueCache = new ScalarTypeMethodCache(typeof(ScalarTypeIsDefaultValueMethods), nameof(ScalarTypeIsDefaultValueMethods.IsDefaultValue), new[] { typeof(object) });
-    private readonly ConstructorInfo initializeOnlyPropertyExceptionContructor = typeof(InitializeOnlyPropertyException).GetConstructor(new[] { typeof(Type), typeof(string) })!;
     private readonly TypeBuilder _typeBuilder;
     private readonly IMapperTypeValidator _scalarMapperTypeValidator;
     private readonly IMapperTypeValidator _entityMapperTypeValidator;
@@ -791,7 +791,7 @@ internal sealed class DynamicMethodBuilder
             generator.Emit(OpCodes.Ldarg_1);
             generator.Emit(OpCodes.Callvirt, matched.Item3.GetMethod!);
             generator.Emit(OpCodes.Ldarg, 4);
-            generator.Emit(OpCodes.Callvirt, _entityPropertyMapperCache.CreateIfNotExist(matched.Item2, matched.Item4));
+            generator.Emit(OpCodes.Callvirt, _entityPropertyMapper.MakeGenericMethod(matched.Item2, matched.Item4));
             generator.Emit(OpCodes.Callvirt, matched.Item3.SetMethod!);
         }
     }
@@ -847,7 +847,7 @@ internal sealed class DynamicMethodBuilder
             {
                 generator.Emit(OpCodes.Ldarg_1);
                 generator.Emit(OpCodes.Ldarg_3);
-                generator.Emit(OpCodes.Callvirt, _listTypeConstructorCache.CreateIfNotExist(match.Item3.PropertyType, match.Item4));
+                generator.Emit(OpCodes.Callvirt, _listTypeConstructor.MakeGenericMethod(match.Item3.PropertyType, match.Item4));
                 generator.Emit(OpCodes.Callvirt, match.Item3.SetMethod!);
             }
             else
@@ -855,7 +855,7 @@ internal sealed class DynamicMethodBuilder
                 generator.Emit(OpCodes.Ldtoken, match.Item4);
                 generator.Emit(OpCodes.Call, TypeOfMethod);
                 generator.Emit(OpCodes.Ldstr, match.Item3.Name);
-                generator.Emit(OpCodes.Newobj, initializeOnlyPropertyExceptionContructor);
+                generator.Emit(OpCodes.Newobj, InitializeOnlyPropertyExceptionContructor);
                 generator.Emit(OpCodes.Throw);
             }
 
@@ -867,7 +867,7 @@ internal sealed class DynamicMethodBuilder
             generator.Emit(OpCodes.Callvirt, match.Item3.GetMethod!);
             generator.Emit(OpCodes.Ldstr, match.Item3.Name);
             generator.Emit(OpCodes.Ldarg, 4);
-            generator.Emit(OpCodes.Callvirt, _entityListPropertyMapperCache.CreateIfNotExist(match.Item2, match.Item4));
+            generator.Emit(OpCodes.Callvirt, _entityListPropertyMapper.MakeGenericMethod(match.Item2, match.Item4));
         }
     }
 

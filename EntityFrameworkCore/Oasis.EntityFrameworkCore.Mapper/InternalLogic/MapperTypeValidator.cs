@@ -1,6 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
-namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
+using System.Diagnostics.CodeAnalysis;
 
 internal interface IMapperTypeValidator
 {
