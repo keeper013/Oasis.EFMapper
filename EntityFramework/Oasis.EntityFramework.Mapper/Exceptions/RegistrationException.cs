@@ -1,5 +1,13 @@
 ﻿namespace Oasis.EntityFramework.Mapper.Exceptions;
 
+
+public sealed class InvalidKeyTypeException : EfMapperException
+{
+    public InvalidKeyTypeException(Type type)
+        : base($"{type.Name} is invalid for identity or concurrency token.")
+    {
+    }
+}
 public sealed class InitializeOnlyPropertyException : EfMapperException
 {
     public InitializeOnlyPropertyException(Type type, string propertyName)
