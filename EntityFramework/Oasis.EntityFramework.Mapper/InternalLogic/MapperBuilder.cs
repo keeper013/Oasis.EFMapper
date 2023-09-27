@@ -20,18 +20,13 @@ internal sealed class MapperBuilder : IMapperBuilder
     public IMapperFactory Build()
     {
         var type = _mapperRegistry.Build();
-        var lookup = _mapperRegistry.MakeMapperSetLookUp(type);
+        var mappers = _mapperRegistry.MakeMapperSet(type);
         var entityHandlerData = _mapperRegistry.MakeEntityHandler(type);
         var entityTrackerData = _mapperRegistry.MakeEntityTrackerData(type, entityHandlerData.scalarTypeConverters);
         var keepUnmatchedManager = _mapperRegistry.KeepUnmatchedManager.IsEmpty ? null : _mapperRegistry.KeepUnmatchedManager;
         var mapToDatabaseTypeManager = _mapperRegistry.MakeMapToDatabaseTypeManager();
 
-        return new MapperFactory(
-            keepUnmatchedManager,
-            mapToDatabaseTypeManager,
-            lookup,
-            entityTrackerData,
-            entityHandlerData);
+        return new MapperFactory(keepUnmatchedManager, mapToDatabaseTypeManager, mappers, entityTrackerData, entityHandlerData);
     }
 
     public IMapperBuilder Register<TSource, TTarget>()

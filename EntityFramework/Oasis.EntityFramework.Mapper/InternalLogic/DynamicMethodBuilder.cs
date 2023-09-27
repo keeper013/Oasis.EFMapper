@@ -718,7 +718,7 @@ internal sealed class DynamicMethodBuilder
 
         if (type.IsNullable(out var argumentType))
         {
-            equalOperator = argumentType.GetMethod(EqualOperatorMethodName, Utilities.PublicStatic);
+            equalOperator = argumentType!.GetMethod(EqualOperatorMethodName, Utilities.PublicStatic);
             if (equalOperator != null && equalOperator.IsHideBySig && equalOperator.IsSpecialName)
             {
                 return TypeEqualCategory.NullableOpEquality;
@@ -742,7 +742,7 @@ internal sealed class DynamicMethodBuilder
 
         if (type.IsNullable(out var argumentType))
         {
-            return (GetTypeIsDefaultCategoryForNonNullable(argumentType), true);
+            return (GetTypeIsDefaultCategoryForNonNullable(argumentType!), true);
         }
 
         return (GetTypeIsDefaultCategoryForNonNullable(type), false);

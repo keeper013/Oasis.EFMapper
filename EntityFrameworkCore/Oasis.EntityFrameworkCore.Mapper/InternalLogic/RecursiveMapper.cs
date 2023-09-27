@@ -153,19 +153,19 @@ internal abstract class RecursiveMapperContext : RecursiveMapperBase, IRecursive
 
 internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecursiveMapper<int>
 {
-    private readonly MapperSetLookUp _lookup;
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet?>> _mappers;
     private readonly KeepUnmatchedManager? _keepUnmatchedManager;
     private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
 
     public ToDatabaseRecursiveMapper(
         KeepUnmatchedManager? keepUnmatchedManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
-        MapperSetLookUp lookup,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet?>> mappers,
         EntityTrackerData entityTrackerData,
         EntityHandlerData entityHandlerData)
         : base(entityTrackerData, entityHandlerData)
     {
-        _lookup = lookup;
+        _mappers = mappers;
         _keepUnmatchedManager = keepUnmatchedManager;
         _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
     }
@@ -408,7 +408,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
 
-        var mapperSet = _lookup.LookUp(sourceType, targetType);
+        var mapperSet = _mappers.Find(sourceType, targetType);
         if (mapperSet.HasValue)
         {
             var mapper = mapperSet.Value;
@@ -500,15 +500,15 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
 
 internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursiveMapper<int>
 {
-    private readonly MapperSetLookUp _lookup;
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet?>> _mappers;
 
     public ToMemoryRecursiveMapper(
-        MapperSetLookUp lookup,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet?>> mappers,
         EntityTrackerData entityTrackerData,
         EntityHandlerData entityHandlerData)
         : base(entityTrackerData, entityHandlerData)
     {
-        _lookup = lookup;
+        _mappers = mappers;
     }
 
     public TTarget? MapEntityProperty<TSource, TTarget>(TSource? source, TTarget? target, IRecursiveMappingContext context)
@@ -604,7 +604,7 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursi
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
 
-        var mapperSet = _lookup.LookUp(sourceType, targetType);
+        var mapperSet = _mappers.Find(sourceType, targetType);
         if (mapperSet.HasValue)
         {
             var mapper = mapperSet.Value;

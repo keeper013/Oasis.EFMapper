@@ -1,6 +1,5 @@
 ﻿namespace Oasis.EntityFramework.Mapper.Exceptions;
 
-
 public sealed class InvalidKeyTypeException : EfMapperException
 {
     public InvalidKeyTypeException(Type type)
@@ -8,6 +7,7 @@ public sealed class InvalidKeyTypeException : EfMapperException
     {
     }
 }
+
 public sealed class InitializeOnlyPropertyException : EfMapperException
 {
     public InitializeOnlyPropertyException(Type type, string propertyName)

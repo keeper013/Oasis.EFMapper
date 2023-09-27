@@ -1,5 +1,6 @@
 ﻿namespace Oasis.EntityFrameworkCore.Mapper.InternalLogic;
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using Oasis.EntityFrameworkCore.Mapper.Exceptions;
@@ -179,9 +180,33 @@ internal sealed class MapperRegistry : IRecursiveRegister
     public bool IsConfigured(Type entityType) => _keyPropertyNames.ContainsConfiguration(entityType)
         || _excludedPropertyManager.ContainsTypeConfiguration(entityType) || _keepUnmatchedManager.ContainsTypeConfiguration(entityType);
 
-    public MapperSetLookUp MakeMapperSetLookUp(Type type)
+    public IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet?>> MakeMapperSet(Type type)
     {
-        return new MapperSetLookUp(_mapper, type);
+        var mapper = new Dictionary<Type, IReadOnlyDictionary<Type, MapperSet?>>();
+        foreach (var pair in _mapper)
+        {
+            var innerDictionary = new Dictionary<Type, MapperSet?>();
+            foreach (var innerPair in pair.Value)
+            {
+                var mapperMetaDataSet = innerPair.Value;
+                if (mapperMetaDataSet.HasValue)
+                {
+                    var value = mapperMetaDataSet.Value;
+                    innerDictionary.Add(innerPair.Key, new MapperSet(
+                        value.customPropertiesMapper,
+                        value.keyMapper.HasValue ? Delegate.CreateDelegate(value.keyMapper.Value.type, type.GetMethod(value.keyMapper.Value.name)!) : null,
+                        value.contentMapper.HasValue ? Delegate.CreateDelegate(value.contentMapper.Value.type, type.GetMethod(value.contentMapper.Value.name)!) : null));
+                }
+                else
+                {
+                    innerDictionary.Add(innerPair.Key, null);
+                }
+            }
+
+            mapper.Add(pair.Key, innerDictionary);
+        }
+
+        return mapper;
     }
 
     public EntityHandlerData MakeEntityHandler(Type type)
