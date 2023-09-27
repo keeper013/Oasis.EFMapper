@@ -1,7 +1,5 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
-using Oasis.EntityFramework.Mapper.Exceptions;
-
 internal class KeyPropertyNameManager
 {
     private readonly KeyPropertyNameConfiguration _defaultConfiguration;
