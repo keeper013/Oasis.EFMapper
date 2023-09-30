@@ -38,6 +38,5 @@ public interface IMapperFactory
 
     IToMemoryMapper MakeToMemoryMapper();
 
-    // TODO: remove make session methods, add start/end session metods to mappers
     IToDatabaseMapper MakeToDatabaseMapper(DbContext? databaseContext = null);
 }

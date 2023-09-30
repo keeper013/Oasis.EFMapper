@@ -34,7 +34,7 @@ internal class KeepUnmatchedManager
                 return true;
             }
 
-            if (_typeKeepUnmatchedProperties.TryGetValue(targetType, out var keepUnmatchedProperties) && keepUnmatchedProperties.Contains(propertyName))
+            if (_typeKeepUnmatchedProperties.Contains(targetType, propertyName))
             {
                 return true;
             }

@@ -19,7 +19,7 @@ internal abstract class RecursiveRegisterBase : IRecursiveRegister
 
     public void Pop() => _stack.Pop();
 
-    public bool HasRegistered(Type sourceType, Type targetType) => _registered.TryGetValue(sourceType, out var hashSet) && hashSet.Contains(targetType);
+    public bool HasRegistered(Type sourceType, Type targetType) => _registered.Contains(sourceType, targetType);
 
     public void DumpLoopDependency()
     {
@@ -61,29 +61,38 @@ internal record struct KeyPropertyConfiguration(string identityPropertyName, str
 
 internal sealed class MapperRegistry : RecursiveRegisterBase
 {
-    private readonly DynamicMethodBuilder _dynamicMethodBuilder;
+    // scalar type validator
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarTypes = new ();
+
+    // dynamicall generated methods
+    private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeIdProxies = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeConcurrencyTokenProxies = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _toMemoryMapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _toDatabaseMapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _idComparers = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _concurrencyTokenComparers = new ();
-    private readonly Dictionary<Type, Dictionary<Type, MapToDatabaseType>> _mapToDatabaseDictionary = new ();
-    private readonly Dictionary<Type, Dictionary<Type, ICustomTypeMapperConfiguration?>> _toBeRegistered = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _sourceIdEqualsTargetId = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _sourceIdListContainsTargetId = new ();
-    private readonly Dictionary<Type, Dictionary<Type, Dictionary<Type, TargetByIdTrackerMetaDataSet>>> _targetByIdTrackers = new ();
-    private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
-    private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityDefaultConstructors = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityListDefaultConstructors = new ();
+
+    // map to database type
+    private readonly MapToDatabaseType _defaultMapToDatabase;
+    private readonly Dictionary<Type, Dictionary<Type, MapToDatabaseType>> _mapToDatabaseDictionary = new ();
+
+    // from tracking target by id
+    private readonly Dictionary<Type, Dictionary<Type, Dictionary<Type, TargetByIdTrackerMetaDataSet>>> _targetByIdTrackers = new ();
+
+    // from configuration
+    private readonly Dictionary<Type, Dictionary<Type, ICustomTypeMapperConfiguration?>> _toBeRegistered = new ();
+    private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
+    private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
     private readonly Dictionary<string, Delegate> _customPropertyMappers = new ();
     private readonly KeyPropertyNameManager _keyPropertyNames;
     private readonly ExcludedPropertyManager _excludedPropertyManager;
     private readonly KeepUnmatchedManager _keepUnmatchedManager;
-    private readonly MapToDatabaseType _defaultMapToDatabase;
 
     public MapperRegistry(ModuleBuilder module, IMapperBuilderConfiguration? configuration)
     {
@@ -257,9 +266,15 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
             MakeFactoryMethods(_entityListFactoryMethods, _entityListDefaultConstructors, type));
     }
 
-    public MapToDatabaseTypeManager MakeMapToDatabaseTypeManager()
+    public (MapToDatabaseType, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapToDatabaseType>>) MakeMapToDatabaseTypeManager()
     {
-        return new MapToDatabaseTypeManager(_defaultMapToDatabase, _mapToDatabaseDictionary);
+        var dictionary = new Dictionary<Type, IReadOnlyDictionary<Type, MapToDatabaseType>>();
+        foreach (var pair in _mapToDatabaseDictionary)
+        {
+            dictionary.Add(pair.Key, pair.Value);
+        }
+
+        return (_defaultMapToDatabase, dictionary);
     }
 
     public EntityTrackerData MakeEntityTrackerData(Type type, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarTypeConverters)
@@ -384,8 +399,6 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
 
         var sourcePropertiesCopy = new List<PropertyInfo>(sourceProperties);
         var targetPropertiesCopy = new List<PropertyInfo>(targetProperties);
-
-        // TODO: rewrite here
         var toMemoryMapper = _dynamicMethodBuilder.BuildUpMapToMemoryMethod(
             sourceType,
             targetType,

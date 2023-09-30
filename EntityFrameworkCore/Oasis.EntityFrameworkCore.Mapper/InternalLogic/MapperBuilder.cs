@@ -24,9 +24,9 @@ internal sealed class MapperBuilder : IMapperBuilder
         var entityHandlerData = _mapperRegistry.MakeEntityHandler(type);
         var entityTrackerData = _mapperRegistry.MakeEntityTrackerData(type, entityHandlerData.scalarTypeConverters);
         var keepUnmatchedManager = _mapperRegistry.KeepUnmatchedManager.IsEmpty ? null : _mapperRegistry.KeepUnmatchedManager;
-        var mapToDatabaseTypeManager = _mapperRegistry.MakeMapToDatabaseTypeManager();
+        var mapToDatabase = _mapperRegistry.MakeMapToDatabaseTypeManager();
 
-        return new MapperFactory(keepUnmatchedManager, mapToDatabaseTypeManager, mappers.Item1, mappers.Item2, entityTrackerData, entityHandlerData);
+        return new MapperFactory(keepUnmatchedManager, mapToDatabase.Item1, mapToDatabase.Item2, mappers.Item1, mappers.Item2, entityTrackerData, entityHandlerData);
     }
 
     public IMapperBuilder Register<TSource, TTarget>()

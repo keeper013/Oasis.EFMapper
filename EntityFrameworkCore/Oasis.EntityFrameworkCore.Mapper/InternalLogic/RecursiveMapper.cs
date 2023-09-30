@@ -155,11 +155,13 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _mappers;
     private readonly KeepUnmatchedManager? _keepUnmatchedManager;
-    private readonly MapToDatabaseTypeManager _mapToDatabaseTypeManager;
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapToDatabaseType>> _mapToDatabaseTypeDictionary;
+    private readonly MapToDatabaseType _defaultMapToDatabaseType;
 
     public ToDatabaseRecursiveMapper(
         KeepUnmatchedManager? keepUnmatchedManager,
-        MapToDatabaseTypeManager mapToDatabaseTypeManager,
+        MapToDatabaseType defaultMapToDatabaseType,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapToDatabaseType>> mapToDatabaseTypeDictionary,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> mappers,
         EntityTrackerData entityTrackerData,
         EntityHandlerData entityHandlerData)
@@ -167,7 +169,8 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
     {
         _mappers = mappers;
         _keepUnmatchedManager = keepUnmatchedManager;
-        _mapToDatabaseTypeManager = mapToDatabaseTypeManager;
+        _defaultMapToDatabaseType = defaultMapToDatabaseType;
+        _mapToDatabaseTypeDictionary = mapToDatabaseTypeDictionary;
     }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(
@@ -193,7 +196,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         }
 
         var sourceHasId = HasId<TSource>() && !IdIsEmpty(source);
-        var mapType = _mapToDatabaseTypeManager.Get<TSource, TTarget>();
+        var mapType = _mapToDatabaseTypeDictionary.DefaultIfNotFound(typeof(TSource), typeof(TTarget), _defaultMapToDatabaseType);
 
         if (sourceHasId)
         {
@@ -273,7 +276,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
             }
         }
 
-        var mapType = _mapToDatabaseTypeManager.Get<TSource, TTarget>();
+        var mapType = _mapToDatabaseTypeDictionary.DefaultIfNotFound(typeof(TSource), typeof(TTarget), _defaultMapToDatabaseType);
         if (!HasId<TSource>() || IdIsEmpty(source))
         {
             if (!mapType.AllowsInsert())
@@ -310,7 +313,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         if (source != default)
         {
             var shadowSet = new HashSet<TTarget>(target);
-            var mapType = _mapToDatabaseTypeManager.Get<TSource, TTarget>();
+            var mapType = _mapToDatabaseTypeDictionary.DefaultIfNotFound(typeof(TSource), typeof(TTarget), _defaultMapToDatabaseType);
             var sourceHasIdProperty = HasId<TSource>();
             var unmatchedSources = new List<(TSource, IEntityTracker<TTarget>?)>();
             var needToTrack = context.ForceTrack || HasLoopDependency<TSource, TTarget>();
