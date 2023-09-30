@@ -11,7 +11,7 @@ public sealed class EntityPropertyMappingTests : TestBase
     public async Task AddOneToOneEntity_ShouldSucceed()
     {
         // arrange
-        var mapper = MakeDefaultMapperBuilder().Register<PrincipalOptional1, PrincipalOptional2>().Build().MakeToMemorySession();
+        var mapper = MakeDefaultMapperBuilder().Register<PrincipalOptional1, PrincipalOptional2>().Build().MakeToMemoryMapper();
 
         var principalOptional1 = new PrincipalOptional1(1);
         var inner1 = new DependentOptional1_1(1);
@@ -189,10 +189,12 @@ public sealed class EntityPropertyMappingTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var entity = await databaseContext.Set<PrincipalRequired1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
-            var session1 = factory.MakeToMemorySession();
-            principalRequired2 = session1.Map<PrincipalRequired1, PrincipalRequired2>(entity);
-            principalRequired2.Inner1 = session1.Map<DependentRequired1_1, Dependent2_1>(new DependentRequired1_1(2));
-            principalRequired2.Inner2 = session1.Map<DependentRequired1_2, Dependent2_2>(new DependentRequired1_2("2"));
+            var mapper = factory.MakeToMemoryMapper();
+            mapper.StartSession();
+            principalRequired2 = mapper.Map<PrincipalRequired1, PrincipalRequired2>(entity);
+            principalRequired2.Inner1 = mapper.Map<DependentRequired1_1, Dependent2_1>(new DependentRequired1_1(2));
+            principalRequired2.Inner2 = mapper.Map<DependentRequired1_2, Dependent2_2>(new DependentRequired1_2("2"));
+            mapper.StopSession();
         });
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -312,10 +314,12 @@ public sealed class EntityPropertyMappingTests : TestBase
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
             var entity = await databaseContext.Set<PrincipalOptional1>().AsNoTracking().Include(o => o.Inner1).Include(o => o.Inner2).FirstAsync();
-            var session1 = factory.MakeToMemorySession();
-            principalOptional2 = session1.Map<PrincipalOptional1, PrincipalOptional2>(entity);
-            principalOptional2.Inner1 = session1.Map<DependentOptional1_1, Dependent2_1>(await databaseContext.Set<DependentOptional1_1>().FirstAsync(i => i.LongProp == 2));
-            principalOptional2.Inner2 = session1.Map<DependentOptional1_2, Dependent2_2>(await databaseContext.Set<DependentOptional1_2>().FirstAsync(i => i.StringProp == "2"));
+            var mapper = factory.MakeToMemoryMapper();
+            mapper.StartSession();
+            principalOptional2 = mapper.Map<PrincipalOptional1, PrincipalOptional2>(entity);
+            principalOptional2.Inner1 = mapper.Map<DependentOptional1_1, Dependent2_1>(await databaseContext.Set<DependentOptional1_1>().FirstAsync(i => i.LongProp == 2));
+            principalOptional2.Inner2 = mapper.Map<DependentOptional1_2, Dependent2_2>(await databaseContext.Set<DependentOptional1_2>().FirstAsync(i => i.StringProp == "2"));
+            mapper.StopSession();
         });
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>

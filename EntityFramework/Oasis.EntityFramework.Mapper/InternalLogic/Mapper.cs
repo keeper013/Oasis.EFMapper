@@ -5,101 +5,123 @@ using System.Linq;
 using System.Linq.Expressions;
 using Oasis.EntityFramework.Mapper.Exceptions;
 
-internal sealed class ToDatabaseMapper : IToDatabaseSession
+internal abstract class MapperSessionHandler : IMapperSessionHandler
+{
+    public MapperSessionHandler(IRecursiveMappingContext context)
+    {
+        Context = context;
+    }
+
+    public bool IsSessionOn => Context.ForceTrack;
+
+    protected IRecursiveMappingContext Context { get; }
+
+    public void StartSession()
+    {
+        if (Context.ForceTrack)
+        {
+            if (Context.HasTracked)
+            {
+                Context.Clear();
+            }
+        }
+        else
+        {
+            Context.ForceTrack = true;
+        }
+    }
+
+    public void StopSession()
+    {
+        if (Context.HasTracked)
+        {
+            Context.Clear();
+        }
+
+        Context.ForceTrack = false;
+    }
+}
+
+internal sealed class ToDatabaseMapper : MapperSessionHandler, IToDatabaseMapper
 {
     private readonly ToDatabaseRecursiveMapper _mapper;
-    private readonly IRecursiveMappingContext _context;
 
-    public ToDatabaseMapper(ToDatabaseRecursiveMapper mapper, IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories, bool isSession, DbContext? databaseContext = null)
+    public ToDatabaseMapper(ToDatabaseRecursiveMapper mapper, IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories, DbContext? databaseContext = null)
+        : base(new RecursiveMappingContext(targetByIdTrackerFactories, mapper, databaseContext))
     {
         _mapper = mapper;
-        _context = new RecursiveMappingContext(targetByIdTrackerFactories, mapper, isSession, databaseContext);
     }
 
     public DbContext DatabaseContext
     {
-        set => _context.DatabaseContext = value;
+        set => Context.DatabaseContext = value;
     }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
         where TSource : class
         where TTarget : class
     {
-        if (_context.DatabaseContext == null)
+        if (Context.DatabaseContext == null)
         {
             throw new DbContextMissingException();
         }
 
-        return await _mapper.MapAsync(source, includer, _context);
-    }
-
-    public void Reset()
-    {
-        _context.Clear();
+        return await _mapper.MapAsync(source, includer, Context);
     }
 }
 
-internal sealed class ToMemoryMapper : IToMemorySession
+internal sealed class ToMemoryMapper : MapperSessionHandler, IToMemoryMapper
 {
     private readonly ToMemoryRecursiveMapper _mapper;
-    private readonly IRecursiveMappingContext _context;
 
-    public ToMemoryMapper(ToMemoryRecursiveMapper mapper, IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories, bool isSession)
+    public ToMemoryMapper(ToMemoryRecursiveMapper mapper, IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories)
+        : base(new RecursiveMappingContext(targetByIdTrackerFactories, mapper))
     {
         _mapper = mapper;
-        _context = new RecursiveMappingContext(targetByIdTrackerFactories, mapper, isSession);
     }
 
     public TTarget Map<TSource, TTarget>(TSource source)
         where TSource : class
         where TTarget : class
-        => _mapper.MapNew<TSource, TTarget>(source, _context);
-
-    public void Reset()
-    {
-        _context.Clear();
-    }
+        => _mapper.MapNew<TSource, TTarget>(source, Context);
 }
 
-internal sealed class Mapper : IMapper
+internal sealed class Mapper : MapperSessionHandler, IMapper
 {
     private readonly ToDatabaseRecursiveMapper _toDatabaseMapper;
     private readonly ToMemoryRecursiveMapper _toMemoryMapper;
-    private readonly IRecursiveMappingContext _context;
 
     public Mapper(
         ToDatabaseRecursiveMapper toDatabaseMapper,
         ToMemoryRecursiveMapper toMemoryMapper,
         IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories,
         DbContext? databaseContext = null)
+        : base(new RecursiveMappingContext(targetByIdTrackerFactories, toMemoryMapper, databaseContext))
     {
         _toDatabaseMapper = toDatabaseMapper;
         _toMemoryMapper = toMemoryMapper;
-
-        // context is only using the static content in the mapper, so either _toMemoryMapper or _toDatabaseMapper should be the same here, as they have the same static content
-        _context = new RecursiveMappingContext(targetByIdTrackerFactories, _toMemoryMapper, false, databaseContext);
     }
 
     public DbContext DatabaseContext
     {
-        set => _context.DatabaseContext = value;
+        set => Context.DatabaseContext = value;
     }
 
     public TTarget Map<TSource, TTarget>(TSource source)
         where TSource : class
         where TTarget : class
-        => _toMemoryMapper.MapNew<TSource, TTarget>(source, _context);
+        => _toMemoryMapper.MapNew<TSource, TTarget>(source, Context);
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
         where TSource : class
         where TTarget : class
     {
-        if (_context.DatabaseContext == null)
+        if (Context.DatabaseContext == null)
         {
             throw new DbContextMissingException();
         }
 
-        return await _toDatabaseMapper.MapAsync(source, includer, _context);
+        return await _toDatabaseMapper.MapAsync(source, includer, Context);
     }
 }
 
@@ -112,24 +134,20 @@ internal sealed class MapperFactory : IMapperFactory
     public MapperFactory(
         KeepUnmatchedManager? keepUnmatchedManager,
         MapToDatabaseTypeManager mapToDatabaseTypeManager,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet?>> mappers,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> toMemoryMappers,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> toDatabaseMappers,
         EntityTrackerData entityTrackerData,
         EntityHandlerData entityHandlerData)
     {
-        _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(mappers, entityTrackerData, entityHandlerData);
-        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(keepUnmatchedManager, mapToDatabaseTypeManager, mappers, entityTrackerData, entityHandlerData);
+        _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(toMemoryMappers, entityTrackerData, entityHandlerData);
+        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(keepUnmatchedManager, mapToDatabaseTypeManager, toDatabaseMappers, entityTrackerData, entityHandlerData);
         _targetByIdTrackerFactories = entityTrackerData.targetByIdTrackerFactories;
     }
 
     public IMapper MakeMapper(DbContext? databaseContext = null) => new Mapper(_toDatabaseRecursiveMapper, _toMemoryRecursiveMapper, _targetByIdTrackerFactories, databaseContext);
 
     public IToDatabaseMapper MakeToDatabaseMapper(DbContext? databaseContext = null)
-        => new ToDatabaseMapper(_toDatabaseRecursiveMapper, _targetByIdTrackerFactories, false, databaseContext);
+        => new ToDatabaseMapper(_toDatabaseRecursiveMapper, _targetByIdTrackerFactories, databaseContext);
 
-    public IToDatabaseSession MakeToDatabaseSession(DbContext? databaseContext = null)
-        => new ToDatabaseMapper(_toDatabaseRecursiveMapper, _targetByIdTrackerFactories, true, databaseContext);
-
-    public IToMemoryMapper MakeToMemoryMapper() => new ToMemoryMapper(_toMemoryRecursiveMapper, _targetByIdTrackerFactories, false);
-
-    public IToMemorySession MakeToMemorySession() => new ToMemoryMapper(_toMemoryRecursiveMapper, _targetByIdTrackerFactories, true);
+    public IToMemoryMapper MakeToMemoryMapper() => new ToMemoryMapper(_toMemoryRecursiveMapper, _targetByIdTrackerFactories);
 }

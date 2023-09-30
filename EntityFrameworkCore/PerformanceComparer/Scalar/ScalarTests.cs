@@ -36,19 +36,22 @@ internal static class ScalarTests
 
     public static void EfMapper_IdenticalItem_Scalar_Session(IDictionary<string, TimeSpan> dict)
     {
-        var session = new MapperBuilderFactory().MakeMapperBuilder().Register<ScalarSource, ScalarTarget>().Build().MakeToMemorySession();
+        var mapper = new MapperBuilderFactory().MakeMapperBuilder().Register<ScalarSource, ScalarTarget>().Build().MakeToMemoryMapper();
         
         var source = ScalarUtilities.BuildDefaultScalarSource();
         using var timer = new StopWatchTimer(dict, nameof(EfMapper_IdenticalItem_Scalar_Session));
+        mapper.StartSession();
         for (var i = 0; i < Rounds; i++)
         {
-            _ = session.Map<ScalarSource, ScalarTarget>(source);
+            _ = mapper.Map<ScalarSource, ScalarTarget>(source);
         }
+
+        mapper.StopSession();
     }
 
     public static void EfMapper_SeparateItem_Scalar_Session(IDictionary<string, TimeSpan> dict)
     {
-        var session = new MapperBuilderFactory().MakeMapperBuilder().Register<ScalarSource, ScalarTarget>().Build().MakeToMemorySession();
+        var mapper = new MapperBuilderFactory().MakeMapperBuilder().Register<ScalarSource, ScalarTarget>().Build().MakeToMemoryMapper();
         var list = new List<ScalarSource>();
         for (var i = 0; i < Rounds; i++)
         {
@@ -56,10 +59,13 @@ internal static class ScalarTests
         }
 
         using var timer = new StopWatchTimer(dict, nameof(EfMapper_SeparateItem_Scalar_Session));
+        mapper.StartSession();
         foreach (var item in list)
         {
-            _ = session.Map<ScalarSource, ScalarTarget>(item);
+            _ = mapper.Map<ScalarSource, ScalarTarget>(item);
         }
+
+        mapper.StopSession();
     }
 
     public static void AutoMapper_IdenticalItem_Scalar(IDictionary<string, TimeSpan> dict)

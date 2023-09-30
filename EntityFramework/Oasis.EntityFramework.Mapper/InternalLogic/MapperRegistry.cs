@@ -4,16 +4,70 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using Oasis.EntityFramework.Mapper.Exceptions;
 
+internal abstract class RecursiveRegisterBase : IRecursiveRegister
+{
+    private readonly Stack<(Type, Type)> _stack = new ();
+    private readonly Dictionary<Type, HashSet<Type>> _registered = new ();
+
+    protected Dictionary<Type, ISet<Type>> LoopDependencyMapping { get; } = new ();
+
+    public void Push(Type sourceType, Type targetType)
+    {
+        _stack.Push((sourceType, targetType));
+        _registered.Add(sourceType, targetType);
+    }
+
+    public void Pop() => _stack.Pop();
+
+    public bool HasRegistered(Type sourceType, Type targetType) => _registered.TryGetValue(sourceType, out var hashSet) && hashSet.Contains(targetType);
+
+    public void DumpLoopDependency()
+    {
+        foreach (var mappingTuple in _stack)
+        {
+            if (LoopDependencyMapping.TryGetValue(mappingTuple.Item1, out var set))
+            {
+                set.Add(mappingTuple.Item2);
+            }
+            else
+            {
+                LoopDependencyMapping.Add(mappingTuple.Item1, new HashSet<Type> { mappingTuple.Item2 });
+            }
+        }
+    }
+
+    public void RegisterIfHasNot(Type sourceType, Type targetType)
+    {
+        if (!HasRegistered(sourceType, targetType))
+        {
+            RecursivelyRegister(sourceType, targetType);
+        }
+        else if (_stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
+        {
+            DumpLoopDependency();
+        }
+    }
+
+    public abstract void RecursivelyRegister(Type sourceType, Type targetType);
+
+    public abstract void RegisterEntityListDefaultConstructorMethod(Type type);
+
+    public abstract void RegisterEntityDefaultConstructorMethod(Type type);
+
+    public abstract void RegisterForListItemProperty(Type sourceListItemPropertyType, Type targetListItemPropertyType);
+}
+
 internal record struct KeyPropertyConfiguration(string identityPropertyName, string? concurrencyTokenPropertyName = default);
 
-internal sealed class MapperRegistry : IRecursiveRegister
+internal sealed class MapperRegistry : RecursiveRegisterBase
 {
     private readonly DynamicMethodBuilder _dynamicMethodBuilder;
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
     private readonly HashSet<Type> _convertableToScalarTypes = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeIdProxies = new ();
     private readonly Dictionary<Type, TypeKeyProxyMetaDataSet> _typeConcurrencyTokenProxies = new ();
-    private readonly Dictionary<Type, Dictionary<Type, MapperMetaDataSet?>> _mapper = new ();
+    private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _toMemoryMapper = new ();
+    private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _toDatabaseMapper = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _idComparers = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _concurrencyTokenComparers = new ();
     private readonly Dictionary<Type, Dictionary<Type, MapToDatabaseType>> _mapToDatabaseDictionary = new ();
@@ -21,13 +75,11 @@ internal sealed class MapperRegistry : IRecursiveRegister
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _sourceIdEqualsTargetId = new ();
     private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _sourceIdListContainsTargetId = new ();
     private readonly Dictionary<Type, Dictionary<Type, Dictionary<Type, TargetByIdTrackerMetaDataSet>>> _targetByIdTrackers = new ();
-    private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping = new ();
     private readonly Dictionary<Type, Delegate> _factoryMethods = new ();
     private readonly Dictionary<Type, Delegate> _entityListFactoryMethods = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityDefaultConstructors = new ();
     private readonly Dictionary<Type, MethodMetaData> _entityListDefaultConstructors = new ();
-    private readonly IMapperTypeValidator _scalarMapperTypeValidator;
-    private readonly IMapperTypeValidator _entityMapperTypeValidator;
+    private readonly Dictionary<string, Delegate> _customPropertyMappers = new ();
     private readonly KeyPropertyNameManager _keyPropertyNames;
     private readonly ExcludedPropertyManager _excludedPropertyManager;
     private readonly KeepUnmatchedManager _keepUnmatchedManager;
@@ -37,15 +89,9 @@ internal sealed class MapperRegistry : IRecursiveRegister
     {
         _defaultMapToDatabase = configuration?.MapToDatabaseType ?? MapToDatabaseType.Upsert;
         _keyPropertyNames = new (new KeyPropertyNameConfiguration(configuration?.IdentityPropertyName, configuration?.ConcurrencyTokenPropertyName));
-        _scalarMapperTypeValidator = new ScalarMapperTypeValidator(_scalarConverterDictionary, _convertableToScalarTypes);
-        _entityMapperTypeValidator = new EntityMapperTypeValidator(_mapper);
         _excludedPropertyManager = new (configuration?.ExcludedProperties);
         _keepUnmatchedManager = new ();
-        _dynamicMethodBuilder = new (
-            module.DefineType("Mapper", TypeAttributes.Public),
-            _scalarMapperTypeValidator,
-            _entityMapperTypeValidator,
-            new EntityListMapperTypeValidator(_mapper));
+        _dynamicMethodBuilder = new (module.DefineType("Mapper", TypeAttributes.Public), _scalarConverterDictionary, _convertableToScalarTypes);
     }
 
     public KeepUnmatchedManager KeepUnmatchedManager => _keepUnmatchedManager;
@@ -64,7 +110,16 @@ internal sealed class MapperRegistry : IRecursiveRegister
             RegisterAndPop(firstOuter.Key, firstInner.Key);
         }
 
-        return _dynamicMethodBuilder.Build();
+        var type = _dynamicMethodBuilder.Build();
+
+        // set custom property mapping functions
+        // reflection is slow but it's a one time initialization job and I haven't found faster ways yet.
+        foreach (var kvp in _customPropertyMappers)
+        {
+            type.GetField(kvp.Key, BindingFlags.NonPublic | BindingFlags.Static)!.SetValue(null, kvp.Value);
+        }
+
+        return type;
     }
 
     public void Configure(Type sourceType, Type targetType, ICustomTypeMapperConfiguration configuration)
@@ -84,7 +139,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
 
     public void Configure(Type type, IEntityConfiguration configuration)
     {
-        if (!_entityMapperTypeValidator.IsValidType(type))
+        if (!type.IsEntityType())
         {
             throw new InvalidEntityTypeException(type);
         }
@@ -143,8 +198,8 @@ internal sealed class MapperRegistry : IRecursiveRegister
 
     public void WithScalarConverter(Type sourceType, Type targetType, Delegate @delegate, bool throwIfRedundant = false)
     {
-        var sourceIsScalarType = _scalarMapperTypeValidator.IsValidType(sourceType);
-        var targetIsScalarType = _scalarMapperTypeValidator.IsValidType(targetType);
+        var sourceIsScalarType = sourceType.IsScalarType() || _convertableToScalarTypes.Contains(sourceType);
+        var targetIsScalarType = targetType.IsScalarType() || _convertableToScalarTypes.Contains(targetType);
         if (!sourceIsScalarType && !targetIsScalarType)
         {
             throw new ScalarTypeMissingException(sourceType, targetType);
@@ -179,34 +234,8 @@ internal sealed class MapperRegistry : IRecursiveRegister
     public bool IsConfigured(Type entityType) => _keyPropertyNames.ContainsConfiguration(entityType)
         || _excludedPropertyManager.ContainsTypeConfiguration(entityType) || _keepUnmatchedManager.ContainsTypeConfiguration(entityType);
 
-    public IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapperSet?>> MakeMapperSet(Type type)
-    {
-        var mapper = new Dictionary<Type, IReadOnlyDictionary<Type, MapperSet?>>();
-        foreach (var pair in _mapper)
-        {
-            var innerDictionary = new Dictionary<Type, MapperSet?>();
-            foreach (var innerPair in pair.Value)
-            {
-                var mapperMetaDataSet = innerPair.Value;
-                if (mapperMetaDataSet.HasValue)
-                {
-                    var value = mapperMetaDataSet.Value;
-                    innerDictionary.Add(innerPair.Key, new MapperSet(
-                        value.customPropertiesMapper,
-                        value.keyMapper.HasValue ? Delegate.CreateDelegate(value.keyMapper.Value.type, type.GetMethod(value.keyMapper.Value.name)!) : null,
-                        value.contentMapper.HasValue ? Delegate.CreateDelegate(value.contentMapper.Value.type, type.GetMethod(value.contentMapper.Value.name)!) : null));
-                }
-                else
-                {
-                    innerDictionary.Add(innerPair.Key, null);
-                }
-            }
-
-            mapper.Add(pair.Key, innerDictionary);
-        }
-
-        return mapper;
-    }
+    public (IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>>) MakeMappers(Type type)
+        => (MakeDelegateDictionary(_toMemoryMapper, type), MakeDelegateDictionary(_toDatabaseMapper, type));
 
     public EntityHandlerData MakeEntityHandler(Type type)
     {
@@ -248,10 +277,10 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
 
         Dictionary<Type, ISet<Type>>? loopDependencies = null;
-        if (_loopDependencyMapping.Any())
+        if (LoopDependencyMapping.Any())
         {
             loopDependencies = new Dictionary<Type, ISet<Type>>();
-            foreach (var kvp in _loopDependencyMapping)
+            foreach (var kvp in LoopDependencyMapping)
             {
                 loopDependencies.Add(kvp.Key, new HashSet<Type>(kvp.Value));
             }
@@ -260,7 +289,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         return new EntityTrackerData(targetIdentityTypeMapping, targetByIdTrackerFactories, loopDependencies);
     }
 
-    public void RegisterEntityListDefaultConstructorMethod(Type listType)
+    public override void RegisterEntityListDefaultConstructorMethod(Type listType)
     {
         if (!_entityListFactoryMethods.ContainsKey(listType) && listType.IsConstructable() && !listType.IsList() && !_entityListDefaultConstructors.ContainsKey(listType))
         {
@@ -272,7 +301,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
     }
 
-    public void RegisterEntityDefaultConstructorMethod(Type type)
+    public override void RegisterEntityDefaultConstructorMethod(Type type)
     {
         if (!_entityDefaultConstructors.ContainsKey(type) && !_factoryMethods.ContainsKey(type))
         {
@@ -284,7 +313,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
     }
 
-    public void RegisterForListItemProperty(Type sourceListItemPropertyType, Type targetListItemPropertyType)
+    public override void RegisterForListItemProperty(Type sourceListItemPropertyType, Type targetListItemPropertyType)
     {
         if (!_sourceIdListContainsTargetId.Contains(sourceListItemPropertyType, targetListItemPropertyType))
         {
@@ -312,75 +341,76 @@ internal sealed class MapperRegistry : IRecursiveRegister
         }
     }
 
-    public void RecursivelyRegister(Type sourceType, Type targetType, IRecursiveRegisterContext context)
+    public override void RecursivelyRegister(Type sourceType, Type targetType)
     {
         if (!_factoryMethods.ContainsKey(targetType) && targetType.GetConstructor(Utilities.PublicInstance, null, Array.Empty<Type>(), null) == default)
         {
             throw new FactoryMethodException(targetType, true);
         }
 
+        Push(sourceType, targetType);
         var configuration = _toBeRegistered.Pop(sourceType, targetType);
 
-        try
+        var (sourceExcludedProperties, targetExcludedProperties) = _excludedPropertyManager.GetExcludedPropertyNames(sourceType, targetType);
+        var sourceProperties = sourceExcludedProperties != null
+            ? sourceType.GetProperties(Utilities.PublicInstance).Where(p => !sourceExcludedProperties.Contains(p.Name)).ToList()
+            : sourceType.GetProperties(Utilities.PublicInstance).ToList();
+        var targetProperties = targetExcludedProperties != null
+            ? targetType.GetProperties(Utilities.PublicInstance).Where(p => !targetExcludedProperties.Contains(p.Name)).ToList()
+            : targetType.GetProperties(Utilities.PublicInstance).ToList();
+
+        FieldInfo? customMapperField = null;
+        if (configuration?.CustomPropertyMapper != null)
         {
-            context.Push(sourceType, targetType);
-            var (sourceExcludedProperties, targetExcludedProperties) = _excludedPropertyManager.GetExcludedPropertyNames(sourceType, targetType);
-            var sourceProperties = sourceExcludedProperties != null
-                ? sourceType.GetProperties(Utilities.PublicInstance).Where(p => !sourceExcludedProperties.Contains(p.Name)).ToList()
-                : sourceType.GetProperties(Utilities.PublicInstance).ToList();
-            var targetProperties = targetExcludedProperties != null
-                ? targetType.GetProperties(Utilities.PublicInstance).Where(p => !targetExcludedProperties.Contains(p.Name)).ToList()
-                : targetType.GetProperties(Utilities.PublicInstance).ToList();
-            if (configuration?.CustomPropertyMapper != null)
-            {
-                targetProperties = targetProperties.Except(configuration.CustomPropertyMapper.MappedTargetProperties).ToList();
-            }
-
-            var (sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty) =
-                ExtractKeyProperties(sourceType, targetType, sourceProperties, targetProperties, sourceExcludedProperties, targetExcludedProperties);
-
-            RegisterSourceIdEqualsTargetIdMethod(sourceType, sourceIdentityProperty, targetType, targetIdentityProperty);
-            RegisterKeyProperty(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder, _typeIdProxies, KeyType.Id);
-            RegisterKeyProperty(sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder, _typeConcurrencyTokenProxies, KeyType.ConcurrencyToken);
-            RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder);
-            RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder);
-            RegisterTargetByIdTracker(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty);
-
-            if (!_mapper.TryGetValue(sourceType, out Dictionary<Type, MapperMetaDataSet?>? innerMapper))
-            {
-                innerMapper = new Dictionary<Type, MapperMetaDataSet?>();
-                _mapper[sourceType] = innerMapper;
-            }
-
-            if (!innerMapper.ContainsKey(targetType))
-            {
-                if (configuration?.MapToDatabaseType != null)
-                {
-                    _mapToDatabaseDictionary.AddIfNotExists(sourceType, targetType, configuration.MapToDatabaseType.Value);
-                }
-
-                var keyMapper = _dynamicMethodBuilder.BuildUpKeyPropertiesMapperMethod(
-                    sourceType,
-                    targetType,
-                    sourceIdentityProperty,
-                    targetIdentityProperty,
-                    sourceConcurrencyTokenProperty,
-                    targetConcurrencyTokenProperty);
-
-                var contentMapper = _dynamicMethodBuilder.BuildUpContentMappingMethod(
-                    sourceType,
-                    targetType,
-                    sourceProperties,
-                    targetProperties,
-                    this,
-                    context);
-                innerMapper[targetType] = Utilities.BuildMapperMetaDataSet(configuration?.CustomPropertyMapper?.MapProperties, keyMapper, contentMapper);
-            }
+            targetProperties = targetProperties.Except(configuration.CustomPropertyMapper.MappedTargetProperties).ToList();
+            customMapperField = _dynamicMethodBuilder.RegisterCustomPropertyMapper(sourceType, targetType);
+            _customPropertyMappers.Add(customMapperField.Name, configuration.CustomPropertyMapper.MapProperties);
         }
-        finally
+
+        if (configuration?.MapToDatabaseType != null)
         {
-            context.Pop();
+            _mapToDatabaseDictionary.AddIfNotExists(sourceType, targetType, configuration.MapToDatabaseType.Value);
         }
+
+        var (sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty) =
+            ExtractKeyProperties(sourceType, targetType, sourceProperties, targetProperties, sourceExcludedProperties, targetExcludedProperties);
+
+        RegisterSourceIdEqualsTargetIdMethod(sourceType, sourceIdentityProperty, targetType, targetIdentityProperty);
+        RegisterKeyProperty(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder, _typeIdProxies, KeyType.Id);
+        RegisterKeyProperty(sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder, _typeConcurrencyTokenProxies, KeyType.ConcurrencyToken);
+        RegisterKeyComparer(KeyType.Id, _idComparers, sourceType, targetType, sourceIdentityProperty, targetIdentityProperty, _dynamicMethodBuilder);
+        RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder);
+        RegisterTargetByIdTracker(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty);
+
+        var sourcePropertiesCopy = new List<PropertyInfo>(sourceProperties);
+        var targetPropertiesCopy = new List<PropertyInfo>(targetProperties);
+
+        // TODO: rewrite here
+        var toMemoryMapper = _dynamicMethodBuilder.BuildUpMapToMemoryMethod(
+            sourceType,
+            targetType,
+            sourceIdentityProperty,
+            targetIdentityProperty,
+            sourceConcurrencyTokenProperty,
+            targetConcurrencyTokenProperty,
+            sourceProperties,
+            targetProperties,
+            this,
+            customMapperField);
+        _toMemoryMapper.Add(sourceType, targetType, toMemoryMapper);
+
+        var toDatabaseMapper = _dynamicMethodBuilder.BuildUpMapToDatabaseMethod(
+            sourceType,
+            targetType,
+            sourceIdentityProperty,
+            targetIdentityProperty,
+            sourcePropertiesCopy,
+            targetPropertiesCopy,
+            this,
+            customMapperField);
+        _toDatabaseMapper.Add(sourceType, targetType, toDatabaseMapper);
+
+        Pop();
     }
 
     private static TypeKeyProxyMetaDataSet BuildTypeKeyProxy(
@@ -459,18 +489,18 @@ internal sealed class MapperRegistry : IRecursiveRegister
 
     private void RegisterAndPop(Type sourceType, Type targetType)
     {
-        if (!_entityMapperTypeValidator.IsValidType(sourceType))
+        if (!sourceType.IsEntityType())
         {
             throw new InvalidEntityTypeException(sourceType);
         }
 
-        if (!_entityMapperTypeValidator.IsValidType(targetType))
+        if (!targetType.IsEntityType())
         {
             throw new InvalidEntityTypeException(targetType);
         }
 
         RegisterEntityDefaultConstructorMethod(targetType);
-        RecursivelyRegister(sourceType, targetType, new RecursiveRegisterContext(_loopDependencyMapping));
+        RecursivelyRegister(sourceType, targetType);
     }
 
     private (PropertyInfo?, PropertyInfo?, PropertyInfo?, PropertyInfo?) ExtractKeyProperties(
@@ -564,7 +594,7 @@ internal sealed class MapperRegistry : IRecursiveRegister
         {
             var sourceIdType = sourceProperty!.PropertyType;
             var targetIdType = targetProperty!.PropertyType;
-            if (sourceIdType != targetIdType && !_scalarMapperTypeValidator.CanConvert(sourceIdType, targetIdType))
+            if (sourceIdType != targetIdType && !_scalarConverterDictionary.Contains(sourceIdType, targetIdType))
             {
                 throw new ScalarConverterMissingException(sourceIdType, targetIdType);
             }

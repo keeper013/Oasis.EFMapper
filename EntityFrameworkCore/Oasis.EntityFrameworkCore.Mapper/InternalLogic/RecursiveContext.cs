@@ -4,72 +4,15 @@ using Microsoft.EntityFrameworkCore;
 
 internal interface IRecursiveRegister
 {
-    void RecursivelyRegister(Type sourceType, Type targetType, IRecursiveRegisterContext context);
+    void RegisterIfHasNot(Type sourceType, Type targetType);
+
+    void RecursivelyRegister(Type sourceType, Type targetType);
 
     void RegisterEntityListDefaultConstructorMethod(Type type);
 
     void RegisterEntityDefaultConstructorMethod(Type type);
 
     void RegisterForListItemProperty(Type sourceListItemPropertyType, Type targetListItemPropertyType);
-}
-
-internal interface IRecursiveRegisterContext
-{
-    void Push(Type sourceType, Type targetType);
-
-    void Pop();
-
-    void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered);
-}
-
-internal sealed class RecursiveRegisterContext : IRecursiveRegisterContext
-{
-    private readonly Stack<(Type, Type)> _stack = new ();
-    private readonly Dictionary<Type, ISet<Type>> _loopDependencyMapping;
-
-    public RecursiveRegisterContext(Dictionary<Type, ISet<Type>> loopDependencyMapping)
-    {
-        _loopDependencyMapping = loopDependencyMapping;
-    }
-
-    public void Push(Type sourceType, Type targetType) => _stack.Push((sourceType, targetType));
-
-    public void Pop() => _stack.Pop();
-
-    public void DumpLoopDependency()
-    {
-        foreach (var mappingTuple in _stack)
-        {
-            if (_loopDependencyMapping.TryGetValue(mappingTuple.Item1, out var set))
-            {
-                set.Add(mappingTuple.Item2);
-            }
-            else
-            {
-                _loopDependencyMapping.Add(mappingTuple.Item1, new HashSet<Type> { mappingTuple.Item2 });
-            }
-        }
-    }
-
-    public void RegisterIf(IRecursiveRegister recursiveRegister, Type sourceType, Type targetType, bool hasRegistered)
-    {
-        if (hasRegistered)
-        {
-            if (_loopDependencyMapping.TryGetValue(sourceType, out var set) && set.Contains(targetType))
-            {
-                // this is a short cut to identify loop dependency if the mapping to the same source type to target type has been recorded
-                DumpLoopDependency();
-            }
-        }
-        else if (_stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
-        {
-            DumpLoopDependency();
-        }
-        else if (!hasRegistered && !_stack.Any(i => i.Item1 == sourceType && i.Item2 == targetType))
-        {
-            recursiveRegister.RecursivelyRegister(sourceType, targetType, this);
-        }
-    }
 }
 
 internal interface ITargetByIdTracker
@@ -184,7 +127,7 @@ internal sealed class RecursiveMappingContext : IRecursiveMappingContext
     // for mapping list of entities, though this value will be overritten by every list item, but its value is gonna be correct for the whole list
     private Dictionary<int, object>? _hashCodeDictionary;
 
-    public RecursiveMappingContext(IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories, IRecursiveMapperContext mapperContext, bool forceTrack, DbContext? databaseContext = null)
+    public RecursiveMappingContext(IReadOnlyDictionary<Type, ITargetByIdTrackerFactory> targetByIdTrackerFactories, IRecursiveMapperContext mapperContext, DbContext? databaseContext = null)
     {
         var dict = new Dictionary<Type, ITargetByIdTracker>();
         foreach (var kvp in targetByIdTrackerFactories)
@@ -194,12 +137,14 @@ internal sealed class RecursiveMappingContext : IRecursiveMappingContext
 
         _targetByIdTrackers = dict;
         _mapperContext = mapperContext;
-        ForceTrack = forceTrack;
+        ForceTrack = false;
         DatabaseContext = databaseContext;
         _hashCodeDictionary = null;
     }
 
-    public bool ForceTrack { get; init; }
+    public bool ForceTrack { get; set; }
+
+    public bool HasTracked => _targetByHashCode.Any();
 
     public DbContext? DatabaseContext { get; set; }
 

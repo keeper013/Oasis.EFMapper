@@ -14,12 +14,14 @@ public class ListPropertyMappingTests : TestBase
     public void MapListProperties_ToMemory_SameInstance_ShouldSucceed()
     {
         // arrange
-        var factory = MakeDefaultMapperBuilder().Register<CollectionEntity1, CollectionEntity2>().Build();
+        var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity1, CollectionEntity2>().Build().MakeToMemoryMapper();
         var sc1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
         var entity1 = new CollectionEntity1(1, new[] { sc1, sc1 });
 
         // Assert
-        var result = factory.MakeToMemorySession().Map<CollectionEntity1, CollectionEntity2>(entity1);
+        mapper.StartSession();
+        var result = mapper.Map<CollectionEntity1, CollectionEntity2>(entity1);
+        mapper.StopSession();
         Assert.AreEqual(2, result.Scs!.Count);
         Assert.AreEqual(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
     }
@@ -28,15 +30,17 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListProperties_ToDatabase_SameInstance_ShouldThrowException()
     {
         // arrange
-        var session = MakeDefaultMapperBuilder().Register<CollectionEntity2, CollectionEntity1>().Build().MakeToDatabaseSession();
+        var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity2, CollectionEntity1>().Build().MakeToDatabaseMapper();
         var sc2 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
         var entity2 = new CollectionEntity2(1, new[] { sc2, sc2 });
 
         // Act & Assert
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            session.DatabaseContext = databaseContext;
-            var result = await session.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null);
+            mapper.DatabaseContext = databaseContext;
+            mapper.StartSession();
+            var result = await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null);
+            mapper.StopSession();
             Assert.AreEqual(2, result.Scs!.Count);
             Assert.AreEqual(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
             await databaseContext.SaveChangesAsync();
@@ -477,11 +481,13 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session = factory.MakeToDatabaseSession(databaseContext);
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, null);
+            var mapper = factory.MakeToDatabaseMapper(databaseContext);
+            mapper.StartSession();
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, null);
             await databaseContext.SaveChangesAsync();
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2, null);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2, null);
             await databaseContext.SaveChangesAsync();
+            mapper.StopSession();
         });
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
@@ -501,11 +507,13 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            var session = factory.MakeToDatabaseSession(databaseContext);
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_1, null);
+            var mapper = factory.MakeToDatabaseMapper(databaseContext);
+            mapper.StartSession();
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_1, null);
             await databaseContext.SaveChangesAsync();
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_2, null);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_2, null);
             await databaseContext.SaveChangesAsync();
+            mapper.StopSession();
         });
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {

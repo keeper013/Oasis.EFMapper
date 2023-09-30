@@ -14,12 +14,14 @@ public class ListPropertyMappingTests : TestBase
     public void MapListProperties_ToMemory_SameInstance_ShouldSucceed()
     {
         // arrange
-        var session = MakeDefaultMapperBuilder().Register<CollectionEntity1, CollectionEntity2>().Build().MakeToMemorySession();
+        var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity1, CollectionEntity2>().Build().MakeToMemoryMapper();
         var sc1 = new SubScalarEntity1(1, 2, "3", new byte[] { 1 });
         var entity1 = new CollectionEntity1(1, new[] { sc1, sc1 });
 
         // Assert
-        var result = session.Map<CollectionEntity1, CollectionEntity2>(entity1);
+        mapper.StartSession();
+        var result = mapper.Map<CollectionEntity1, CollectionEntity2>(entity1);
+        mapper.StopSession();
         Assert.Equal(2, result.Scs!.Count);
         Assert.Equal(result.Scs.ElementAt(0), result.Scs.ElementAt(1));
     }
@@ -28,15 +30,17 @@ public class ListPropertyMappingTests : TestBase
     public async Task MapListProperties_ToDatabase_SameInstance_ShouldSucceed()
     {
         // arrange
-        var session = MakeDefaultMapperBuilder().Register<CollectionEntity2, CollectionEntity1>().Build().MakeToDatabaseSession();
+        var mapper = MakeDefaultMapperBuilder().Register<CollectionEntity2, CollectionEntity1>().Build().MakeToDatabaseMapper();
         var sc2 = new ScalarEntity2Item(1, 2, "3", new byte[] { 1 });
         var entity2 = new CollectionEntity2(1, new[] { sc2, sc2 });
 
         // Act & Assert
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            session.DatabaseContext = databaseContext;
-            var result = await session.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null);
+            mapper.StartSession();
+            mapper.DatabaseContext = databaseContext;
+            var result = await mapper.MapAsync<CollectionEntity2, CollectionEntity1>(entity2, null);
+            mapper.StopSession();
             Assert.Equal(2, result.Scs!.Count);
             Assert.Equal(result.Scs.ElementAt(0).GetHashCode(), result.Scs.ElementAt(1).GetHashCode());
             await databaseContext.SaveChangesAsync();
@@ -467,22 +471,24 @@ public class ListPropertyMappingTests : TestBase
     public async Task SessionTest_SameSessionAvoidDuplicatedNewEntity1()
     {
         // arrange
-        var session = MakeDefaultMapperBuilder()
+        var mapper = MakeDefaultMapperBuilder()
             .Register<SessionTestingList2, SessionTestingList1_1>()
             .Register<SessionTestingList2, SessionTestingList1_2>()
             .Build()
-            .MakeToDatabaseSession();
+            .MakeToDatabaseMapper();
 
         var item = new ScalarItem2("abc");
         var l2 = new SessionTestingList2(new List<ScalarItem2> { item });
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            session.DatabaseContext = databaseContext;
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, null);
+            mapper.StartSession();
+            mapper.DatabaseContext = databaseContext;
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2, null);
             await databaseContext.SaveChangesAsync();
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2, null);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_2>(l2, null);
             await databaseContext.SaveChangesAsync();
+            mapper.StopSession();
         });
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -495,7 +501,7 @@ public class ListPropertyMappingTests : TestBase
     public async Task SessionTest_SameSessionAvoidDuplicatedNewEntity2()
     {
         // arrange
-        var session = MakeDefaultMapperBuilder().Register<SessionTestingList2, SessionTestingList1_1>().Build().MakeToDatabaseSession();
+        var mapper = MakeDefaultMapperBuilder().Register<SessionTestingList2, SessionTestingList1_1>().Build().MakeToDatabaseMapper();
 
         var item = new ScalarItem2("abc");
         var l2_1 = new SessionTestingList2(new List<ScalarItem2> { item });
@@ -503,11 +509,13 @@ public class ListPropertyMappingTests : TestBase
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            session.DatabaseContext = databaseContext;
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_1, null);
+            mapper.StartSession();
+            mapper.DatabaseContext = databaseContext;
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_1, null);
             await databaseContext.SaveChangesAsync();
-            await session.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_2, null);
+            await mapper.MapAsync<SessionTestingList2, SessionTestingList1_1>(l2_2, null);
             await databaseContext.SaveChangesAsync();
+            mapper.StopSession();
         });
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {

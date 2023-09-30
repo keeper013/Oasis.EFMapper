@@ -4,9 +4,11 @@ using System.Data.Entity;
 
 public interface IRecursiveMappingContext
 {
-    bool ForceTrack { get; }
+    bool ForceTrack { get; set; }
 
     DbContext? DatabaseContext { get; set; }
+
+    bool HasTracked { get; }
 
     void Clear();
 

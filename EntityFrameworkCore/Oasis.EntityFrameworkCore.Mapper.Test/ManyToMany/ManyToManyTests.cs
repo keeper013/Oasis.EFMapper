@@ -10,7 +10,7 @@ public class ManyToManyTests : TestBase
     public void MapListProperties_ToMemory_SameInstance_ShouldMapToSameInstance()
     {
         // arrange
-        var session = MakeDefaultMapperBuilder().Register<ManyToManyParent1, ManyToManyParent2>().Build().MakeToMemorySession();
+        var mapper = MakeDefaultMapperBuilder().Register<ManyToManyParent1, ManyToManyParent2>().Build().MakeToMemoryMapper();
         var child1 = new ManyToManyChild1 { Name = "child1" };
         var parent1 = new ManyToManyParent1 { Name = "parent1" };
         parent1.Children.Add(child1);
@@ -18,8 +18,10 @@ public class ManyToManyTests : TestBase
         parent2.Children.Add(child1);
 
         // Act & Assert
-        var result1 = session.Map<ManyToManyParent1, ManyToManyParent2>(parent1);
-        var result2 = session.Map<ManyToManyParent1, ManyToManyParent2>(parent2);
+        mapper.StartSession();
+        var result1 = mapper.Map<ManyToManyParent1, ManyToManyParent2>(parent1);
+        var result2 = mapper.Map<ManyToManyParent1, ManyToManyParent2>(parent2);
+        mapper.StopSession();
         Assert.Equal(result1.Children[0].GetHashCode(), result2.Children[0].GetHashCode());
     }
 
@@ -27,7 +29,7 @@ public class ManyToManyTests : TestBase
     public async Task MapListProperties_ToDatabase_SameInstance_ShouldMapToSameInstance()
     {
         // arrange
-        var session = MakeDefaultMapperBuilder().Register<ManyToManyParent1, ManyToManyParent2>().Build().MakeToDatabaseSession();
+        var mapper = MakeDefaultMapperBuilder().Register<ManyToManyParent1, ManyToManyParent2>().Build().MakeToDatabaseMapper();
         var child1 = new ManyToManyChild1 { Name = "child1" };
         var parent1 = new ManyToManyParent1 { Name = "parent1" };
         parent1.Children.Add(child1);
@@ -37,9 +39,11 @@ public class ManyToManyTests : TestBase
         // Act & Assert
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
         {
-            session.DatabaseContext = databaseContext;
-            var result1 = await session.MapAsync<ManyToManyParent1, ManyToManyParent2>(parent1, null);
-            var result2 = await session.MapAsync<ManyToManyParent1, ManyToManyParent2>(parent2, null);
+            mapper.StartSession();
+            mapper.DatabaseContext = databaseContext;
+            var result1 = await mapper.MapAsync<ManyToManyParent1, ManyToManyParent2>(parent1, null);
+            var result2 = await mapper.MapAsync<ManyToManyParent1, ManyToManyParent2>(parent2, null);
+            mapper.StopSession();
             Assert.Equal(result1.Children[0].GetHashCode(), result2.Children[0].GetHashCode());
             await databaseContext.SaveChangesAsync();
             var subs = await databaseContext.Set<ManyToManyChild2>().ToListAsync();

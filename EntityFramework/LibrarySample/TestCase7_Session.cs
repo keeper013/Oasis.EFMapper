@@ -50,9 +50,11 @@ public sealed class TestCase7_Session : TestBase
             book1.Tags.Add(tag);
             var book2 = new NewBookWithNewTagDTO { Name = "Book2" };
             book2.Tags.Add(tag);
-            var session = factory.MakeToDatabaseSession(databaseContext);
-            _ = await session.MapAsync<NewBookWithNewTagDTO, Book>(book1, null);
-            _ = await session.MapAsync<NewBookWithNewTagDTO, Book>(book2, null);
+            var mapper = factory.MakeToDatabaseMapper(databaseContext);
+            mapper.StartSession();
+            _ = await mapper.MapAsync<NewBookWithNewTagDTO, Book>(book1, null);
+            _ = await mapper.MapAsync<NewBookWithNewTagDTO, Book>(book2, null);
+            mapper.StopSession();
             _ = await databaseContext.SaveChangesAsync();
             Assert.AreEqual(1, await databaseContext.Set<Tag>().CountAsync());
         });

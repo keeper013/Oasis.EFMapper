@@ -361,11 +361,11 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapScalarProperties_ToEntityNoId_ShouldSucceed()
     {
         // arrange
-        var session = MakeDefaultMapperBuilder()
+        var mapper = MakeDefaultMapperBuilder()
             .Register<ScalarEntity1, ScalarEntityNoBase1>()
             .Register<ScalarEntityNoBase1, ScalarEntityNoBase2>()
             .Build()
-            .MakeToMemorySession();
+            .MakeToMemoryMapper();
         var byteArray = new byte[] { 2, 3, 4 };
 
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -381,7 +381,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
-        var instance1 = session.Map<ScalarEntity1, ScalarEntityNoBase1>(entity);
+        mapper.StartSession();
+        var instance1 = mapper.Map<ScalarEntity1, ScalarEntityNoBase1>(entity);
 
         // assert
         Assert.AreEqual(2, instance1!.IntProp);
@@ -389,7 +390,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.AreEqual("4", instance1.StringProp);
         Assert.AreEqual(byteArray, instance1.ByteArrayProp);
 
-        var instance2 = session.Map<ScalarEntityNoBase1, ScalarEntityNoBase2>(instance1);
+        var instance2 = mapper.Map<ScalarEntityNoBase1, ScalarEntityNoBase2>(instance1);
+        mapper.StopSession();
 
         // assert
         Assert.AreEqual(2, instance2!.IntProp);
@@ -402,7 +404,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
     public async Task MapScalarProperties_CustomKeyProperties_ShouldSucceed()
     {
         // arrange
-        var session = MakeDefaultMapperBuilder()
+        var mapper = MakeDefaultMapperBuilder()
             .Configure<ScalarEntityCustomKeyProperties1>()
                 .SetKeyPropertyNames(nameof(EntityBase.ConcurrencyToken), nameof(EntityBase.Id))
                 .Finish()
@@ -412,7 +414,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
             .Register<ScalarEntity1, ScalarEntityCustomKeyProperties1>()
             .Register<ScalarEntity1, ScalarEntityNoConcurrencyToken1>()
             .Build()
-            .MakeToMemorySession();
+            .MakeToMemoryMapper();
 
         var byteArray = new byte[] { 2, 3, 4 };
         await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -428,7 +430,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
             entity = await databaseContext.Set<ScalarEntity1>().AsNoTracking().FirstAsync();
         });
 
-        var instance1 = session.Map<ScalarEntity1, ScalarEntityCustomKeyProperties1>(entity);
+        mapper.StartSession();
+        var instance1 = mapper.Map<ScalarEntity1, ScalarEntityCustomKeyProperties1>(entity);
 
         // assert
         Assert.AreNotEqual(default, instance1.ConcurrencyToken);
@@ -437,7 +440,8 @@ public sealed class ScalarPropertyMappingTests : TestBase
         Assert.AreEqual("4", instance1.StringProp);
         Assert.AreEqual(byteArray, instance1.ByteArrayProp);
 
-        var instance2 = session.Map<ScalarEntity1, ScalarEntityNoConcurrencyToken1>(entity!);
+        var instance2 = mapper.Map<ScalarEntity1, ScalarEntityNoConcurrencyToken1>(entity!);
+        mapper.StopSession();
         Assert.AreNotEqual(default, instance2.AnotherId);
         Assert.AreEqual(2, instance2.IntProp);
         Assert.AreEqual(3, instance2.LongNullableProp);
