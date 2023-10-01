@@ -13,10 +13,10 @@ The library focuses on use cases of mapping from/to such classes, and is integra
 ## Features
 Main features provided by **the library** includes:
 1. Basic scalar properties mapping between classes, as a trivial feature that should be provided by mappers.
-2. Recursively register mapping between classes. When user registers mapping between 2 classes, navigation properties of the same property name will be automatically registered for mapping. This saves uses some coding efforts in defining class-to-class mappings.
+2. Recursively register mapping between classes. When user registers mapping between 2 classes, navigation properties of the same property name will be automatically registered for mapping. This saves users some coding efforts in defining class-to-class mappings.
 3. Automatically search for and remove entities when mapping to entities via [DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext?view=efcore-7.0). This saves users efforts from writing tedious database operation code.
 4. Identify entities by identities to guarantee uniqueness of each entity during mapping, this guarantees correctness of mapping results.
-5. Some special assisting features are also provided to handle delicate use cases.
+5. Some specific assisting features are also provided to handle delicate use cases.
 ## Examples
 A simple book-borrowing system is made up, and use case examples are developed based on the book-borrowing system to demonstrate how **the library** helps to save coding efforts. The following picture demonstrates the entities in the book-borrowing system.
 ![Book-Borrowing System Entity Graph](https://github.com/keeper013/Oasis.EFMapper/blob/main/Document/Demonstration.png)
@@ -33,16 +33,17 @@ Sections below demonstrates usages of **the library**, all relevant code can be 
 This test case demonstrates the basic usage of **the library** on how to insert data into database with it.
 ```C#
 // initialize mapper
-var mapper = MakeDefaultMapperBuilder()
-    .Register<NewTagDTO, Tag>()
+var factory = MakeDefaultMapperBuilder()
+    .Register<NewTagDTO, Tag>(MapType.Insert)
     .Build();
 
 // create new tag
 await ExecuteWithNewDatabaseContext(async databaseContext =>
 {
+    var mapper = factory.MakeToDatabaseMapper(databaseContext);
     const string TagName = "English";
     var tagDto = new NewTagDTO { Name = TagName };
-    _ = await mapper.MapAsync<NewTagDTO, Tag>(tagDto, null, databaseContext);
+    _ = await mapper.MapAsync<NewTagDTO, Tag>(tagDto, null);
     _ = await databaseContext.SaveChangesAsync();
     var tag = await databaseContext.Set<Tag>().FirstAsync();
     Assert.Equal(TagName, tag.Name);
@@ -52,9 +53,11 @@ This is a minimal example demonstrates basic usage of **the library**, the use c
 - A mapper need to be defined before usage, that's what the *initialize mapper* part does.
 - *MakeDefaultMapperBuilder* is a shared method defined in the test base class, it returns an instance of *IMapperBuilder* for further configuration.
 - *Register<NewTagDTO, Tag>()* method configures the instance of *IMapperBuilder*, telling it to register a mapping from class *NewTagDTO* to class *Tag*. With this method called, **the library** will go through all public instance properties of class *NewTagDTO* and *Tag*, record scalar and nevigation properties that can be mapped wherever possible for later mapping process.
-- *Build* method builds the instance *IMapperBuilder* into an instance of *IMapper*. After this method is called, developers can use the *IMapper* instance to map entities.
+- The parameter *MapType.Insert* passed to *Register<NewTagDTO, Tag>()* method is intended to limit the mapping to insertion to database only. It's a self verification mechanism for writing more robust code, which will be introduced in detail later sections.
+- *Build* method builds the instance *IMapperBuilder* into an instance of *IMapperFactory*. After this method is called, developers can use the *IMapperMapper* instance to build mapper instances.
 - *ExecuteWithNewDatabaseContext* is a shared method defined in the test base class, it will be used a lot in all test case code examples.
-- *mapper.MapAsync<NewTagDTO, Tag>* demonstrates how the **the library** maps a [DTO](https://en.wikipedia.org/wiki/Data_transfer_object) class instance to database entities. First of all, to map to databases, the method must be asynchonized. Then, generic parameters must be provided to specify the from and to classes that the mapping should happen between, in this case it's from *NewTagDTO* to *Tag*. Among the 3 input parameters, first one is the instance of the from entity; second parameter is the [Include](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.entityframeworkqueryableextensions.include?view=efcore-7.0) clause of EntityFramework, which will be explain in details in use cases below when it's value is not null; third parameter is the instance of [DbContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext?view=efcore-7.0). The method returns the entity that is mapped to, in this use case return value of the method is ignored because it's not used. If necessary the mapped entity can be captured by a variable for further usages.
+- *factory.MakeToDatabaseMapper* method builds a mapper that can map DTO instances to database entity instances via a database context. For normal mapping case like **AutoMapper**, *factory.MakeToMemoryMapper* is provided. Or users can call *factory.MakeMapper* to be able to handle both cases.
+- *mapper.MapAsync<NewTagDTO, Tag>* demonstrates how the **the library** maps a [DTO](https://en.wikipedia.org/wiki/Data_transfer_object) class instance to database entities. First of all, to map to databases, the method must be asynchonized. Then, generic parameters must be provided to specify the from and to classes that the mapping should happen between, in this case it's from *NewTagDTO* to *Tag*. Among the 3 input parameters, first one is the instance of the from entity; second parameter is the [Include](https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.entityframeworkqueryableextensions.include?view=efcore-7.0) clause of EntityFramework, which will be explain in details in use cases below when it's value is not null. The method returns the entity that is mapped to, in this use case return value of the method is ignored because it's not used. If necessary the mapped entity can be captured by a variable for further usages.
 - *Assert.Equal* verifies if the new tag has been created in the database. After method *mapper.MapAsync<NewTagDTO, Tag>* is called, the entity is added to the database context, directly call DbContext.SaveChanges or DbContext.SaveChangesAsync after that will insert it into the database.
 
 As for why the use case is inserting a new data record into the database instead of updating an existing one, the answer is that **the library** always try to match existing data records using the input data's identity property. If the input instance has an identity property and the identity property has a valid value, **the library** will try to find the matching data record in the database according to the identity property value. If found, then the existing data record will be updated according to the input instance; if not, then it's treated as an insertion use case. In this case the input class *NewTagDTO* doesn't even have an identity property, so it's treated as an insertion.
@@ -78,17 +81,19 @@ Scalar converters can be used to define mapping from a value type to a class typ
 var mapper = MakeDefaultMapperBuilder()
     .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
     .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-    .Register<NewBookDTO, Book>()
-    .RegisterTwoWay<Book, UpdateBookDTO>()
-    .Build();
+    .Register<NewBookDTO, Book>(MapType.Insert)
+    .RegisterTwoWay<Book, UpdateBookDTO>(MapType.Memory, MapType.Upsert)
+    .Build()
+    .MakeMapper();
 
 // create new book
 const string BookName = "Book 1";
 Book book = null!;
 await ExecuteWithNewDatabaseContext(async databaseContext =>
 {
+    mapper.DatabaseContext = databaseContext;
     var bookDto = new NewBookDTO { Name = BookName };
-    _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null, databaseContext);
+    _ = await mapper.MapAsync<NewBookDTO, Book>(bookDto, null);
     _ = await databaseContext.SaveChangesAsync();
     book = await databaseContext.Set<Book>().FirstAsync();
     Assert.Equal(BookName, book.Name);
@@ -103,7 +108,8 @@ updateBookDto.Name = UpdatedBookName;
 
 await ExecuteWithNewDatabaseContext(async databaseContext =>
 {
-    _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null, databaseContext);
+    mapper.DatabaseContext = databaseContext;
+    _ = await mapper.MapAsync<UpdateBookDTO, Book>(updateBookDto, null);
     _ = await databaseContext.SaveChangesAsync();
     book = await databaseContext.Set<Book>().FirstAsync();
     Assert.Equal(UpdatedBookName, book.Name);
@@ -180,9 +186,10 @@ var mapper = MakeDefaultMapperBuilder()
     .Configure<UpdateBorrowerDTO>()
         .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
         .Finish()
-    .Register<NewBorrowerDTO, Borrower>()
-    .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
-.Build();
+    .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+    .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
+    .Build()
+    .MakeMapper();
 ```
 To continue the points for configuration of identity and concurrency token properties:
 - *Borrower* class has concurrency token of type *byte[]*, that's the reason we need the scalar converters. 
@@ -273,13 +280,15 @@ Note that if *Configure<A, B>()* is called, **the library** will register mappin
 **The library** need to create new instances of target entities or collection of target entities during mapping from time to time, and by default, it tries to find the default parameterless constructor of class of the target entity. Considering most entity class should have a such constructor, the approach should work. But what if the target entity doesn't have a default parameterless constructor?
 For this case, developers must name a factory method for such target entities, **the library** will use the factory method for the class if any defined is registered. The example is as below:
 ```C#
+// initialize mapper
 var mapper = MakeDefaultMapperBuilder()
-    .WithScalarConverter<long, string>(l => l.ToString())
+    .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
     .WithFactoryMethod<IBookCopyList>(() => new BookCopyList())
     .WithFactoryMethod<IBook>(() => new BookImplementation())
-    .Register<NewBookDTO, Book>()
-    .Register<Book, IBook>()
-    .Build();
+    .Register<NewBookDTO, Book>(MapType.Insert)
+    .Register<Book, IBook>(MapType.Memory)
+    .Build()
+    .MakeMapper();
 ```
 In this case the target entities are interfaces (*IBooks* and *IBookCopyList*), which don't have constructors at all. It's apparent that the introduction of *WithFactoryMethod* extends supported data scope of **the library** from normal classes with default parameterless constructors to abstract classes and interfaces.
 ### TestCase5_NavigationPropertyOperation_KeepUnmatched
@@ -321,9 +330,9 @@ This configuration specifies that when mapping an instance of *Borrower* to an i
 ### TestCase7_Session
 During mapping, there could be cases where multiple entities share some same instances for nevigation entities. Like in this example, many books may share the same tag. So for the different book instances, it would be ideal if the books can share the same instance for the same tags.
 
-During a call of *IMapper.Map* or *IMapper.MapAsync*, **the library** makes sure that each entity is only mapped once, which avoids redundant mapping, and guarantees mapping result is correct. But it doesn't track entities between the method calls.
+During a call of *IMapper.Map* or *IMapper.MapAsync*, **the library** will only track entities if their classes are involved in loop dependency to identify instances that are already mapped to avoid infinite loops. But it definitely doesn't track entities among such method calls.
 
-Examples in this test case uses a *NewBookWithNewTagDTO*, which adds new books together with new tags. Business wise this may not make sense, considering books and tags are not-so-connected entities that are supposed to be managed separately, here we ignore this, and just use it to demonstrate this feature of **the library**.
+Examples in this test case uses a *NewBookWithNewTagDTO*, which adds new books together with new tags. Business wise this may not make sense, considering books and tags are not-so-connected entities that are supposed to be managed separately. But here we ignore it, and just use this example to demonstrate this feature of **the library**.
 ```C#
 var tag = new NewTagDTO { Name = "Tag1" };
 var book1 = new NewBookWithNewTagDTO { Name = "Book1" };
@@ -336,13 +345,13 @@ _ = await databaseContext.SaveChangesAsync();
 ```
 In the sample code above we mean to add 2 new books with the same new tag, mapper.MapAsync is called twice. For the first time, **the library** inserts "Book1" and "Tag1" into the database; for the second time, **the library** tries to insert "Books2" and "Tag1", which triggers a database exception because name of tag is supposed to be unique in the database. The point is, inserting "Tag1" twice isn't the purpose, but since the same instance appears in 2 different calls to *MapAsync*, **the library** doesn't know for the second call, the data presented by the NewTagDTO has been mapped in previous processes that it's not supposed to be inserted again. **The library** only guarantees to map the same instance once per mapping, with *IMapper.Map* or *IMapper.MapAsync* there no way to trace mapped entities between such calls.
 
-To overcome this problem, **the library** provides a session concept to extend the scope of mapping-only-once scenario. *IMapper.CreateMappingSession* creates a map to memory session which can track mapped from entities among as many calls as possible; *IMapper.CreateMappingToDatabaseSession* creates a similar map to database session. I doubt if this use case is needed a lot, but in case it is, the mechanism is provided.
+To overcome this problem, **the library** provides a session concept to extend the scope of mapping-only-once scenario. *IMapper.StartSession*/*IToMemoryMapper.StartSession*/*IToDatabaseMapper.StartSession* starts a mapping session which can track mapped from entities among as many calls as possible; Whenever the session is not needed, call the *StopSession* method to stop it. After that call the mapper works in non-session mode again. I doubt if this use case is needed a lot, but in case it is, the mechanism is provided.
 
-Note that if a POCO has 2 navigagion properties of the same instance (For example, class *Class1* has Property *Property1* and *Property2*, values of both are the same instance of class *ClassP*), a session will be unnecessary for mapping an instance of *Class1* to another class instance (e.g. *Class2*). As mentioned in the beginning of this section, each entity is only mapped once during a call of *IMapper.Map* or *IMapper.MapAsync*. The same instance is considered the same entity, so Property *Property1* and *Property2* of the mapped instance of *Class2* will also be the same instance (in C#, they have the same hash code). This feature to guarantee that same instances can be mapped to same instances avoids redudent data record being inserted into databases. It's necessary due to nature of use cases of **the library**, not provided by AutoMapper (which doesn't have this use case), and is the reason for **the library** to be slower than AutoMapper.
+Note that if a POCO has 2 navigagion properties of the same instance (For example, class *Class1* has Property *Property1* and *Property2*, values of both are the same instance of class *ClassP*), a session will be **necessary** for the same instance of *Property1* and *Property2* to be mapped to the same database record. Unless *Property1* and *Property2* gets involved in some loop dependency detected during registering the mapping, **the library** doesn't track the class instances to avoid redundency. This feature to guarantee that same instances can be mapped to same instances avoids redudent data record being inserted into databases. It's necessary due to nature of use cases of **the library**, not provided by AutoMapper (which doesn't have this use case), and is the reason for **the library** to be slower than AutoMapper.
 
 **The library** trackes both hash code of an entity or identity property value of it (for entity to be updated) to judge if an entity has been mapped from.
 ### TestCase8_InsertUpdateLimit
-**The library** provides a safety check mechanism to guarantee correct usage of mappings, which limits insertion/updation when mapping from a DTO class to a database entity class. Like for UpdateBookDTO, if it's only supposed to be used to update an existing book into database, never inserting a new book into database, this can be guaranteed with a configuration.
+**The library** provides a safety check mechanism to guarantee correct usage of mappings, which limits insertion/updation and mapping to database/memory when mapping from a DTO class to a database entity class. Like for UpdateBookDTO, if it's only supposed to be used to update an existing book into database, never inserting a new book into database; or if mapping from Book to UpdateBookDTO is only supposed to happen between class instances, it won't be used to insert/update data to database contexts. This can be guaranteed with a configuration.
 ```C#
 var mapper = MakeDefaultMapperBuilder()
     .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
@@ -351,13 +360,42 @@ var mapper = MakeDefaultMapperBuilder()
         .Finish()
     .Build();
 ```
-The focus in the code is *SetMapType* method. If not configured, the default value for all mapping is Upsert, which allows updation and insertion. We can also specify we only want to insert new books with NewBookDTO with the following statement
+The focus in the code is *SetMapType* method. If not configured, the default value for all mapping is MemoryAndUpsert, which allows mapping between class instances, and updation and insertion to database. We can also specify we only want to insert new books with NewBookDTO with the following statement
 ```C#
 .Configure<NewBookDTO, Book>()
     .SetMapType(MapType.Insert)
     .Finish()
 ```
 The thing is NewBookDTO doesn't really have an identity property, so it can't be used to update entities in database anyway, so this configuration may be considered useless.
+To state that mapping from *Book* to *UpdateBookDTO* is only supposed to happen between class instances, not to database contexts, *MapType.Memory* is for this purpose:
+```C#
+.Configure<Book, UpdateBookDTO>()
+    .SetMapType(MapType.Memory)
+    .Finish()
+```
+If user code breaches such configurations, a corrsponding exception will be thrown at mapping time.
+Combined MapType values are also provided to handle some mixed situations, like MemoryAndInsert, MemoryAndUpdate, MemoryAndUpsert. The meanings are straight forward as the names.
+Note that though type mapping registering and mapping are automatically recursive, this MapType configuration will not be automatically passed on during the recursive registration or mapping (We really don't know if the mapping type of a class should be applied to all its navigation property classes). Which means users must manually configure each mapping if they with to use this mechanism for more robust coding.
+The default global setting for *MapType* is *MemoryAndUpsert*, meaning if not specifically configured, any defined mapping is allowed to be used to map instances to instances, and also insert or update data into database contexts. This can be configured with MapperBuilderFactory.Configure().SetMapType method. To avoid specifically configuring MapType for every mapping, users can do the following so by default any mapping registered is for mapping from instances to instances, users only need to specifically define *MapType* for map to database cases.
+```C#
+new MapperBuilderFactory()
+    .Configure()
+        .SetMapType(MapType.Memory)
+        <more configuration>
+        .Finish()
+    .Build();
+```
+Note that a short cut for *MapType* configuration is provide by passing it as a parameter in *IMapperBuilder.Register* method and *IMapperBuilder.RegisterTwoWays* method. *IMapperBuilder.RegisterTwoWays* will take 2 such parameters, 1 for mapping from source to target, the other for mapping from target to source. Examples of such cases can be found in LibrarySample like the following codes:
+```C#
+var mapper = MakeDefaultMapperBuilder()
+    .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
+    .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
+    .Register<NewBookDTO, Book>(MapType.Insert)
+    .RegisterTwoWay<Book, UpdateBookDTO>(MapType.Memory, MapType.Upsert)
+    .Build()
+    .MakeMapper();
+```
+Note that this configuration is only optional for writing more robust code, if left as default, **the library** can function normally as well. When dynamically generating il code when building an IMapperFactory instance, by default 1 method will be generated for mapping from instance to instance, and a different one will be generated for mapping from instance to database context. **The library** will not generate the method if the MapType is not configured for it (For example, for mapping from *Book* to *UpdateBookDto*, if *MapType* is configured to be *MapType.Memory*, the method for mapping *Book* to database context with entity type to be *UpdateBookDTO* will not be generated.). So though configuring specific *MapType* for all registered mappings is truoblesome, it will help the **the library** to initialize faster at run time, and save some memory. If there are a lot of mappings to be registered, this feature could be useful to optimize initialization performance and memory consumption.
 ## Code Structure
 ![Program Structure Graph](https://github.com/keeper013/Oasis.EFMapper/blob/main/Document/ProgramStructure.png)
 
