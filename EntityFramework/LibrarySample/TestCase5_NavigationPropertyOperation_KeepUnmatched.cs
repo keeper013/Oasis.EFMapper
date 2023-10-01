@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using System.Data.Entity;
+using Oasis.EntityFramework.Mapper;
 
 [TestFixture]
 public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBase
@@ -26,8 +27,8 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
             .Configure<UpdateBorrowerDTO>()
                 .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
                 .Finish()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -89,10 +90,10 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
             .Configure<CopyReferenceDTO>()
                 .SetIdentityPropertyName(nameof(CopyReferenceDTO.Number))
                 .Finish()
-            .Register<NewBookDTO, Book>()
-            .Register<Book, UpdateBookDTO>()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<NewBookDTO, Book>(MapType.Insert)
+            .Register<Book, UpdateBookDTO>(MapType.Memory)
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -188,8 +189,8 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
             .Configure<CopyReferenceDTO>()
                 .SetIdentityPropertyName(nameof(CopyReferenceDTO.Number))
                 .Finish()
-            .Register<NewBookDTO, Book>()
-            .RegisterTwoWay<Book, UpdateBookDTO>()
+            .Register<NewBookDTO, Book>(MapType.Insert)
+            .RegisterTwoWay<Book, UpdateBookDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -253,10 +254,10 @@ public sealed class TestCase5_NavigationPropertyOperation_KeepUnmatched : TestBa
             .Configure<CopyReferenceDTO>()
                 .SetIdentityPropertyName(nameof(CopyReferenceDTO.Number))
                 .Finish()
-            .Register<NewBookDTO, Book>()
-            .Register<Book, UpdateBookDTO>()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<NewBookDTO, Book>(MapType.Insert)
+            .Register<Book, UpdateBookDTO>(MapType.Memory)
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 

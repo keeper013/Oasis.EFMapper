@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using System.Data.Entity;
+using Oasis.EntityFramework.Mapper;
 
 public interface IBookCopyList : IList<Copy>
 {
@@ -42,8 +43,8 @@ public sealed class TestCase4_CustomFactoryMethod : TestBase
             .WithScalarConverter<long, string>(l => l.ToString())
             .WithFactoryMethod<IBookCopyList>(() => new BookCopyList())
             .WithFactoryMethod<IBook>(() => new BookImplementation())
-            .Register<NewBookDTO, Book>()
-            .Register<Book, IBook>()
+            .Register<NewBookDTO, Book>(MapType.Insert)
+            .Register<Book, IBook>(MapType.Memory)
             .Build()
             .MakeMapper();
 

@@ -133,15 +133,15 @@ internal sealed class MapperFactory : IMapperFactory
 
     public MapperFactory(
         KeepUnmatchedManager? keepUnmatchedManager,
-        MapToDatabaseType defaultMapToDatabaseType,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapToDatabaseType>> mapToDatabaseTypeDictionary,
+        MapType defaultMapType,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapType>> mapTypeDictionary,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> toMemoryMappers,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> toDatabaseMappers,
         EntityTrackerData entityTrackerData,
         EntityHandlerData entityHandlerData)
     {
         _toMemoryRecursiveMapper = new ToMemoryRecursiveMapper(toMemoryMappers, entityTrackerData, entityHandlerData);
-        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(keepUnmatchedManager, defaultMapToDatabaseType, mapToDatabaseTypeDictionary, toDatabaseMappers, entityTrackerData, entityHandlerData);
+        _toDatabaseRecursiveMapper = new ToDatabaseRecursiveMapper(keepUnmatchedManager, defaultMapType, mapTypeDictionary, toDatabaseMappers, entityTrackerData, entityHandlerData);
         _targetByIdTrackerFactories = entityTrackerData.targetByIdTrackerFactories;
     }
 

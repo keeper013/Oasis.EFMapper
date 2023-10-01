@@ -79,8 +79,8 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
     private readonly Dictionary<Type, MethodMetaData> _entityListDefaultConstructors = new ();
 
     // map to database type
-    private readonly MapToDatabaseType _defaultMapToDatabase;
-    private readonly Dictionary<Type, Dictionary<Type, MapToDatabaseType>> _mapToDatabaseDictionary = new ();
+    private readonly MapType _defaultMapType;
+    private readonly Dictionary<Type, Dictionary<Type, MapType>> _mapTypeDictionary = new ();
 
     // from tracking target by id
     private readonly Dictionary<Type, Dictionary<Type, Dictionary<Type, TargetByIdTrackerMetaDataSet>>> _targetByIdTrackers = new ();
@@ -96,7 +96,7 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
 
     public MapperRegistry(ModuleBuilder module, IMapperBuilderConfiguration? configuration)
     {
-        _defaultMapToDatabase = configuration?.MapToDatabaseType ?? MapToDatabaseType.Upsert;
+        _defaultMapType = configuration?.MapType ?? MapType.MemoryAndUpsert;
         _keyPropertyNames = new (new KeyPropertyNameConfiguration(configuration?.IdentityPropertyName, configuration?.ConcurrencyTokenPropertyName));
         _excludedPropertyManager = new (configuration?.ExcludedProperties);
         _keepUnmatchedManager = new ();
@@ -266,15 +266,15 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
             MakeFactoryMethods(_entityListFactoryMethods, _entityListDefaultConstructors, type));
     }
 
-    public (MapToDatabaseType, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapToDatabaseType>>) MakeMapToDatabaseTypeManager()
+    public (MapType, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapType>>) MakeMapTypeManager()
     {
-        var dictionary = new Dictionary<Type, IReadOnlyDictionary<Type, MapToDatabaseType>>();
-        foreach (var pair in _mapToDatabaseDictionary)
+        var dictionary = new Dictionary<Type, IReadOnlyDictionary<Type, MapType>>();
+        foreach (var pair in _mapTypeDictionary)
         {
             dictionary.Add(pair.Key, pair.Value);
         }
 
-        return (_defaultMapToDatabase, dictionary);
+        return (_defaultMapType, dictionary);
     }
 
     public EntityTrackerData MakeEntityTrackerData(Type type, IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> scalarTypeConverters)
@@ -382,9 +382,9 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
             _customPropertyMappers.Add(customMapperField.Name, configuration.CustomPropertyMapper.MapProperties);
         }
 
-        if (configuration?.MapToDatabaseType != null)
+        if (configuration?.MapType != null)
         {
-            _mapToDatabaseDictionary.AddIfNotExists(sourceType, targetType, configuration.MapToDatabaseType.Value);
+            _mapTypeDictionary.AddIfNotExists(sourceType, targetType, configuration.MapType.Value);
         }
 
         var (sourceIdentityProperty, targetIdentityProperty, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty) =
@@ -397,31 +397,53 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
         RegisterKeyComparer(KeyType.ConcurrencyToken, _concurrencyTokenComparers, sourceType, targetType, sourceConcurrencyTokenProperty, targetConcurrencyTokenProperty, _dynamicMethodBuilder);
         RegisterTargetByIdTracker(sourceType, targetType, sourceIdentityProperty, targetIdentityProperty);
 
-        var sourcePropertiesCopy = new List<PropertyInfo>(sourceProperties);
-        var targetPropertiesCopy = new List<PropertyInfo>(targetProperties);
-        var toMemoryMapper = _dynamicMethodBuilder.BuildUpMapToMemoryMethod(
-            sourceType,
-            targetType,
-            sourceIdentityProperty,
-            targetIdentityProperty,
-            sourceConcurrencyTokenProperty,
-            targetConcurrencyTokenProperty,
-            sourceProperties,
-            targetProperties,
-            this,
-            customMapperField);
-        _toMemoryMapper.Add(sourceType, targetType, toMemoryMapper);
+        var mapType = configuration?.MapType ?? _defaultMapType;
+        var mapToMemory = mapType.AllowsMappingToMemory();
+        var mapToDatabase = mapType.AllowsMappingToDatabase();
+        if (mapToMemory)
+        {
+            if (mapToDatabase)
+            {
+                var sourcePropertiesCopy = new List<PropertyInfo>(sourceProperties);
+                var targetPropertiesCopy = new List<PropertyInfo>(targetProperties);
+                var toDatabaseMapper = _dynamicMethodBuilder.BuildUpMapToDatabaseMethod(
+                    sourceType,
+                    targetType,
+                    sourceIdentityProperty,
+                    targetIdentityProperty,
+                    sourcePropertiesCopy,
+                    targetPropertiesCopy,
+                    this,
+                    customMapperField);
+                _toDatabaseMapper.Add(sourceType, targetType, toDatabaseMapper);
+            }
 
-        var toDatabaseMapper = _dynamicMethodBuilder.BuildUpMapToDatabaseMethod(
-            sourceType,
-            targetType,
-            sourceIdentityProperty,
-            targetIdentityProperty,
-            sourcePropertiesCopy,
-            targetPropertiesCopy,
-            this,
-            customMapperField);
-        _toDatabaseMapper.Add(sourceType, targetType, toDatabaseMapper);
+            var toMemoryMapper = _dynamicMethodBuilder.BuildUpMapToMemoryMethod(
+                sourceType,
+                targetType,
+                sourceIdentityProperty,
+                targetIdentityProperty,
+                sourceConcurrencyTokenProperty,
+                targetConcurrencyTokenProperty,
+                sourceProperties,
+                targetProperties,
+                this,
+                customMapperField);
+            _toMemoryMapper.Add(sourceType, targetType, toMemoryMapper);
+        }
+        else
+        {
+            var toDatabaseMapper = _dynamicMethodBuilder.BuildUpMapToDatabaseMethod(
+                sourceType,
+                targetType,
+                sourceIdentityProperty,
+                targetIdentityProperty,
+                sourceProperties,
+                targetProperties,
+                this,
+                customMapperField);
+            _toDatabaseMapper.Add(sourceType, targetType, toDatabaseMapper);
+        }
 
         Pop();
     }

@@ -1,6 +1,7 @@
 ﻿namespace LibrarySample;
 
 using Microsoft.EntityFrameworkCore;
+using Oasis.EntityFrameworkCore.Mapper;
 using Oasis.EntityFrameworkCore.Mapper.Sample;
 using System.Threading.Tasks;
 using Xunit;
@@ -12,7 +13,7 @@ public sealed class TestCase1_MapNewEntityToDatabase : TestBase
     {
         // initialize mapper
         var factory = MakeDefaultMapperBuilder()
-            .Register<NewTagDTO, Tag>()
+            .Register<NewTagDTO, Tag>(MapType.Insert)
             .Build();
 
         // create new tag

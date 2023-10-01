@@ -1,27 +1,42 @@
 ﻿namespace Oasis.EntityFramework.Mapper;
 
 [Flags]
-public enum MapToDatabaseType : byte
+public enum MapType : byte
 {
     /// <summary>
-    /// Neither insert nor update is allowed
-    /// </summary>
-    None = 0,
-
-    /// <summary>
-    /// Insert
+    /// Map to database insert
     /// </summary>
     Insert = 1,
 
     /// <summary>
-    /// Update
+    /// Map to database update
     /// </summary>
     Update = 2,
 
     /// <summary>
-    /// Insert or Update
+    /// Map to database insert and update
     /// </summary>
     Upsert = Insert | Update,
+
+    /// <summary>
+    /// Map to memory
+    /// </summary>
+    Memory = 4,
+
+    /// <summary>
+    /// Map to memory and insert to database
+    /// </summary>
+    MemoryAndInsert = Memory | Insert,
+
+    /// <summary>
+    /// Map to memory and update to database
+    /// </summary>
+    MemoryAndUpdate = Memory | Update,
+
+    /// <summary>
+    /// Map to memory and insert and update to database
+    /// </summary>
+    MemoryAndUpsert = Memory | Insert | Update,
 }
 
 public interface IMapperBuilderConfiguration
@@ -32,7 +47,7 @@ public interface IMapperBuilderConfiguration
 
     ISet<string>? ExcludedProperties { get; }
 
-    MapToDatabaseType MapToDatabaseType { get; }
+    MapType MapType { get; }
 
     bool ThrowForRedundantConfiguration { get; }
 }
@@ -47,7 +62,7 @@ public interface IMapperBuilderConfigurationBuilder : IConfigurator<IMapperBuild
 
     IMapperBuilderConfigurationBuilder ExcludedPropertiesByName(params string[]? names);
 
-    IMapperBuilderConfigurationBuilder SetMapToDatabaseType(MapToDatabaseType? mapToDatabase);
+    IMapperBuilderConfigurationBuilder SetMapType(MapType? mapToDatabase);
 
     IMapperBuilderConfigurationBuilder SetThrowForRedundantConfiguration(bool? doThrow);
 }

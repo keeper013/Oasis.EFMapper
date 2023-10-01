@@ -1,6 +1,7 @@
 ﻿namespace LibrarySample;
 
 using Microsoft.EntityFrameworkCore;
+using Oasis.EntityFrameworkCore.Mapper;
 using Oasis.EntityFrameworkCore.Mapper.Sample;
 using System.Threading.Tasks;
 using Xunit;
@@ -12,7 +13,7 @@ public sealed class TestCase7_Session : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .Register<NewBookWithNewTagDTO, Book>()
+            .Register<NewBookWithNewTagDTO, Book>(MapType.Insert)
             .Build()
             .MakeToDatabaseMapper();
 
@@ -38,7 +39,7 @@ public sealed class TestCase7_Session : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .Register<NewBookWithNewTagDTO, Book>()
+            .Register<NewBookWithNewTagDTO, Book>(MapType.Insert)
             .Build()
             .MakeToDatabaseMapper();
 

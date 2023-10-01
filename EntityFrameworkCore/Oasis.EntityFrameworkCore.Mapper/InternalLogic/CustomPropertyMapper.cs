@@ -85,9 +85,10 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<
 {
     private CustomPropertyMapper<TSource, TTarget> _customPropertyMapper = new ();
 
-    public CustomTypeMapperBuilder(MapperBuilder builder)
+    public CustomTypeMapperBuilder(MapperBuilder builder, MapType? mapType = null)
         : base(builder)
     {
+        MapType = mapType;
     }
 
     public IReadOnlySet<string>? ExcludedProperties { get; set; }
@@ -96,7 +97,7 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<
 
     public ICustomPropertyMapper? CustomPropertyMapper => _customPropertyMapper.HasContent ? _customPropertyMapper : default;
 
-    public MapToDatabaseType? MapToDatabaseType { get; private set; }
+    public MapType? MapType { get; private set; }
 
     public ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Func<TSource, TProperty> value)
     {
@@ -151,9 +152,9 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<
         return this;
     }
 
-    public ICustomTypeMapperConfiguration<TSource, TTarget> SetMapToDatabaseType(MapToDatabaseType mapToDatabase)
+    public ICustomTypeMapperConfiguration<TSource, TTarget> SetMapType(MapType mapToDatabase)
     {
-        MapToDatabaseType = mapToDatabase;
+        MapType = mapToDatabase;
         return this;
     }
 

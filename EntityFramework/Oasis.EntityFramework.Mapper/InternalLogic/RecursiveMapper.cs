@@ -1,8 +1,8 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using Oasis.EntityFramework.Mapper.Exceptions;
 
@@ -155,13 +155,13 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
 {
     private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> _mappers;
     private readonly KeepUnmatchedManager? _keepUnmatchedManager;
-    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapToDatabaseType>> _mapToDatabaseTypeDictionary;
-    private readonly MapToDatabaseType _defaultMapToDatabaseType;
+    private readonly IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapType>> _mapTypeDictionary;
+    private readonly MapType _defaultMapType;
 
     public ToDatabaseRecursiveMapper(
         KeepUnmatchedManager? keepUnmatchedManager,
-        MapToDatabaseType defaultMapToDatabaseType,
-        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapToDatabaseType>> mapToDatabaseTypeDictionary,
+        MapType defaultMapType,
+        IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, MapType>> mapTypeDictionary,
         IReadOnlyDictionary<Type, IReadOnlyDictionary<Type, Delegate>> mappers,
         EntityTrackerData entityTrackerData,
         EntityHandlerData entityHandlerData)
@@ -169,8 +169,8 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
     {
         _mappers = mappers;
         _keepUnmatchedManager = keepUnmatchedManager;
-        _defaultMapToDatabaseType = defaultMapToDatabaseType;
-        _mapToDatabaseTypeDictionary = mapToDatabaseTypeDictionary;
+        _defaultMapType = defaultMapType;
+        _mapTypeDictionary = mapTypeDictionary;
     }
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(
@@ -180,6 +180,13 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         where TSource : class
         where TTarget : class
     {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        if (_mappers.Find(sourceType, targetType) is not Utilities.MapToDatabase<TSource, TTarget, int> mapper)
+        {
+            throw new UnregisteredMappingException(sourceType, targetType);
+        }
+
         const string AsNoTrackingMethodCall = ".AsNoTracking";
         IEntityTracker<TTarget>? tracker = null;
         if (context.ForceTrack)
@@ -196,7 +203,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         }
 
         var sourceHasId = HasId<TSource>() && !IdIsEmpty(source);
-        var mapType = _mapToDatabaseTypeDictionary.DefaultIfNotFound(typeof(TSource), typeof(TTarget), _defaultMapToDatabaseType);
+        var mapType = _mapTypeDictionary.DefaultIfNotFound(sourceType, typeof(TTarget), _defaultMapType);
 
         if (sourceHasId)
         {
@@ -225,7 +232,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
                 }
                 else
                 {
-                    MapToExistingTarget(source, target, context, tracker);
+                    MapToExistingTarget(source, target, mapper, context, tracker);
                     if (context.HasTracked && !context.ForceTrack)
                     {
                         context.Clear();
@@ -248,7 +255,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
             }
         }
 
-        var t = MapToNewTarget(source, context, sourceHasId, tracker);
+        var t = MapToNewTarget(source, mapper, context, sourceHasId, tracker);
         if (context.HasTracked && !context.ForceTrack)
         {
             context.Clear();
@@ -266,6 +273,13 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
             return default;
         }
 
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        if (_mappers.Find(sourceType, targetType) is not Utilities.MapToDatabase<TSource, TTarget, int> mapper)
+        {
+            throw new UnregisteredMappingException(sourceType, targetType);
+        }
+
         IEntityTracker<TTarget>? tracker = null;
         if (context.ForceTrack || HasLoopDependency<TSource, TTarget>())
         {
@@ -276,31 +290,31 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
             }
         }
 
-        var mapType = _mapToDatabaseTypeDictionary.DefaultIfNotFound(typeof(TSource), typeof(TTarget), _defaultMapToDatabaseType);
+        var mapType = _mapTypeDictionary.DefaultIfNotFound(sourceType, targetType, _defaultMapType);
         if (!HasId<TSource>() || IdIsEmpty(source))
         {
             if (!mapType.AllowsInsert())
             {
-                throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
+                throw new MapTypeException(sourceType, targetType, MapType.Insert);
             }
 
-            return MapToNewTarget(source, context, false, tracker);
+            return MapToNewTarget(source, mapper, context, false, tracker);
         }
 
         if (target != default)
         {
             if (IdEquals(source, target))
             {
-                MapToExistingTarget(source, target, context, tracker);
+                MapToExistingTarget(source, target, mapper, context, tracker);
             }
             else
             {
-                target = MapToExistingOrNewTarget(source, context, tracker, mapType);
+                target = MapToExistingOrNewTarget(source, context, mapper, tracker, mapType);
             }
         }
         else
         {
-            target = MapToExistingOrNewTarget(source, context, tracker, mapType);
+            target = MapToExistingOrNewTarget(source, context, mapper, tracker, mapType);
         }
 
         return target;
@@ -312,8 +326,15 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
     {
         if (source != default)
         {
+            var sourceType = typeof(TSource);
+            var targetType = typeof(TTarget);
+            if (_mappers.Find(sourceType, targetType) is not Utilities.MapToDatabase<TSource, TTarget, int> mapper)
+            {
+                throw new UnregisteredMappingException(sourceType, targetType);
+            }
+
             var shadowSet = new HashSet<TTarget>(target);
-            var mapType = _mapToDatabaseTypeDictionary.DefaultIfNotFound(typeof(TSource), typeof(TTarget), _defaultMapToDatabaseType);
+            var mapType = _mapTypeDictionary.DefaultIfNotFound(sourceType, targetType, _defaultMapType);
             var sourceHasIdProperty = HasId<TSource>();
             var unmatchedSources = new List<(TSource, IEntityTracker<TTarget>?)>();
             var needToTrack = context.ForceTrack || HasLoopDependency<TSource, TTarget>();
@@ -339,10 +360,10 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
                 {
                     if (!mapType.AllowsInsert())
                     {
-                        throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
+                        throw new MapTypeException(sourceType, targetType, MapType.Insert);
                     }
 
-                    target.Add(MapToNewTarget(s, context, false, tracker));
+                    target.Add(MapToNewTarget(s, mapper, context, false, tracker));
                 }
                 else
                 {
@@ -351,10 +372,10 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
                     {
                         if (!mapType.AllowsUpdate())
                         {
-                            throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
+                            throw new MapTypeException(sourceType, targetType, MapType.Update);
                         }
 
-                        MapToExistingTarget(s, t, context, tracker);
+                        MapToExistingTarget(s, t, mapper, context, tracker);
 
                         shadowSet.Remove(t);
                     }
@@ -370,12 +391,12 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
                 var targetsFound = context.DatabaseContext!.Set<TTarget>().Where(GetContainsTargetIdExpression<TSource, TTarget>(unmatchedSources.Select(s => s.Item1).ToList())).ToList();
                 if (targetsFound.Any() && !mapType.AllowsUpdate())
                 {
-                    throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
+                    throw new MapTypeException(sourceType, targetType, MapType.Update);
                 }
 
                 if (targetsFound.Count != unmatchedSources.Count && !mapType.AllowsInsert())
                 {
-                    throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
+                    throw new MapTypeException(sourceType, targetType, MapType.Insert);
                 }
 
                 foreach (var s in unmatchedSources)
@@ -383,11 +404,11 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
                     var t = targetsFound.Where(t => IdEquals(s.Item1, t)).FirstOrDefault();
                     if (t != default)
                     {
-                        MapToExistingTarget(s.Item1, t, context, s.Item2);
+                        MapToExistingTarget(s.Item1, t, mapper, context, s.Item2);
                     }
                     else
                     {
-                        t = MapToNewTarget(s.Item1, context, true, s.Item2);
+                        t = MapToNewTarget(s.Item1, mapper, context, true, s.Item2);
                     }
 
                     target.Add(t);
@@ -404,44 +425,36 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         }
     }
 
-    private void DoMapping<TSource, TTarget>(TSource source, TTarget target, IRecursiveMappingContext context, bool mapId)
+    private void DoMapping<TSource, TTarget>(TSource source, TTarget target, Utilities.MapToDatabase<TSource, TTarget, int> mapper, IRecursiveMappingContext context, bool mapId)
         where TSource : class
         where TTarget : class
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
 
-        var mapper = _mappers.Find(sourceType, targetType);
-        if (mapper != null)
+        try
         {
-            try
-            {
-                _keepUnmatchedManager?.Push(sourceType, targetType);
-                (mapper as Utilities.MapToDatabase<TSource, TTarget, int>)?.Invoke(source, target, ScalarTypeConverters, this, context, mapId);
-            }
-            finally
-            {
-                _keepUnmatchedManager?.Pop();
-            }
+            _keepUnmatchedManager?.Push(sourceType, targetType);
+            mapper.Invoke(source, target, ScalarTypeConverters, this, context, mapId);
         }
-        else
+        finally
         {
-            throw new UnregisteredMappingException(sourceType, targetType);
+            _keepUnmatchedManager?.Pop();
         }
     }
 
-    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, IRecursiveMappingContext context, bool mapId, IEntityTracker<TTarget>? tracker)
+    private TTarget MapToNewTarget<TSource, TTarget>(TSource source, Utilities.MapToDatabase<TSource, TTarget, int> mapper, IRecursiveMappingContext context, bool mapId, IEntityTracker<TTarget>? tracker)
         where TSource : class
         where TTarget : class
     {
         var newTarget = Make<TTarget>();
         tracker?.Track(newTarget);
-        DoMapping(source, newTarget, context, mapId);
+        DoMapping(source, newTarget, mapper, context, mapId);
         context.DatabaseContext!.Set<TTarget>().Add(newTarget);
         return newTarget;
     }
 
-    private void MapToExistingTarget<TSource, TTarget>(TSource source, TTarget existingTarget, IRecursiveMappingContext context, IEntityTracker<TTarget>? tracker)
+    private void MapToExistingTarget<TSource, TTarget>(TSource source, TTarget existingTarget, Utilities.MapToDatabase<TSource, TTarget, int> mapper, IRecursiveMappingContext context, IEntityTracker<TTarget>? tracker)
         where TSource : class
         where TTarget : class
     {
@@ -453,10 +466,10 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         }
 
         tracker?.Track(existingTarget);
-        DoMapping(source, existingTarget, context, false);
+        DoMapping(source, existingTarget, mapper, context, false);
     }
 
-    private TTarget MapToExistingOrNewTarget<TSource, TTarget>(TSource source, IRecursiveMappingContext context, IEntityTracker<TTarget>? tracker, MapToDatabaseType mapType)
+    private TTarget MapToExistingOrNewTarget<TSource, TTarget>(TSource source, IRecursiveMappingContext context, Utilities.MapToDatabase<TSource, TTarget, int> mapper, IEntityTracker<TTarget>? tracker, MapType mapType)
         where TSource : class
         where TTarget : class
     {
@@ -467,7 +480,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         {
             if (!mapType.AllowsInsert())
             {
-                throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Insert);
+                throw new MapTypeException(typeof(TSource), typeof(TTarget), MapType.Insert);
             }
 
             target = Make<TTarget>();
@@ -477,7 +490,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         {
             if (!mapType.AllowsUpdate())
             {
-                throw new MapToDatabaseTypeException(typeof(TSource), typeof(TTarget), MapToDatabaseType.Update);
+                throw new MapTypeException(typeof(TSource), typeof(TTarget), MapType.Update);
             }
 
             if (HasConcurrencyToken<TSource>() && HasConcurrencyToken<TTarget>()
@@ -489,7 +502,7 @@ internal sealed class ToDatabaseRecursiveMapper : RecursiveMapperContext, IRecur
         }
 
         tracker?.Track(target!);
-        DoMapping(source, target!, context, isInsert);
+        DoMapping(source, target!, mapper, context, isInsert);
         return target!;
     }
 }
@@ -513,6 +526,11 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursi
     {
         if (source != default)
         {
+            if (_mappers.Find(typeof(TSource), typeof(TTarget)) is not Utilities.MapToMemory<TSource, TTarget, int> mapper)
+            {
+                throw new UnregisteredMappingException(typeof(TSource), typeof(TTarget));
+            }
+
             IEntityTracker<TTarget>? tracker = null;
             if (context.ForceTrack || HasLoopDependency<TSource, TTarget>())
             {
@@ -529,7 +547,8 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursi
             }
 
             tracker?.Track(target);
-            (_mappers.Find(typeof(TSource), typeof(TTarget)) as Utilities.MapToMemory<TSource, TTarget, int>)!.Invoke(source, target, ScalarTypeConverters, this, context);
+
+            mapper.Invoke(source, target, ScalarTypeConverters, this, context);
             return target;
         }
 
@@ -542,7 +561,13 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursi
     {
         if (source != default && source.Any())
         {
+            if (_mappers.Find(typeof(TSource), typeof(TTarget)) is not Utilities.MapToMemory<TSource, TTarget, int> mapper)
+            {
+                throw new UnregisteredMappingException(typeof(TSource), typeof(TTarget));
+            }
+
             var needToTrack = context.ForceTrack || HasLoopDependency<TSource, TTarget>();
+
             IEntityTracker<TTarget>? tracker = null;
             foreach (var s in source)
             {
@@ -556,7 +581,7 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursi
                 {
                     t = Make<TTarget>();
                     tracker?.Track(t);
-                    (_mappers.Find(typeof(TSource), typeof(TTarget)) as Utilities.MapToMemory<TSource, TTarget, int>)!.Invoke(s, t, ScalarTypeConverters, this, context);
+                    mapper.Invoke(s, t, ScalarTypeConverters, this, context);
                 }
 
                 target.Add(t);
@@ -568,6 +593,11 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursi
         where TSource : class
         where TTarget : class
     {
+        if (_mappers.Find(typeof(TSource), typeof(TTarget)) is not Utilities.MapToMemory<TSource, TTarget, int> mapper)
+        {
+            throw new UnregisteredMappingException(typeof(TSource), typeof(TTarget));
+        }
+
         IEntityTracker<TTarget>? tracker = null;
         if (context.ForceTrack)
         {
@@ -583,15 +613,7 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursi
         }
 
         var target = Make<TTarget>();
-        var mapper = _mappers.Find(typeof(TSource), typeof(TTarget));
-        if (mapper != null)
-        {
-            (mapper as Utilities.MapToMemory<TSource, TTarget, int>)!.Invoke(source, target, ScalarTypeConverters, this, context);
-        }
-        else
-        {
-            throw new UnregisteredMappingException(typeof(TSource), typeof(TTarget));
-        }
+        mapper.Invoke(source, target, ScalarTypeConverters, this, context);
 
         if (context.HasTracked && !context.ForceTrack)
         {

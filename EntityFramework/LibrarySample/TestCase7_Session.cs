@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using System.Data.Entity.Infrastructure;
+using Oasis.EntityFramework.Mapper;
 
 [TestFixture]
 public sealed class TestCase7_Session : TestBase
@@ -14,7 +15,7 @@ public sealed class TestCase7_Session : TestBase
     {
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
-            .Register<NewBookWithNewTagDTO, Book>()
+            .Register<NewBookWithNewTagDTO, Book>(MapType.Insert)
             .Build()
             .MakeToDatabaseMapper();
 
@@ -40,7 +41,7 @@ public sealed class TestCase7_Session : TestBase
     {
         // initialize mapper
         var factory = MakeDefaultMapperBuilder()
-            .Register<NewBookWithNewTagDTO, Book>()
+            .Register<NewBookWithNewTagDTO, Book>(MapType.Insert)
             .Build();
 
         await ExecuteWithNewDatabaseContext(async databaseContext =>

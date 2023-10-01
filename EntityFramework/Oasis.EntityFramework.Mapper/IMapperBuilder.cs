@@ -20,7 +20,7 @@ public interface ICustomTypeMapperConfiguration<TSource, TTarget> : IConfigurato
     where TSource : class
     where TTarget : class
 {
-    ICustomTypeMapperConfiguration<TSource, TTarget> SetMapToDatabaseType(MapToDatabaseType mapToDatabase);
+    ICustomTypeMapperConfiguration<TSource, TTarget> SetMapType(MapType mapToDatabase);
 
     ICustomTypeMapperConfiguration<TSource, TTarget> MapProperty<TProperty>(Expression<Func<TTarget, TProperty>> setter, Func<TSource, TProperty> value);
 
@@ -43,11 +43,11 @@ public interface IMapperBuilder
 
     IMapperBuilder WithScalarConverter<TSource, TTarget>(Func<TSource, TTarget> func, bool throwIfRedundant = false);
 
-    IMapperBuilder Register<TSource, TTarget>()
+    IMapperBuilder Register<TSource, TTarget>(MapType? mapType = null)
         where TSource : class
         where TTarget : class;
 
-    IMapperBuilder RegisterTwoWay<TSource, TTarget>()
+    IMapperBuilder RegisterTwoWay<TSource, TTarget>(MapType? sourceToTarget = null, MapType? targetToSource = null)
         where TSource : class
         where TTarget : class;
 

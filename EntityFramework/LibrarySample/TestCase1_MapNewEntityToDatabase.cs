@@ -4,6 +4,7 @@ using Oasis.EntityFramework.Mapper.Sample;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using System.Data.Entity;
+using Oasis.EntityFramework.Mapper;
 
 [TestFixture]
 public sealed class TestCase1_MapNewEntityToDatabase : TestBase
@@ -13,7 +14,7 @@ public sealed class TestCase1_MapNewEntityToDatabase : TestBase
     {
         // initialize mapper
         var factory = MakeDefaultMapperBuilder()
-            .Register<NewTagDTO, Tag>()
+            .Register<NewTagDTO, Tag>(MapType.Insert)
             .Build();
 
         // create new tag

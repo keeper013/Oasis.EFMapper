@@ -347,14 +347,14 @@ Note that if a POCO has 2 navigagion properties of the same instance (For exampl
 var mapper = MakeDefaultMapperBuilder()
     .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
     .Configure<UpdateBookDTO, Book>()
-        .SetMapToDatabaseType(MapToDatabaseType.Update)
+        .SetMapType(MapType.Update)
         .Finish()
     .Build();
 ```
-The focus in the code is *SetMapToDatabaseType* method. If not configured, the default value for all mapping is Upsert, which allows updation and insertion. We can also specify we only want to insert new books with NewBookDTO with the following statement
+The focus in the code is *SetMapType* method. If not configured, the default value for all mapping is Upsert, which allows updation and insertion. We can also specify we only want to insert new books with NewBookDTO with the following statement
 ```C#
 .Configure<NewBookDTO, Book>()
-    .SetMapToDatabaseType(MapToDatabaseType.Insert)
+    .SetMapType(MapType.Insert)
     .Finish()
 ```
 The thing is NewBookDTO doesn't really have an identity property, so it can't be used to update entities in database anyway, so this configuration may be considered useless.

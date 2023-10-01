@@ -2,6 +2,7 @@
 
 using Google.Protobuf;
 using Microsoft.EntityFrameworkCore;
+using Oasis.EntityFrameworkCore.Mapper;
 using Oasis.EntityFrameworkCore.Mapper.Sample;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,8 +43,8 @@ public sealed class TestCase4_CustomFactoryMethod : TestBase
             .WithScalarConverter<byte[], ByteString>(arr => ByteString.CopyFrom(arr))
             .WithFactoryMethod<IBookCopyList>(() => new BookCopyList())
             .WithFactoryMethod<IBook>(() => new BookImplementation())
-            .Register<NewBookDTO, Book>()
-            .Register<Book, IBook>()
+            .Register<NewBookDTO, Book>(MapType.Insert)
+            .Register<Book, IBook>(MapType.Memory)
             .Build()
             .MakeMapper();
 

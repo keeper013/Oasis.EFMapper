@@ -2,6 +2,7 @@
 
 using Google.Protobuf;
 using Microsoft.EntityFrameworkCore;
+using Oasis.EntityFrameworkCore.Mapper;
 using Oasis.EntityFrameworkCore.Mapper.Sample;
 using System.Threading.Tasks;
 using Xunit;
@@ -26,8 +27,9 @@ public sealed class TestCase6_CustomMapping : TestBase
                 .Finish()
             .Configure<Borrower, BorrowerBriefDTO>()
                 .MapProperty(brief => brief.Phone, borrower => borrower.Contact.PhoneNumber)
+                .SetMapType(MapType.Memory)
                 .Finish()
-            .Register<NewBorrowerDTO, Borrower>()
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
             .Build()
             .MakeMapper();
 

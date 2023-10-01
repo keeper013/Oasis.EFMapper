@@ -32,9 +32,9 @@ public sealed class MissingKeyPropertyException : EfMapperException
     }
 }
 
-public sealed class MapToDatabaseTypeException : EfMapperException
+public sealed class MapTypeException : EfMapperException
 {
-    public MapToDatabaseTypeException(Type sourceType, Type targetType, MapToDatabaseType mapType)
+    public MapTypeException(Type sourceType, Type targetType, MapType mapType)
         : base($"Mapping from {sourceType.Name} to {targetType.Name}, {mapType} is configured as not allowed.")
     {
     }

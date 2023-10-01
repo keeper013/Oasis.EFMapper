@@ -15,7 +15,7 @@ internal interface ICustomTypeMapperConfiguration
 
     ISet<string>? KeepUnmatchedProperties { get; }
 
-    MapToDatabaseType? MapToDatabaseType { get; }
+    MapType? MapType { get; }
 }
 
 internal interface IEntityConfiguration

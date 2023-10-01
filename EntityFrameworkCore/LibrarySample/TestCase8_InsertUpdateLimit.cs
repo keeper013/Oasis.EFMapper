@@ -16,7 +16,7 @@ public sealed class TestCase8_InsertUpdateLimit : TestBase
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
-            .Register<UpdateBookDTO, Book>()
+            .Register<UpdateBookDTO, Book>(MapType.Upsert)
             .Build()
             .MakeToDatabaseMapper();
 
@@ -37,7 +37,7 @@ public sealed class TestCase8_InsertUpdateLimit : TestBase
         var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<ByteString, byte[]>(bs => bs.ToByteArray())
             .Configure<UpdateBookDTO, Book>()
-                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .SetMapType(MapType.Update)
                 .Finish()
             .Build()
             .MakeToDatabaseMapper();

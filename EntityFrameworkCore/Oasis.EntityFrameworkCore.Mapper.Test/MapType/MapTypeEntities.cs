@@ -18,6 +18,10 @@ public sealed class ToDatabaseEntity1 : NullableIdEntityBase
 
 public sealed class ToDatabaseEntity2 : NullableIdEntityBase
 {
+    public ToDatabaseEntity2()
+    {
+    }
+
     public ToDatabaseEntity2(long? id, byte[]? concurrencyToken, int prop)
     {
         Id = id;

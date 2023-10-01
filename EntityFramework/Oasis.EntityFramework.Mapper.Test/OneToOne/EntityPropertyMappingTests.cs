@@ -48,7 +48,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         // arrange
         var mapper = MakeDefaultMapperBuilder()
             .Configure<Dependent2_1, DependentOptional1_1>()
-                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .SetMapType(MapType.Update)
                 .Finish()
             .Register<PrincipalOptional2, PrincipalOptional1>()
             .Build()
@@ -60,7 +60,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         principalOptional2.Inner1 = inner1;
         principalOptional2.Inner2 = inner2;
 
-        Assert.ThrowsAsync<MapToDatabaseTypeException>(async () =>
+        Assert.ThrowsAsync<MapTypeException>(async () =>
         {
             await ExecuteWithNewDatabaseContext(async (databaseContext) =>
             {
@@ -124,7 +124,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         // arrange
         var mapper = MakeDefaultMapperBuilder()
             .Configure<Dependent2_1, DependentOptional1_1>()
-                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .SetMapType(MapType.Update)
                 .Finish()
             .RegisterTwoWay<PrincipalOptional1, PrincipalOptional2>()
             .Build()
@@ -151,7 +151,7 @@ public sealed class EntityPropertyMappingTests : TestBase
         var principalOptional2 = mapper.Map<PrincipalOptional1, PrincipalOptional2>(entity);
         principalOptional2.Inner1 = new Dependent2_1(2);
         principalOptional2.Inner2 = new Dependent2_2("2");
-        Assert.ThrowsAsync<MapToDatabaseTypeException>(async () =>
+        Assert.ThrowsAsync<MapTypeException>(async () =>
         {
             await ExecuteWithNewDatabaseContext(async (databaseContext) =>
             {

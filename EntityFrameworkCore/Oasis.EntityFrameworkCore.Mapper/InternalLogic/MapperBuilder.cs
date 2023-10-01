@@ -24,29 +24,66 @@ internal sealed class MapperBuilder : IMapperBuilder
         var entityHandlerData = _mapperRegistry.MakeEntityHandler(type);
         var entityTrackerData = _mapperRegistry.MakeEntityTrackerData(type, entityHandlerData.scalarTypeConverters);
         var keepUnmatchedManager = _mapperRegistry.KeepUnmatchedManager.IsEmpty ? null : _mapperRegistry.KeepUnmatchedManager;
-        var mapToDatabase = _mapperRegistry.MakeMapToDatabaseTypeManager();
+        var mapToDatabase = _mapperRegistry.MakeMapTypeManager();
 
         return new MapperFactory(keepUnmatchedManager, mapToDatabase.Item1, mapToDatabase.Item2, mappers.Item1, mappers.Item2, entityTrackerData, entityHandlerData);
     }
 
-    public IMapperBuilder Register<TSource, TTarget>()
-        where TSource : class
-        where TTarget : class
-    {
-        _mapperRegistry.Register(typeof(TSource), typeof(TTarget));
-        return this;
-    }
-
-    public IMapperBuilder RegisterTwoWay<TSource, TTarget>()
+    public IMapperBuilder Register<TSource, TTarget>(MapType? mapType = null)
         where TSource : class
         where TTarget : class
     {
         var sourceType = typeof(TSource);
         var targetType = typeof(TTarget);
-        _mapperRegistry.Register(sourceType, targetType);
+        if (mapType == null)
+        {
+            _mapperRegistry.Register(sourceType, targetType);
+        }
+        else if (_throwForRedundantConfiguration && _mapperRegistry.IsConfigured(sourceType, targetType))
+        {
+            throw new RedundantConfigurationException(sourceType, targetType);
+        }
+        else
+        {
+            _mapperRegistry.Configure(sourceType, targetType, new CustomTypeMapperBuilder<TSource, TTarget>(this, mapType));
+        }
+
+        return this;
+    }
+
+    public IMapperBuilder RegisterTwoWay<TSource, TTarget>(MapType? sourceToTarget = null, MapType? targetToSource = null)
+        where TSource : class
+        where TTarget : class
+    {
+        var sourceType = typeof(TSource);
+        var targetType = typeof(TTarget);
+        if (sourceToTarget == null)
+        {
+            _mapperRegistry.Register(sourceType, targetType);
+        }
+        else if (_throwForRedundantConfiguration && _mapperRegistry.IsConfigured(sourceType, targetType))
+        {
+            throw new RedundantConfigurationException(sourceType, targetType);
+        }
+        else
+        {
+            _mapperRegistry.Configure(sourceType, targetType, new CustomTypeMapperBuilder<TSource, TTarget>(this, sourceToTarget));
+        }
+
         if (sourceType != targetType)
         {
-            _mapperRegistry.Register(targetType, sourceType);
+            if (targetToSource == null)
+            {
+                _mapperRegistry.Register(targetType, sourceType);
+            }
+            else if (_throwForRedundantConfiguration && _mapperRegistry.IsConfigured(targetType, sourceType))
+            {
+                throw new RedundantConfigurationException(targetType, sourceType);
+            }
+            else
+            {
+                _mapperRegistry.Configure(targetType, sourceType, new CustomTypeMapperBuilder<TTarget, TSource>(this, targetToSource));
+            }
         }
 
         return this;
@@ -157,7 +194,7 @@ internal sealed class MapperBuilder : IMapperBuilder
 
     internal void Configure<TSource, TTarget>(ICustomTypeMapperConfiguration configuration)
     {
-        if (configuration.CustomPropertyMapper == null && configuration.KeepUnmatchedProperties == null && configuration.ExcludedProperties == null && configuration.MapToDatabaseType == null)
+        if (configuration.CustomPropertyMapper == null && configuration.KeepUnmatchedProperties == null && configuration.ExcludedProperties == null && configuration.MapType == null)
         {
             throw new EmptyConfigurationException(typeof(ICustomTypeMapperConfiguration));
         }

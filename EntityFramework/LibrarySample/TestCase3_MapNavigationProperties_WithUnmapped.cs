@@ -27,8 +27,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             .Configure<UpdateBorrowerDTO>()
                 .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
                 .Finish()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -52,8 +52,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             .Configure<UpdateBorrowerDTO>()
                 .SetKeyPropertyNames(nameof(UpdateBorrowerDTO.IdentityNumber), nameof(UpdateBorrowerDTO.ConcurrencyToken))
                 .Finish()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -81,8 +81,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             .Configure<NewContactDTO>()
                 .ExcludePropertiesByName(nameof(UpdateContactDTO.Address))
                 .Finish()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -110,8 +110,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             .Configure<UpdateContactDTO>()
                 .ExcludePropertiesByName(nameof(UpdateContactDTO.Address))
                 .Finish()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -139,8 +139,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             .Configure<Contact>()
                 .ExcludePropertiesByName(nameof(Contact.Address))
                 .Finish()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -167,9 +167,10 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 .Finish()
             .Configure<NewContactDTO, Contact>()
                 .ExcludePropertiesByName(nameof(Contact.Address))
+                .SetMapType(MapType.Insert)
                 .Finish()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -196,10 +197,11 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 .Finish()
             .Configure<Contact, UpdateContactDTO>()
                 .ExcludePropertiesByName(nameof(Contact.Address))
+                .SetMapType(MapType.Memory)
                 .Finish()
-            .Register<Contact, UpdateContactDTO>()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<Contact, UpdateContactDTO>(MapType.Memory)
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -226,10 +228,11 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
                 .Finish()
             .Configure<UpdateContactDTO, Contact>()
                 .ExcludePropertiesByName(nameof(Contact.Address))
+                .SetMapType(MapType.Update)
                 .Finish()
-            .Register<UpdateContactDTO, Contact>()
-            .Register<NewBorrowerDTO, Borrower>()
-            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>()
+            .Register<UpdateContactDTO, Contact>(MapType.Memory)
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
+            .RegisterTwoWay<Borrower, UpdateBorrowerDTO>(MapType.Memory, MapType.Update)
             .Build()
             .MakeMapper();
 
@@ -250,8 +253,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             .Configure<Copy>()
                 .SetIdentityPropertyName(nameof(Copy.Number))
                 .Finish()
-            .Register<NewBookDTO, Book>()
-            .Register<Book, BookDTO>()
+            .Register<NewBookDTO, Book>(MapType.Insert)
+            .Register<Book, BookDTO>(MapType.Memory)
             .Build()
             .MakeMapper();
 
@@ -295,8 +298,8 @@ public sealed class TestCase3_MapNavigationProperties_WithUnmapped : TestBase
             .Register<Tag, IdReferenceDTO>()
             .WithScalarConverter<long, string>(l => l.ToString())
             .WithScalarConverter<string, long>(s => long.Parse(s))
-            .Register<NewBookDTO, Book>()
-            .Register<Book, BookDTO>()
+            .Register<NewBookDTO, Book>(MapType.Insert)
+            .Register<Book, BookDTO>(MapType.Memory)
             .Build()
             .MakeMapper();
 

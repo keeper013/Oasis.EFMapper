@@ -4,15 +4,53 @@ using Oasis.EntityFramework.Mapper.Exceptions;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-public class ToDatabaseTests : TestBase
+public class MapTypeTests : TestBase
 {
+    [TestCase(MapType.Insert)]
+    [TestCase(MapType.Update)]
+    [TestCase(MapType.Upsert)]
+    public void UpdateToMemoryOnly_ShouldFail(MapType mapType)
+    {
+        // arrange
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<ToDatabaseEntity1, ToDatabaseEntity2>()
+                .SetMapType(mapType)
+                .Finish()
+            .Build()
+            .MakeToMemoryMapper();
+        var instance = new ToDatabaseEntity1(1, new byte[] { 1, 2, 3 }, 1);
+
+        // assert
+        Assert.Throws<UnregisteredMappingException>(() => mapper.Map<ToDatabaseEntity1, ToDatabaseEntity2>(instance));
+    }
+
+    [Test]
+    public void MemoryMapToDatabaseOnly_ShouldFail()
+    {
+        // arrange
+        var mapper = MakeDefaultMapperBuilder()
+            .Configure<ToDatabaseEntity2, ToDatabaseEntity1>()
+                .SetMapType(MapType.Memory)
+                .Finish()
+            .Build()
+            .MakeToDatabaseMapper();
+        var instance = new ToDatabaseEntity2(null, new byte[] { 1, 2, 3 }, 1);
+
+        // assert
+        Assert.ThrowsAsync<UnregisteredMappingException>(async () => await ExecuteWithNewDatabaseContext(async (databaseContext) =>
+        {
+            mapper.DatabaseContext = databaseContext;
+            var entity = await mapper.MapAsync<ToDatabaseEntity2, ToDatabaseEntity1>(instance, null);
+        }));
+    }
+
     [Test]
     public void UpdateNullId_ShouldFail()
     {
         // arrange
         var mapper = MakeDefaultMapperBuilder()
             .Configure<ToDatabaseEntity2, ToDatabaseEntity1>()
-                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .SetMapType(MapType.Update)
                 .Finish()
             .Build()
             .MakeToDatabaseMapper();
@@ -33,7 +71,7 @@ public class ToDatabaseTests : TestBase
         // arrange
         var mapper = MakeDefaultMapperBuilder()
             .Configure<ToDatabaseEntity2, ToDatabaseEntity1>()
-                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .SetMapType(MapType.Update)
                 .Finish()
             .Build()
             .MakeToDatabaseMapper();
@@ -76,7 +114,7 @@ public class ToDatabaseTests : TestBase
         // arrange
         var mapper = MakeDefaultMapperBuilder()
             .Configure<ToDatabaseEntity2, ToDatabaseEntity1>()
-                .SetMapToDatabaseType(MapToDatabaseType.Insert)
+                .SetMapType(MapType.Insert)
                 .Finish()
             .Build()
             .MakeToDatabaseMapper();

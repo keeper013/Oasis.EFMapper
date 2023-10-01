@@ -66,9 +66,13 @@ internal static class Utilities
         where TTarget : class
         where TKeyType : notnull;
 
-    public static bool AllowsInsert(this MapToDatabaseType mapToDatabaseType) => (mapToDatabaseType & MapToDatabaseType.Insert) == MapToDatabaseType.Insert;
+    public static bool AllowsInsert(this MapType mapType) => (mapType & MapType.Insert) == MapType.Insert;
 
-    public static bool AllowsUpdate(this MapToDatabaseType mapToDatabaseType) => (mapToDatabaseType & MapToDatabaseType.Update) == MapToDatabaseType.Update;
+    public static bool AllowsUpdate(this MapType mapType) => (mapType & MapType.Update) == MapType.Update;
+
+    public static bool AllowsMappingToMemory(this MapType mapType) => (mapType & MapType.Memory) == MapType.Memory;
+
+    public static bool AllowsMappingToDatabase(this MapType mapType) => (mapType & MapType.Upsert) != 0;
 
     public static PropertyInfo? GetKeyProperty(this IEnumerable<PropertyInfo> properties, string? propertyName, bool mustHaveSetter)
     {

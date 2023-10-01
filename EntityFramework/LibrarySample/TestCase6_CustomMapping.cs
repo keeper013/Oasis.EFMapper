@@ -3,6 +3,7 @@
 using System.Data.Entity;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using Oasis.EntityFramework.Mapper;
 using Oasis.EntityFramework.Mapper.Sample;
 
 [TestFixture]
@@ -26,8 +27,9 @@ public sealed class TestCase6_CustomMapping : TestBase
                 .Finish()
             .Configure<Borrower, BorrowerBriefDTO>()
                 .MapProperty(brief => brief.Phone, borrower => borrower.Contact.PhoneNumber)
+                .SetMapType(MapType.Memory)
                 .Finish()
-            .Register<NewBorrowerDTO, Borrower>()
+            .Register<NewBorrowerDTO, Borrower>(MapType.Insert)
             .Build()
             .MakeMapper();
 

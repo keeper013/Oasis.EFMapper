@@ -56,7 +56,7 @@ public class ListPropertyMappingTests : TestBase
         // arrange
         var mapper = MakeDefaultMapperBuilder()
             .Configure<ScalarEntity2Item, SubScalarEntity1>()
-                .SetMapToDatabaseType(MapToDatabaseType.Update)
+                .SetMapType(MapType.Update)
                 .Finish()
             .Register<CollectionEntity2, CollectionEntity1>()
             .Build()
@@ -65,7 +65,7 @@ public class ListPropertyMappingTests : TestBase
         var entity2 = new CollectionEntity2(1, new[] { sc2 });
 
         // Assert
-        Assert.ThrowsAsync<MapToDatabaseTypeException>(async () =>
+        Assert.ThrowsAsync<MapTypeException>(async () =>
         {
             // Act
             await ExecuteWithNewDatabaseContext(async (databaseContext) =>
@@ -233,7 +233,7 @@ public class ListPropertyMappingTests : TestBase
         // arrange
         var mapper = MakeDefaultMapperBuilder()
             .Configure<SubScalarEntity1, SubScalarEntity1>()
-                .SetMapToDatabaseType(MapToDatabaseType.Insert)
+                .SetMapType(MapType.MemoryAndInsert)
                 .Finish()
             .RegisterTwoWay<ListIEntity1, CollectionEntity1>()
             .Build()
@@ -261,7 +261,7 @@ public class ListPropertyMappingTests : TestBase
         item0.LongNullableProp = 3;
         item0.StringProp = "4";
         item0.ByteArrayProp = new byte[] { 2 };
-        Assert.ThrowsAsync<MapToDatabaseTypeException>(async () =>
+        Assert.ThrowsAsync<MapTypeException>(async () =>
         {
             await ExecuteWithNewDatabaseContext(async (databaseContext) =>
             {
@@ -277,7 +277,7 @@ public class ListPropertyMappingTests : TestBase
         // arrange
         var mapper = MakeDefaultMapperBuilder()
             .Configure<SubScalarEntity1, SubScalarEntity1>()
-                .SetMapToDatabaseType(MapToDatabaseType.Insert)
+                .SetMapType(MapType.MemoryAndInsert)
                 .Finish()
             .RegisterTwoWay<ListIEntity1, CollectionEntity1>()
             .Build()
@@ -309,7 +309,7 @@ public class ListPropertyMappingTests : TestBase
         item0.LongNullableProp = 4;
         item0.StringProp = "5";
         item0.ByteArrayProp = new byte[] { 3 };
-        Assert.ThrowsAsync<MapToDatabaseTypeException>(async () =>
+        Assert.ThrowsAsync<MapTypeException>(async () =>
         {
             await ExecuteWithNewDatabaseContext(async (databaseContext) =>
             {

@@ -4,7 +4,6 @@ using Oasis.EntityFramework.Mapper.Exceptions;
 using System;
 using System.Linq.Expressions;
 using System.Reflection.Emit;
-using System.Security.AccessControl;
 
 internal enum KeyType
 {

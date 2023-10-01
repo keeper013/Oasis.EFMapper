@@ -5,9 +5,9 @@ internal sealed class MapperBuilderConfigurationBuilder : IMapperBuilderConfigur
     private readonly HashSet<string> _excludedProperties = new ();
     private readonly IMapperBuilderFactory _factory;
 
-    public MapperBuilderConfigurationBuilder(MapperBuilderFactory factory)
+    public MapperBuilderConfigurationBuilder(IMapperBuilderFactory factory)
     {
-        MapToDatabaseType = MapToDatabaseType.Upsert;
+        MapType = MapType.MemoryAndUpsert;
         _factory = factory;
     }
 
@@ -17,7 +17,7 @@ internal sealed class MapperBuilderConfigurationBuilder : IMapperBuilderConfigur
 
     public ISet<string>? ExcludedProperties => _excludedProperties.Any() ? _excludedProperties : default;
 
-    public MapToDatabaseType MapToDatabaseType { get; private set; }
+    public MapType MapType { get; private set; }
 
     public bool ThrowForRedundantConfiguration { get; private set; }
 
@@ -55,9 +55,9 @@ internal sealed class MapperBuilderConfigurationBuilder : IMapperBuilderConfigur
         return this;
     }
 
-    public IMapperBuilderConfigurationBuilder SetMapToDatabaseType(MapToDatabaseType? mapToDatabase)
+    public IMapperBuilderConfigurationBuilder SetMapType(MapType? mapToDatabase)
     {
-        MapToDatabaseType = mapToDatabase ?? MapToDatabaseType.Upsert;
+        MapType = mapToDatabase ?? MapType.MemoryAndUpsert;
         return this;
     }
 

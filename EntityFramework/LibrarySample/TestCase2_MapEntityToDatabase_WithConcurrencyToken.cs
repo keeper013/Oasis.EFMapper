@@ -16,8 +16,8 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
         // initialize mapper
         var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<long, string>(l => l.ToString())
-            .Register<NewBookDTO, Book>()
-            .Register<Book, BookDTO>()
+            .Register<NewBookDTO, Book>(MapType.Insert)
+            .Register<Book, BookDTO>(MapType.Memory)
             .Build()
             .MakeMapper();
 
@@ -69,8 +69,8 @@ public sealed class TestCase2_MapEntityToDatabase_WithConcurrencyToken : TestBas
         var mapper = MakeDefaultMapperBuilder()
             .WithScalarConverter<long, string>(l => l.ToString())
             .WithScalarConverter<string, long>(s => long.Parse(s))
-            .Register<NewBookDTO, Book>()
-            .RegisterTwoWay<Book, UpdateBookDTO>()
+            .Register<NewBookDTO, Book>(MapType.Insert)
+            .RegisterTwoWay<Book, UpdateBookDTO>(MapType.Memory)
             .Build()
             .MakeMapper();
 
