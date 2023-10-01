@@ -47,13 +47,15 @@ public sealed class Test : IDisposable
                 .Finish()
             .MakeMapperBuilder()
             .Register<ProjectDTO, Project>()
-            .Build();
+            .Build()
+            .MakeToDatabaseMapper();
 
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
-            _ = await mapper.MapAsync<ProjectDTO, Project>(project1, null, databaseContext);
-            _ = await mapper.MapAsync<ProjectDTO, Project>(project2, null, databaseContext);
-            _ = await mapper.MapAsync<EmployeeDTO, Employee>(employee5, null, databaseContext);
+            mapper.DatabaseContext = databaseContext;
+            _ = await mapper.MapAsync<ProjectDTO, Project>(project1, null);
+            _ = await mapper.MapAsync<ProjectDTO, Project>(project2, null);
+            _ = await mapper.MapAsync<EmployeeDTO, Employee>(employee5, null);
             _ = await databaseContext.SaveChangesAsync();
         });
 
@@ -85,7 +87,8 @@ public sealed class Test : IDisposable
                 .Finish()
             .MakeMapperBuilder()
             .Register<Project, ProjectDTO>()
-            .Build();
+            .Build()
+            .MakeToMemoryMapper();
 
         var allData = new AllDataDTO();
         await ExecuteWithNewDatabaseContext(async databaseContext =>
@@ -140,7 +143,7 @@ public sealed class Test : IDisposable
 
     private async Task UpdateDataAtServer(byte[] content)
     {
-        var mapper = new MapperBuilderFactory()
+        var factory = new MapperBuilderFactory()
             .Configure()
                 .SetIdentityPropertyName("Name")
                 .Finish()
@@ -152,9 +155,10 @@ public sealed class Test : IDisposable
 
         await ExecuteWithNewDatabaseContext(async databaseContext =>
         {
+            var mapper = factory.MakeToDatabaseMapper(databaseContext);
             foreach (var project in allData.Projects)
             {
-                _ = await mapper.MapAsync<ProjectDTO, Project>(project, p => p.Include(p => p.Employees), databaseContext);
+                _ = await mapper.MapAsync<ProjectDTO, Project>(project, p => p.Include(p => p.Employees));
             }
 
             _ = await databaseContext.SaveChangesAsync();
