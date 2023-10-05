@@ -83,7 +83,7 @@ internal class CustomTypeMapperBuilder<TSource, TTarget> : BuilderConfiguration<
     where TSource : class
     where TTarget : class
 {
-    private CustomPropertyMapper<TSource, TTarget> _customPropertyMapper = new ();
+    private readonly CustomPropertyMapper<TSource, TTarget> _customPropertyMapper = new ();
 
     public CustomTypeMapperBuilder(MapperBuilder builder, MapType? mapType = null)
         : base(builder)
