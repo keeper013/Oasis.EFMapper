@@ -100,7 +100,7 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
         _keyPropertyNames = new (new KeyPropertyNameConfiguration(configuration?.IdentityPropertyName, configuration?.ConcurrencyTokenPropertyName));
         _excludedPropertyManager = new (configuration?.ExcludedProperties);
         _keepUnmatchedManager = new ();
-        _dynamicMethodBuilder = new (module.DefineType("Mapper", TypeAttributes.Public), _scalarConverterDictionary, _convertableToScalarTypes);
+        _dynamicMethodBuilder = new (module.DefineType("Mapper", TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract), _scalarConverterDictionary, _convertableToScalarTypes);
     }
 
     public KeepUnmatchedManager KeepUnmatchedManager => _keepUnmatchedManager;

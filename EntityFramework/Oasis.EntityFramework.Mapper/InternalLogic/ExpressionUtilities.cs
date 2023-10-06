@@ -25,7 +25,7 @@ public static class ExpressionUtilities
         // Expression.Convert is necessary, in case id property type is nullable.
         var equal = Expression.Equal(
                 Expression.Property(parameter, identityPropertyName),
-                Expression.Convert(Expression.Constant(sourceId), targetIdentityType));
+                Expression.Constant(sourceId, targetIdentityType));
         return Expression.Lambda<Func<TTarget, bool>>(equal, parameter);
     }
 }
