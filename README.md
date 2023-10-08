@@ -89,6 +89,7 @@ The feature generally covers the following from type to type mapping cases:
 6. Any C# primitive to decimal or nullable decimal, and nullable C# primitive to nullable decimal (e.g. int to decimal, ulong to decimal?, double to decimal, uint? to decimal, float? to decimal?)
 7. Any system/user-defined enum/struct to its nullable type (e.g. decimal to decimal?, DateTime to DateTime?, LocalDate to LocalDate?).
 8. Decimal/decimal? to string.
+
 Users only need to specifically define scalar converters that are not covered by the cases above.
 
 Scalar converters can be used to define mapping from a value type to a class type as well, or from a class type to a value type, but can't be used to define mapping from one class type to another class type. One example can be found below.
