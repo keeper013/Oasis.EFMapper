@@ -68,14 +68,27 @@ Note that **the library** is expecting every entity to have an identity property
 ### TestCase2_MapEntityToDatabase_WithConcurrencyToken
 This test case shows usage of scalar converters, concurrency token and the way to update scalar properties using **the library**.
 
-When mapping from one class to another, **the library** by default map public instance scalar properties in the 2 classes with exactly the same names and same types (Not to mention the properties must have a public getter/setter). Property name matching is case sensitive. If developers want to support mapping between property of different scalar types (e.g. from properties of type int? to properties of int, or from properties of type int to properties of long by default), a scalar converter must be defined while configuring te mapper like the examples below:
+When mapping from one class to another, **the library** by default map public instance scalar properties in the 2 classes with exactly the same names and same types (Not to mention the properties must have a public getter/setter). Property name matching is case sensitive. If developers want to support mapping between property of different scalar types (e.g. from properties of type int? to properties of int), a scalar converter must be defined while configuring te mapper like the examples below:
 ```C#
 var mapper = MakeDefaultMapperBuilder()
     .WithScalarConverter<int?, int>(i => i.HasValue ? i.Value : 0)
-    .WithScalarConverter<int, long>(i => i);
     // to configure/register more, continue with the fluent interface before calling Build() method.
     .Build();
 ```
+For convenience of users, convertion between certain C# types for scalar properties is supported by default, if the conversion satifies the following conditions:
+- The conversion is impossible to cause any overflow problem (e.g. from int to long is allowed, from long to int is not allowed. From uint to int is not allowed, but from ushort to int is allowed).
+- The conversion is impossible to cause any accuracy loss (e.g. from float to double is allowed, from float to int is not allowed, from int to float is also not allowed because maximum integer a float can represent accurately is 16777216, while maximum value for integer is 2147483647).
+- The conversion must be able to cover null value for nullables (e.g. from int? to long? is allowed, but from int? to int is not allowed because int value doesn't cover the null value for int?).
+The feature generally covers the following from type to type mapping cases:
+1. mapping between same types are always supported as the trivial feature.
+2. One C# primitive to another C# primitive without accuracy loss or overflow problem (e.g. int to long, byte to ushort, float to double).
+3. Any C# primitive to a nullable primitive without accuracy loss or overflow problem (e.g. int to long?, byte to ushort?, float to double?).
+4. Any nullable C# primitive or another nullable C# primitive without accuracy loss or overflow problem (e.g. int? to long?, byte? to ushort?, float? to double?).
+5. Any C# primitive or nullable primitive to string (e.g. int to string, byte to string, ushort to string, int? to string, byte? to string, ushort? to string, note that null value will be mapped to string.Empty value).
+6. Any C# primitive to decimal or nullable decimal, and nullable C# primitive to nullable decimal (e.g. int to decimal, ulong to decimal?, double to decimal, uint? to decimal, float? to decimal?)
+7. any system/user-defined enum to its nullable type (e.g. decimal to decimal?, DateTime to DateTime?, LocalDate to LocalDate?).
+Users only need to specifically define scalar converters that are not covered by the cases above.
+
 Scalar converters can be used to define mapping from a value type to a class type as well, or from a class type to a value type, but can't be used to define mapping from one class type to another class type. One example can be found below.
 ```C#
 // initialize mapper
