@@ -79,6 +79,7 @@ For convenience of users, convertion between certain C# types for scalar propert
 - The conversion is impossible to cause any overflow problem (e.g. from int to long is allowed, from long to int is not allowed. From uint to int is not allowed, but from ushort to int is allowed).
 - The conversion is impossible to cause any accuracy loss (e.g. from float to double is allowed, from float to int is not allowed, from int to float is also not allowed because maximum integer a float can represent accurately is 16777216, while maximum value for integer is 2147483647).
 - The conversion must be able to cover null value for nullables (e.g. from int? to long? is allowed, but from int? to int is not allowed because int value doesn't cover the null value for int?).
+
 The feature generally covers the following from type to type mapping cases:
 1. mapping between same types are always supported as the trivial feature.
 2. One C# primitive to another C# primitive without accuracy loss or overflow problem (e.g. int to long, byte to ushort, float to double).
