@@ -250,7 +250,7 @@ public sealed class ScalarPropertyMappingTests : TestBase
         var result = mapper.Map<ScalarEntity1, ScalarEntity3>(entity);
 
         // assert
-        Assert.Null(result.IntProp);
+        Assert.NotNull(result.IntProp);
         Assert.AreEqual(0, result.LongNullableProp);
         Assert.Null(result.StringProp1);
         Assert.Null(result.ByteArrayProp);

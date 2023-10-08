@@ -103,12 +103,7 @@ internal static class Utilities
 
     public static Type GetUnderlyingType(this Type type) => Nullable.GetUnderlyingType(type) ?? type;
 
-    public static bool IsScalarType(this Type type)
-    {
-        return (type.IsValueType && (type.IsPrimitive || type.IsEnum))
-            || (type.IsNullable(out var argumentType) && (argumentType!.IsPrimitive || argumentType.IsEnum))
-            || NonPrimitiveScalarTypes.Contains(type);
-    }
+    public static bool IsScalarType(this Type type) => type.IsValueType || type.IsNullable(out _) || NonPrimitiveScalarTypes.Contains(type);
 
     public static bool IsEntityType(this Type type)
     {
@@ -297,12 +292,8 @@ internal record struct MethodMetaData(Type type, string name);
 
 internal record struct TargetByIdTrackerMethods(Delegate find, Delegate track);
 
-internal record struct MapperSet(Delegate? customPropertiesMapper, Delegate? keyMapper, Delegate? contentMapper);
-
-// get method is only needed for id, not for concurrency token, so it's nullable here
 internal record struct TypeKeyProxyMetaDataSet(MethodMetaData isEmpty, PropertyInfo property);
 
-// get method is only needed for id, not for concurrency token, so it's nullable here
 internal record struct TypeKeyProxy(Delegate isEmpty, PropertyInfo property);
 
 internal record struct TargetByIdTrackerMetaDataSet(MethodMetaData find, MethodMetaData track);

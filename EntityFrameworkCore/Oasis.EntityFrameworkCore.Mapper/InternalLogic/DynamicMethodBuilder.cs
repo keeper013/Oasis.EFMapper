@@ -84,7 +84,7 @@ internal enum TypeIsDefaultCategory
     IntAndBelow,
 }
 
-internal sealed class DynamicMethodBuilder
+internal sealed class DynamicMethodBuilder : IValueToNullableConverterBuilder
 {
     private const char CompareConcurrencyTokenMethod = 'c';
     private const char CompareIdMethod = 'o';
@@ -99,6 +99,7 @@ internal sealed class DynamicMethodBuilder
     private const char SourceIdListContainsTargetId = 'e';
     private const char TargetByIdTrackerFind = 't';
     private const char TargetByIdTrackerTrack = 'b';
+    private const char ValueTypeToNullable = 'v';
 
     private const string DictionaryItemMethodName = "get_Item";
     private const string EqualOperatorMethodName = "op_Equality";
@@ -123,14 +124,22 @@ internal sealed class DynamicMethodBuilder
     private static readonly MethodInfo DecimalOpEquality = typeof(decimal).GetMethod(nameof(EqualOperatorMethodName), Utilities.PublicStatic)!;
     private readonly TypeBuilder _typeBuilder;
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary;
+    private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _valueToNullableConverterBuilder;
     private readonly HashSet<Type> _convertableToScalarTypes;
 
-    public DynamicMethodBuilder(TypeBuilder typeBuilder, Dictionary<Type, Dictionary<Type, Delegate>> scalarConverterDictionary, HashSet<Type> convertableToScalarTypes)
+    public DynamicMethodBuilder(
+        TypeBuilder typeBuilder,
+        Dictionary<Type, Dictionary<Type, Delegate>> scalarConverterDictionary,
+        Dictionary<Type, Dictionary<Type, MethodMetaData>> valueToNullableConverterBuilder,
+        HashSet<Type> convertableToScalarTypes)
     {
         _typeBuilder = typeBuilder;
         _scalarConverterDictionary = scalarConverterDictionary;
+        _valueToNullableConverterBuilder = valueToNullableConverterBuilder;
         _convertableToScalarTypes = convertableToScalarTypes;
     }
+
+    public bool ContainsValueTypeToNullableConverter(Type sourceType, Type targetType) => _valueToNullableConverterBuilder.Contains(sourceType, targetType);
 
     public Type Build()
     {
@@ -658,6 +667,18 @@ internal sealed class DynamicMethodBuilder
         return new MethodMetaData(typeof(Func<>).MakeGenericType(type), method.Name);
     }
 
+    public void AddValueTypeToNullableMethod(Type nullableType, Type argumentType)
+    {
+        var methodName = BuildMethodName(ValueTypeToNullable, argumentType);
+        var constructorInfo = nullableType.GetConstructor(Utilities.PublicInstance, new[] { argumentType })!;
+        var method = BuildMethod(methodName, new[] { argumentType }, nullableType);
+        var generator = method.GetILGenerator();
+        generator.Emit(OpCodes.Ldarg_0);
+        generator.Emit(OpCodes.Newobj, constructorInfo);
+        generator.Emit(OpCodes.Ret);
+        _valueToNullableConverterBuilder.Add(argumentType, nullableType, new MethodMetaData(typeof(Func<,>).MakeGenericType(argumentType, nullableType), method.Name));
+    }
+
     private static void GenerateEqualCode(ILGenerator generator, Type type, TypeEqualCategory category, LocalBuilder? sourceLocal, LocalBuilder? targetLocal)
     {
         if (sourceLocal != default)
@@ -876,7 +897,7 @@ internal sealed class DynamicMethodBuilder
         foreach (var sourceProperty in sourceScalarProperties)
         {
             if (targetScalarProperties.TryGetValue(sourceProperty.Name, out var targetProperty)
-                && (sourceProperty.PropertyType == targetProperty.PropertyType || _scalarConverterDictionary.Contains(sourceProperty.PropertyType, targetProperty.PropertyType)))
+                && (sourceProperty.PropertyType == targetProperty.PropertyType || _scalarConverterDictionary.TryAddingConverterIfNotExists(sourceProperty.PropertyType, targetProperty.PropertyType, this)))
             {
                 matchedProperties.Add((sourceProperty, targetProperty));
             }

@@ -54,7 +54,7 @@ public sealed class ScalarEntity3 : EntityBase
     {
     }
 
-    public ScalarEntity3(int? intProp, long longNullableProp, string stringProp, char[] byteArrayProp)
+    public ScalarEntity3(long? intProp, long longNullableProp, string stringProp, char[] byteArrayProp)
     {
         IntProp = intProp;
         LongNullableProp = longNullableProp;
@@ -62,7 +62,7 @@ public sealed class ScalarEntity3 : EntityBase
         ByteArrayProp = byteArrayProp;
     }
 
-    public int? IntProp { get; set; }
+    public long? IntProp { get; set; }
 
     public long LongNullableProp { get; set; }
 

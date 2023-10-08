@@ -63,6 +63,7 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
 {
     // scalar type validator
     private readonly Dictionary<Type, Dictionary<Type, Delegate>> _scalarConverterDictionary = new ();
+    private readonly Dictionary<Type, Dictionary<Type, MethodMetaData>> _valueToNullableConverterBuilder = new ();
     private readonly HashSet<Type> _convertableToScalarTypes = new ();
 
     // dynamicall generated methods
@@ -100,7 +101,11 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
         _keyPropertyNames = new (new KeyPropertyNameConfiguration(configuration?.IdentityPropertyName, configuration?.ConcurrencyTokenPropertyName));
         _excludedPropertyManager = new (configuration?.ExcludedProperties);
         _keepUnmatchedManager = new ();
-        _dynamicMethodBuilder = new (module.DefineType("Mapper", TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract), _scalarConverterDictionary, _convertableToScalarTypes);
+        _dynamicMethodBuilder = new (
+            module.DefineType("Mapper", TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract),
+            _scalarConverterDictionary,
+            _valueToNullableConverterBuilder,
+            _convertableToScalarTypes);
     }
 
     public KeepUnmatchedManager KeepUnmatchedManager => _keepUnmatchedManager;
@@ -120,6 +125,15 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
         }
 
         var type = _dynamicMethodBuilder.Build();
+
+        // add in generated value to nullable converters
+        foreach (var kvp in _valueToNullableConverterBuilder)
+        {
+            foreach (var innerKvp in kvp.Value)
+            {
+                _scalarConverterDictionary.Add(kvp.Key, innerKvp.Key, Delegate.CreateDelegate(innerKvp.Value.type, type.GetMethod(innerKvp.Value.name)!));
+            }
+        }
 
         // set custom property mapping functions
         // reflection is slow but it's a one time initialization job and I haven't found faster ways yet.
@@ -629,7 +643,7 @@ internal sealed class MapperRegistry : RecursiveRegisterBase
         {
             var sourceIdType = sourceProperty!.PropertyType;
             var targetIdType = targetProperty!.PropertyType;
-            if (sourceIdType != targetIdType && !_scalarConverterDictionary.Contains(sourceIdType, targetIdType))
+            if (sourceIdType != targetIdType && !_scalarConverterDictionary.TryAddingConverterIfNotExists(sourceIdType, targetIdType, _dynamicMethodBuilder))
             {
                 throw new ScalarConverterMissingException(sourceIdType, targetIdType);
             }
