@@ -226,14 +226,12 @@ public sealed class DefaultConverterTests : TestBase
 
         // float
         Test<float, double>(97, 97);
-        Test<float, decimal>(97, 97);
         Test<float, double?>(97, 97);
         Test<float, float?>(97, 97);
         Test<float, double?>(97, 97);
         Test<float, string>(97, "97");
 
         // double
-        Test<double, decimal>(97, 97);
         Test<double, double?>(97, 97);
         Test<double, string>(97, "97");
 

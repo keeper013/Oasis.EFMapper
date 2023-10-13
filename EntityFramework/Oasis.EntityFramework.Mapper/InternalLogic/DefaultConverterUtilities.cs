@@ -242,19 +242,15 @@ internal static class DefaultConverterUtilities
             typeof(float), new Dictionary<Type, Delegate>
             {
                 { typeof(double), (float f) => (double)f },
-                { typeof(decimal), (float f) => (decimal)f },
                 { typeof(float?), (float f) => (float?)f },
                 { typeof(double?), (float f) => (double?)f },
-                { typeof(decimal?), (float f) => (decimal?)f },
                 { typeof(string), (float f) => f.ToString() },
             }
         },
         {
             typeof(double), new Dictionary<Type, Delegate>
             {
-                { typeof(decimal), (double d) => (decimal)d },
                 { typeof(double?), (double d) => (double?)d },
-                { typeof(decimal?), (double d) => (decimal?)d },
                 { typeof(string), (double d) => d.ToString() },
             }
         },
@@ -271,14 +267,12 @@ internal static class DefaultConverterUtilities
             typeof(float?), new Dictionary<Type, Delegate>
             {
                 { typeof(double?), (float? f) => (double?)f },
-                { typeof(decimal?), (float? f) => (decimal?)f },
                 { typeof(string), (float? f) => f.ToString() },
             }
         },
         {
             typeof(double?), new Dictionary<Type, Delegate>
             {
-                { typeof(decimal?), (double? d) => (decimal?)d },
                 { typeof(string), (double? d) => d.ToString() },
             }
         },
