@@ -83,7 +83,12 @@ internal sealed class ToMemoryMapper : MapperSessionHandler, IToMemoryMapper
     public TTarget Map<TSource, TTarget>(TSource source)
         where TSource : class
         where TTarget : class
-        => _mapper.MapNew<TSource, TTarget>(source, Context);
+        => _mapper.MapNew<TSource, TTarget>(source, null, Context);
+
+    public void Map<TSource, TTarget>(TSource source, TTarget target)
+        where TSource : class
+        where TTarget : class
+        => _mapper.MapNew(source, target, Context);
 }
 
 internal sealed class Mapper : MapperSessionHandler, IMapper
@@ -110,7 +115,12 @@ internal sealed class Mapper : MapperSessionHandler, IMapper
     public TTarget Map<TSource, TTarget>(TSource source)
         where TSource : class
         where TTarget : class
-        => _toMemoryMapper.MapNew<TSource, TTarget>(source, Context);
+        => _toMemoryMapper.MapNew<TSource, TTarget>(source, null, Context);
+
+    public void Map<TSource, TTarget>(TSource source, TTarget target)
+        where TSource : class
+        where TTarget : class
+        => _toMemoryMapper.MapNew(source, target, Context);
 
     public async Task<TTarget> MapAsync<TSource, TTarget>(TSource source, Expression<Func<IQueryable<TTarget>, IQueryable<TTarget>>>? includer)
         where TSource : class

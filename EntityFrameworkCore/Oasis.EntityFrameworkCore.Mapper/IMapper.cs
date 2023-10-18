@@ -17,6 +17,10 @@ public interface IToMemoryMapper : IMapperSessionHandler
     TTarget Map<TSource, TTarget>(TSource source)
         where TSource : class
         where TTarget : class;
+
+    void Map<TSource, TTarget>(TSource source, TTarget target)
+        where TSource : class
+        where TTarget : class;
 }
 
 public interface IToDatabaseMapper : IMapperSessionHandler

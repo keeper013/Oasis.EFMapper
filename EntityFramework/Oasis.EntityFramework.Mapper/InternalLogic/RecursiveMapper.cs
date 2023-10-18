@@ -1,8 +1,8 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
 using System;
-using System.Data.Entity;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq.Expressions;
 using Oasis.EntityFramework.Mapper.Exceptions;
 
@@ -589,7 +589,7 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursi
         }
     }
 
-    internal TTarget MapNew<TSource, TTarget>(TSource source, IRecursiveMappingContext context)
+    internal TTarget MapNew<TSource, TTarget>(TSource source, TTarget? target, IRecursiveMappingContext context)
         where TSource : class
         where TTarget : class
     {
@@ -612,7 +612,8 @@ internal sealed class ToMemoryRecursiveMapper : RecursiveMapperContext, IRecursi
             tracker = context.GetTracker<TSource, TTarget>(source);
         }
 
-        var target = Make<TTarget>();
+        target ??= Make<TTarget>();
+        tracker?.Track(target);
         mapper.Invoke(source, target, ScalarTypeConverters, this, context);
 
         if (context.HasTracked && !context.ForceTrack)
