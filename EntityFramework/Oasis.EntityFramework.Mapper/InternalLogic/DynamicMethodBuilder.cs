@@ -728,7 +728,7 @@ internal sealed class DynamicMethodBuilder : IValueToNullableConverterBuilder
             return TypeEqualCategory.OpEquality;
         }
 
-        if (type.IsPrimitive || type.IsEnum || type.IsClass)
+        if (type.IsPrimitive || type.IsEnum || type.IsClass || type.IsInterface)
         {
             return TypeEqualCategory.PrimitiveEnumClass;
         }
@@ -752,7 +752,7 @@ internal sealed class DynamicMethodBuilder : IValueToNullableConverterBuilder
 
     private static (TypeIsDefaultCategory, bool) GetTypeIsDefaultCategory(Type type)
     {
-        if (type.IsClass)
+        if (type.IsClass || type.IsInterface)
         {
             return (TypeIsDefaultCategory.Class, false);
         }
