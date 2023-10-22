@@ -1,6 +1,7 @@
 ﻿namespace Oasis.EntityFramework.Mapper.InternalLogic;
 
 using System.Linq.Expressions;
+using System.Security.Cryptography;
 
 internal static class Utilities
 {
@@ -143,6 +144,16 @@ internal static class Utilities
 
         argumentType = null;
         return false;
+    }
+
+    internal static string GenerateRandomName(int length)
+    {
+        const string AvailableChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        const int AvailableCharsCount = 52;
+        var bytes = new byte[length];
+        RandomNumberGenerator.Create().GetBytes(bytes);
+        var str = bytes.Select(b => AvailableChars[b % AvailableCharsCount]);
+        return string.Concat(str);
     }
 
     internal static void Add<TKey1, TKey2, TValue>(this Dictionary<TKey1, Dictionary<TKey2, TValue>> dict, TKey1 key1, TKey2 key2, TValue value)

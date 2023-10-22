@@ -147,7 +147,7 @@ internal sealed class DynamicMethodBuilder : IValueToNullableConverterBuilder
     }
 
     public FieldInfo RegisterCustomPropertyMapper(Type sourceType, Type targetType)
-        => _typeBuilder.DefineField($"_CPM_{GetTypeName(sourceType)}_{GetTypeName(targetType)}", typeof(Action<,>).MakeGenericType(sourceType, targetType), FieldAttributes.Private | FieldAttributes.Static);
+        => _typeBuilder.DefineField($"_CPM_{sourceType.Name}_{targetType.Name}_{Utilities.GenerateRandomName(16)}", typeof(Action<,>).MakeGenericType(sourceType, targetType), FieldAttributes.Private | FieldAttributes.Static);
 
     public MethodMetaData BuildUpMapToMemoryMethod(
         Type sourceType,
@@ -829,29 +829,24 @@ internal sealed class DynamicMethodBuilder : IValueToNullableConverterBuilder
         }
     }
 
-    private static string GetTypeName(Type type)
-    {
-        return $"{type.Namespace}_{type.Name}".Replace(".", "_").Replace("`", "_");
-    }
-
     private static string BuildMethodName(char type, Type sourceType, Type targetType)
     {
-        return $"_{type}_{GetTypeName(sourceType)}__MapTo__{GetTypeName(targetType)}";
+        return $"_{type}_{sourceType.Name}__MapTo__{targetType.Name}_{Utilities.GenerateRandomName(16)}";
     }
 
     private static string BuildMethodName(char prefix, Type entityType)
     {
-        return $"_{prefix}__{GetTypeName(entityType)}";
+        return $"_{prefix}__{entityType.Name}_{Utilities.GenerateRandomName(16)}";
     }
 
     private static string BuildMethodName(Type sourceType, Type targetType)
     {
-        return $"_{GetTypeName(sourceType)}__MapTo__{GetTypeName(targetType)}";
+        return $"_{sourceType.Name}__MapTo__{targetType.Name}_{Utilities.GenerateRandomName(16)}";
     }
 
     private static string BuildPropertyCompareMethodName(char type, Type sourceType, Type targetType)
     {
-        return $"_{type}_{GetTypeName(sourceType)}__CompareTo__{GetTypeName(targetType)}";
+        return $"_{type}_{sourceType.Name}__CompareTo__{targetType.Name}_{Utilities.GenerateRandomName(16)}";
     }
 
     private void GenerateContentMappingMethod(

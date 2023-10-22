@@ -35,17 +35,8 @@ public sealed class MapperBuilderFactory : IMapperBuilderFactory
 
     public IMapperBuilder MakeMapperBuilder()
     {
-        return new MapperBuilder(GenerateRandomTypeName(16), _configuration);
+        return new MapperBuilder(Utilities.GenerateRandomName(16), _configuration);
     }
 
     public IMapperBuilderConfigurationBuilder Configure() => _configuration ??= new MapperBuilderConfigurationBuilder(this);
-
-    private static string GenerateRandomTypeName(int length)
-    {
-        const string AvailableChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        const int AvailableCharsCount = 52;
-        var bytes = RandomNumberGenerator.GetBytes(length);
-        var str = bytes.Select(b => AvailableChars[b % AvailableCharsCount]);
-        return string.Concat(str);
-    }
 }
