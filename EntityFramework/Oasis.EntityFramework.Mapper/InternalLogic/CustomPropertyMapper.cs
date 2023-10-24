@@ -37,14 +37,17 @@ internal class CustomPropertyMapper<TSource, TTarget> : ICustomPropertyMapper
 
         if (memberExpression == null)
         {
-            throw new ArgumentException("Not a member access", nameof(expression));
+            throw new InvalidPopertyExpressionException(expression.ToString());
+        }
+
+        if (memberExpression.Expression?.NodeType != ExpressionType.Parameter)
+        {
+            throw new InvalidPopertyExpressionException(expression.ToString());
         }
 
         var member = memberExpression.Member;
         var property = member as PropertyInfo;
-        return property == null
-            ? throw new InvalidOperationException(string.Format("Member with Name '{0}' is not a property.", member.Name))
-            : property;
+        return property ?? throw new InvalidPopertyExpressionException(expression.ToString());
     }
 
     private void MapPropertiesFunc(TSource source, TTarget target)

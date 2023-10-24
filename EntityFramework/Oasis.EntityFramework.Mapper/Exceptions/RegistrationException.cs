@@ -31,3 +31,11 @@ public sealed class ScalarMapperExistsException : EfMapperException
     {
     }
 }
+
+public sealed class InvalidPopertyExpressionException : EfMapperException
+{
+    public InvalidPopertyExpressionException(string expression)
+        : base($"{expression} is not a valid direct property expression.")
+    {
+    }
+}
