@@ -1,6 +1,9 @@
 # EF Mapper
+Oasis.EntityFramework.Mapper
 [![latest version](https://img.shields.io/nuget/v/Oasis.EntityFramework.Mapper)](https://www.nuget.org/packages/Oasis.EntityFramework.Mapper)
 [![downloads](https://img.shields.io/nuget/dt/Oasis.EntityFramework.Mapper)](https://www.nuget.org/packages/Oasis.EntityFramework.Mapper)
+
+Oasis.EntityFrameworkCore.Mapper
 [![latest version](https://img.shields.io/nuget/v/Oasis.EntityFrameworkCore.Mapper)](https://www.nuget.org/packages/Oasis.EntityFrameworkCore.Mapper)
 [![downloads](https://img.shields.io/nuget/dt/Oasis.EntityFrameworkCore.Mapper)](https://www.nuget.org/packages/Oasis.EntityFrameworkCore.Mapper)
 ## Introduction
