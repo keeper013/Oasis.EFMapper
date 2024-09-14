@@ -1,4 +1,8 @@
 # EF Mapper
+[![latest version](https://img.shields.io/nuget/v/Oasis.EntityFramework.Mapper)](https://www.nuget.org/packages/Oasis.EntityFramework.Mapper)
+[![downloads](https://img.shields.io/nuget/dt/Oasis.EntityFramework.Mapper)](https://www.nuget.org/packages/Oasis.EntityFramework.Mapper)
+[![latest version](https://img.shields.io/nuget/v/Oasis.EntityFrameworkCore.Mapper)](https://www.nuget.org/packages/Oasis.EntityFrameworkCore.Mapper)
+[![downloads](https://img.shields.io/nuget/dt/Oasis.EntityFrameworkCore.Mapper)](https://www.nuget.org/packages/Oasis.EntityFrameworkCore.Mapper)
 ## Introduction
 **Oasis.EntityFramework.Mapper/Oasis.EntityFramework.Mapper** (referred to as **the library** in the following content) is a library that helps users (referred to as "developers" in the following document, as users of this libraries are developers) to automatically map properties between different classes. Unlike AutoMapper which serves general mapping purposes, the library focus on mapping entities of EntityFramework/EntityFrameworkCore.
 
